@@ -100,3 +100,28 @@ export async function deleteOrganization(organizationId: string) {
     throw new Error('Organization not found');
   }
 }
+export async function getUserOrganizationRole(
+  organizationId: string,
+  userId: string
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return null;
+  }
+  try {
+    const organizationMember = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId,
+        userId,
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    return organizationMember;
+  } catch (error) {
+    console.error('Failed to get user organisation role:', error);
+    throw new Error('Failed to get user organisation role');
+  }
+}

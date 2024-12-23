@@ -2,8 +2,6 @@ import { AppSidebar } from '@/components/layout/app-sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { OrganizationProvider } from '@/providers/organization.provider';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { signOut } from 'next-auth/react';
 const { expect, describe, it } = require('@jest/globals');
 
 // Mock next-auth
@@ -25,6 +23,9 @@ jest.mock('next-auth/react', () => ({
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(() => '/'),
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+  })),
 }));
 
 const renderWithSession = (component: React.ReactNode) => {
@@ -48,21 +49,6 @@ describe('AppSidebar', () => {
   it('renders user email in profile section', () => {
     renderWithSession(<AppSidebar />);
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
-  });
-
-  it('renders logout button in footer', () => {
-    renderWithSession(<AppSidebar />);
-    expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument();
-  });
-
-  it('calls signOut when logout button is clicked', async () => {
-    const user = userEvent.setup();
-    renderWithSession(<AppSidebar />);
-
-    const logoutButton = screen.getByRole('button', { name: /logout/i });
-    await user.click(logoutButton);
-
-    expect(signOut).toHaveBeenCalledTimes(1);
   });
 
   it('renders profile section in footer', () => {

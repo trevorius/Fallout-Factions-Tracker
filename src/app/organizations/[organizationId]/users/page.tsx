@@ -1,11 +1,12 @@
-import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
-import { redirect } from 'next/navigation';
+import { Membership } from '@/types/organization.types';
+import { OrganizationRole } from '@prisma/client';
+import RoleGuardian from '../components/RoleGuardian';
 import CreateUserButton from './components/CreateUserButton';
 import UserManagementTable from './components/UserManagementTable';
 
 async function getUsersWithRoles(orgId: string) {
-  return await prisma.organizationMember.findMany({
+  const members: Membership[] = await prisma.organizationMember.findMany({
     where: { organizationId: orgId },
     include: {
       user: {
@@ -17,45 +18,40 @@ async function getUsersWithRoles(orgId: string) {
       },
     },
   });
+  return members;
 }
 
-async function getUserRole(orgId: string, userId: string) {
-  const member = await prisma.organizationMember.findFirst({
-    where: {
-      organizationId: orgId,
-      userId: userId,
-    },
-  });
-  return member?.role;
-}
+type Props = {
+  params: Promise<{ organizationId: string }>;
+};
 
-export default async function UsersPage({
-  params,
-}: {
-  params: Promise<{ orgId: string }>;
-}) {
-  const { orgId } = await params;
+export default async function UsersPage({ params }: Props) {
+  const { organizationData } = await (
+    await import('../layout')
+  ).generateMetadata({ params });
 
-  const session = await auth();
-  if (!session) redirect('/auth/signin');
-
-  const userRole = await getUserRole(orgId, session.user.id);
-  if (!userRole) redirect('/');
-
-  const users = await getUsersWithRoles(orgId);
+  const users = await getUsersWithRoles(organizationData.organizationId);
 
   return (
     <div className='container mx-auto py-8'>
       <div className='flex justify-between items-center mb-6'>
         <h1 className='text-2xl font-bold'>Organization Members</h1>
-        {(userRole === 'OWNER' || userRole === 'ADMIN') && (
-          <CreateUserButton orgId={orgId} currentUserRole={userRole} />
-        )}
+        <RoleGuardian
+          routeParams={{ organizationId: organizationData.organizationId }}
+          variant='render'
+          userRole={organizationData.userRole}
+          roles={[OrganizationRole.OWNER, OrganizationRole.ADMIN]}
+        >
+          <CreateUserButton
+            orgId={organizationData.organizationId}
+            currentUserRole={organizationData.userRole ?? OrganizationRole.USER}
+          />
+        </RoleGuardian>
       </div>
       <UserManagementTable
         users={users}
-        currentUserRole={userRole}
-        orgId={orgId}
+        currentUserRole={organizationData.userRole}
+        orgId={organizationData.organizationId}
       />
     </div>
   );
