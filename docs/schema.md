@@ -43,6 +43,7 @@ erDiagram
     Faction {
         String id
         String name
+        String organizationId
     }
 
     Unit {
@@ -56,7 +57,7 @@ erDiagram
         Int a
         Int l
         Int rating
-        Boolean absent
+        UnitStatus status
         String crewId
         String unitClassId
         String captorCrewId "nullable"
@@ -65,6 +66,7 @@ erDiagram
     UnitClass {
         String id
         String name
+        String organizationId
     }
 
     Rivalry {
@@ -78,6 +80,11 @@ erDiagram
         String id
         String name
         String description
+        String organizationId
+        SPECIAL specialAffected "nullable"
+        Int specialModifier "nullable"
+        Boolean causesAbsence
+        Boolean causesDeath
     }
 
     UnitInjury {
@@ -89,6 +96,7 @@ erDiagram
         String id
         String name
         String description
+        String organizationId
     }
 
     UnitPerk {
@@ -101,6 +109,7 @@ erDiagram
         String name
         Int cost
         Boolean isRare
+        String organizationId
     }
 
     CrewChem {
@@ -114,6 +123,7 @@ erDiagram
         String name
         String description
         Int tier
+        String organizationId
     }
 
     CrewQuest {
@@ -129,7 +139,10 @@ erDiagram
         String name
         Int range
         Int cost
+        Int testDice
+        SPECIAL testAttribute
         String weaponTypeId
+        String organizationId
     }
 
     WeaponType {
@@ -142,6 +155,8 @@ erDiagram
         String name
         Int range
         Int cost
+        Int testDice
+        SPECIAL testAttribute
         String unitId
         String standardWeaponId
     }
@@ -152,14 +167,15 @@ erDiagram
         String description
         Int rangeModifier
         Int costModifier
+        Int testDiceModifier
+        SPECIAL newTestAttribute "nullable"
+        String organizationId
     }
 
     StandardWeaponAvailableUpgrade {
         String standardWeaponId
         String weaponUpgradeId
     }
-
-
 
     UnitWeaponAppliedUpgrade {
         String unitWeaponId
@@ -170,6 +186,7 @@ erDiagram
         String id
         String name
         String description
+        String organizationId
     }
 
     WeaponTrait {
@@ -181,6 +198,7 @@ erDiagram
         String id
         String name
         String description
+        String organizationId
     }
 
     WeaponCriticalTrait {
@@ -194,9 +212,35 @@ erDiagram
         String unitId
     }
 
+    enum UnitStatus {
+        ACTIVE
+        ABSENT
+        DEAD
+    }
+
+    enum SPECIAL {
+        S
+        P
+        E
+        C
+        I
+        A
+        L
+    }
+
     User ||--o{ OrganizationMember : ""
     Organization ||--o{ OrganizationMember : ""
     Organization ||--o{ Crew : ""
+    Organization ||--o{ Faction : "defines"
+    Organization ||--o{ UnitClass : "defines"
+    Organization ||--o{ Injury : "defines"
+    Organization ||--o{ Perk : "defines"
+    Organization ||--o{ Chem : "defines"
+    Organization ||--o{ Quest : "defines"
+    Organization ||--o{ StandardWeapon : "defines"
+    Organization ||--o{ WeaponUpgrade : "defines"
+    Organization ||--o{ Trait : "defines"
+    Organization ||--o{ CriticalTrait : "defines"
     User ||--o{ Crew : "has"
     Faction ||--o{ Crew : "belongs to"
     Crew ||--o{ Unit : "has"
@@ -223,7 +267,7 @@ erDiagram
     Trait ||--o{ WeaponTrait : ""
     UnitWeapon ||--o{ WeaponCriticalTrait : "has"
     CriticalTrait ||--o{ WeaponCriticalTrait : ""
-    Unit ||--o{ Model : ""
+    Unit ||--|| Model : ""
 
 
 ```
@@ -239,24 +283,26 @@ erDiagram
 ### Game-Specific Models
 
 - **Crew**: The central model for a player's team. It belongs to a `User` (player) and a `Faction`. It tracks resources like `caps`, `xp`, and `parts`.
-- **Faction**: A simple table to store the different playable factions (e.g., Brotherhood of Steel, Raiders).
-- **Unit**: A member of a `Crew`. It has `S.P.E.C.I.A.L.` attributes, a `rating`, and links to its `UnitClass`. It can be marked as `absent` and can be captured by another `Crew` (via `captorCrewId`).
-- **UnitClass**: The role or specialization of a unit (e.g., Bruiser, Scavenger).
-- **Model**: Represents the physical miniature for a `Unit`, holding a description.
+- **Faction**: A simple table to store the different playable factions (e.g., Brotherhood of Steel, Raiders). Each `Faction` is defined by an `Organization`.
+- **Unit**: A member of a `Crew`. It has base `S.P.E.C.I.A.L.` attributes and a `status` (`ACTIVE`, `ABSENT`, `DEAD`). It can be captured by another `Crew` (via `captorCrewId`). A unit's final, effective stats are calculated by the application based on any injuries it has.
+- **UnitClass**: The role or specialization of a unit (e.g., Bruiser, Scavenger). Each `UnitClass` is defined by an `Organization`.
+- **Model**: Represents the single physical miniature for a `Unit`, holding a description.
 
 ### Items & Upgrades
 
-- **StandardWeapon**: A "template" for a weapon from the rulebook. These are the base items units can acquire.
-- **UnitWeapon**: A specific instance of a `StandardWeapon` that belongs to a `Unit`. This is the record that gets customized with upgrades.
-- **WeaponUpgrade**: A modification that can be applied to a `UnitWeapon`. It includes modifiers for the weapon's stats.
+The following tables represent the "master list" of items and rules available within a campaign. Each of these is defined by an `Organization`, allowing community owners to customize their game worlds.
+
+- **StandardWeapon**: A "template" for a weapon from the rulebook. It includes the weapon's `range`, `cost`, and the `testDice` and `testAttribute` required for skill checks.
+- **UnitWeapon**: A specific instance of a `StandardWeapon` that belongs to a `Unit`. This is the record that gets customized with upgrades. Its stats are copied from the `StandardWeapon` initially.
+- **WeaponUpgrade**: A modification that can be applied to a `UnitWeapon`. It can alter the weapon's range, cost, and even the dice and attribute used for its skill test.
 - **Trait`&`CriticalTrait**: Special rules that apply to weapons.
 - **Perk**: Special abilities or skills for a `Unit`.
-- **Injury**: Negative effects that can be applied to a `Unit`.
-- **Chem**: Consumable items a `Crew` can have in their stash. `CrewChem` tracks the quantity.
+- **Injury**: Describes the effects of a negative condition. It can modify a `SPECIAL` attribute, or cause the unit to become `ABSENT` or `DEAD`. The application is responsible for updating the `Unit.status` based on these flags.
+- **Chem**: Consumable items a `Crew` can have in their stash.
 
 ### Gameplay & Metagame
 
-- **Quest**: A goal a `Crew` can undertake.
+- **Quest**: A goal a `Crew` can undertake. Like items, Quests are defined by an `Organization`.
 - **CrewQuest**: Tracks a `Crew`'s progress on a specific `Quest`.
 - **Rivalry**: A record of the relationship and games played between two `Crews`.
 
