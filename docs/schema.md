@@ -22,7 +22,7 @@ erDiagram
         String id
         String organizationId
         String userId
-        OrganizationRole role
+        String role
         Boolean canPostMessages
     }
 
@@ -58,7 +58,7 @@ erDiagram
         Int a
         Int l
         Int rating
-        UnitStatus status
+        String status
         String crewId "nullable"
         String unitClassId
         String captorCrewId "nullable"
@@ -76,7 +76,7 @@ erDiagram
         String name
         String description
         String organizationId
-        SPECIAL specialAffected "nullable"
+        String specialAffected "nullable"
         Int specialModifier "nullable"
         Boolean causesAbsence
         Boolean causesDeath
@@ -135,7 +135,7 @@ erDiagram
         Int range
         Int cost
         Int testDice
-        SPECIAL testAttribute
+        String testAttribute
         String weaponTypeId
         String organizationId
     }
@@ -151,7 +151,7 @@ erDiagram
         Int range
         Int cost
         Int testDice
-        SPECIAL testAttribute
+        String testAttribute
         String unitId
         String standardWeaponId
     }
@@ -163,7 +163,7 @@ erDiagram
         Int rangeModifier
         Int costModifier
         Int testDiceModifier
-        SPECIAL newTestAttribute "nullable"
+        String newTestAttribute "nullable"
         String organizationId
     }
 
@@ -231,7 +231,7 @@ erDiagram
 
     Game {
         String id
-        DateTime date
+        String date
         String organizationId
         String crewOneId
         String crewTwoId
@@ -242,23 +242,6 @@ erDiagram
         String gameId
         String hiringCrewId
         String legendUnitId
-    }
-
-    enum UnitStatus {
-        ACTIVE
-        ABSENT
-        DEAD
-        LEGENDARY
-    }
-
-    enum SPECIAL {
-        S
-        P
-        E
-        C
-        I
-        A
-        L
     }
 
     User ||--o{ OrganizationMember : ""
@@ -302,16 +285,7 @@ erDiagram
     Organization ||--|| CampaignRule : "has"
     Organization ||--o{ Message : "has"
     OrganizationMember ||--o{ Message : "is author of"
-    Message ||--o{ Message : "is parent of"
-    Organization ||--o{ Game : "hosts"
-    Crew ||--o{ Game : "is crew one in"
-    Crew ||--o{ Game : "is crew two in"
-    Game ||--o{ TemporaryHire : "has hires for"
-    Crew ||--o{ TemporaryHire : "hires legend for"
-    Unit ||--o{ TemporaryHire : "is hired for"
-    Organization ||--o{ Unit : "is home to"
-    Unit ||--|| WastelandLegend : "is"
-}
+
 ```
 
 ## Data Models Explanation
@@ -365,3 +339,7 @@ The following tables represent the "master list" of items and rules available wi
   These values should be computed by the application on-demand rather than stored in the database to prevent data becoming stale.
 
 This schema is designed based on the provided information and should be implemented in `prisma/schema.prisma`.
+
+```
+
+```
