@@ -40,3 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .vscode/keybindings.json
+
+FF_HardbackRulebook_Final_Digital_compressed.pdf
