@@ -23,6 +23,7 @@ erDiagram
         String organizationId
         String userId
         OrganizationRole role
+        Boolean canPostMessages
     }
 
     Crew {
@@ -58,22 +59,16 @@ erDiagram
         Int l
         Int rating
         UnitStatus status
-        String crewId
+        String crewId "nullable"
         String unitClassId
         String captorCrewId "nullable"
+        String organizationId
     }
 
     UnitClass {
         String id
         String name
         String organizationId
-    }
-
-    Rivalry {
-        String id
-        String crewOneId
-        String crewTwoId
-        Int gamesPlayed
     }
 
     Injury {
@@ -212,10 +207,48 @@ erDiagram
         String unitId
     }
 
+    Message {
+        String id
+        String title "nullable"
+        String content
+        Boolean isHidden
+        String authorId
+        String organizationId
+        String parentId "nullable"
+    }
+
+    CampaignRule {
+        String id
+        Int maxNumberOfGamesAgainstSameCrew
+        String organizationId
+    }
+
+    WastelandLegend {
+        String id
+        Boolean isStandard
+        String unitId
+    }
+
+    Game {
+        String id
+        DateTime date
+        String organizationId
+        String crewOneId
+        String crewTwoId
+    }
+
+    TemporaryHire {
+        String id
+        String gameId
+        String hiringCrewId
+        String legendUnitId
+    }
+
     enum UnitStatus {
         ACTIVE
         ABSENT
         DEAD
+        LEGENDARY
     }
 
     enum SPECIAL {
@@ -244,8 +277,6 @@ erDiagram
     User ||--o{ Crew : "has"
     Faction ||--o{ Crew : "belongs to"
     Crew ||--o{ Unit : "has"
-    Crew ||--o{ Rivalry : "is crew one"
-    Crew ||--o{ Rivalry : "is crew two"
     Crew ||--o{ CrewQuest : "tracks"
     Quest ||--o{ CrewQuest : "is instance of"
     UnitClass ||--o{ Unit : "is of class"
@@ -268,8 +299,19 @@ erDiagram
     UnitWeapon ||--o{ WeaponCriticalTrait : "has"
     CriticalTrait ||--o{ WeaponCriticalTrait : ""
     Unit ||--|| Model : ""
-
-
+    Organization ||--|| CampaignRule : "has"
+    Organization ||--o{ Message : "has"
+    OrganizationMember ||--o{ Message : "is author of"
+    Message ||--o{ Message : "is parent of"
+    Organization ||--o{ Game : "hosts"
+    Crew ||--o{ Game : "is crew one in"
+    Crew ||--o{ Game : "is crew two in"
+    Game ||--o{ TemporaryHire : "has hires for"
+    Crew ||--o{ TemporaryHire : "hires legend for"
+    Unit ||--o{ TemporaryHire : "is hired for"
+    Organization ||--o{ Unit : "is home to"
+    Unit ||--|| WastelandLegend : "is"
+}
 ```
 
 ## Data Models Explanation
@@ -277,14 +319,25 @@ erDiagram
 ### Core Models
 
 - **User**: Represents a registered user in the system. Linked to `OrganizationMember`.
-- **Organization**: Represents a gaming group or community.
-- **OrganizationMember**: A join table connecting `User` and `Organization`, defining a user's role within an organization.
+- **Organization**: Represents a gaming group or community. Each organization is a self-contained campaign.
+- **OrganizationMember**: A join table connecting `User` and `Organization`, defining a user's role within an organization. It includes a `canPostMessages` flag to control access to the message board.
+
+### Campaign & Organization Models
+
+- **CampaignRule**: A set of special rules for an organization's campaign, such as `maxNumberOfGamesAgainstSameCrew`. This has a one-to-one relationship with `Organization`.
+- **Message**: A post or reply on the organization's message board. Can be hidden by administrators.
+- **WastelandLegend**: Represents the official profile of a legendary unit. This record marks a `Unit` as a legend. The `isStandard` flag distinguishes between super-admin-created "official" legends and campaign-specific ones created by an organization admin.
+
+### Gameplay & Metagame
+
+- **Game**: Represents a single game session played between two crews within an organization. This model replaces the need for a separate `Rivalry` table, as the history of games between crews can be derived from this table.
+- **TemporaryHire**: A record representing a contract to hire a legendary unit for a single `Game`. This links a `Crew` to a `Unit` whose `status` is `LEGENDARY`.
 
 ### Game-Specific Models
 
 - **Crew**: The central model for a player's team. It belongs to a `User` (player) and a `Faction`. It tracks resources like `caps`, `xp`, and `parts`.
 - **Faction**: A simple table to store the different playable factions (e.g., Brotherhood of Steel, Raiders). Each `Faction` is defined by an `Organization`.
-- **Unit**: A member of a `Crew`. It has base `S.P.E.C.I.A.L.` attributes and a `status` (`ACTIVE`, `ABSENT`, `DEAD`). It can be captured by another `Crew` (via `captorCrewId`). A unit's final, effective stats are calculated by the application based on any injuries it has.
+- **Unit**: A member of a `Crew`. It has base `S.P.E.C.I.A.L.` attributes and a `status`. When a unit's status becomes `LEGENDARY`, its `crewId` is set to null, and it becomes a mercenary available for hire within its `Organization`.
 - **UnitClass**: The role or specialization of a unit (e.g., Bruiser, Scavenger). Each `UnitClass` is defined by an `Organization`.
 - **Model**: Represents the single physical miniature for a `Unit`, holding a description.
 
@@ -304,7 +357,6 @@ The following tables represent the "master list" of items and rules available wi
 
 - **Quest**: A goal a `Crew` can undertake. Like items, Quests are defined by an `Organization`.
 - **CrewQuest**: Tracks a `Crew`'s progress on a specific `Quest`.
-- **Rivalry**: A record of the relationship and games played between two `Crews`.
 
 ## Notes on Calculated Values
 
