@@ -1,14 +1,15 @@
-import { PrismaClient } from '@prisma/client';
-import crypto from 'crypto';
+import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
+import "dotenv/config";
 
 const prisma = new PrismaClient();
 
 function hashPassword(password: string, salt: string): string {
-  return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  return crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex");
 }
 
 function generateSalt(): string {
-  return crypto.randomBytes(16).toString('hex');
+  return crypto.randomBytes(16).toString("hex");
 }
 
 async function main() {
@@ -19,20 +20,23 @@ async function main() {
 
   // Create SpiderMan super admin
   const salt = generateSalt();
-  const hashedPassword = hashPassword('Blue-House-Red-Car', salt);
+  const hashedPassword = hashPassword(
+    process.env.SUPER_ADMIN_PASSWORD || "Blue-House-Red-Car",
+    salt
+  );
 
   const spiderMan = await prisma.user.create({
     data: {
-      name: 'SpiderMan',
-      email: 'peter.parker@avengers.com',
+      name: process.env.SUPER_ADMIN_NAME || "SpiderMan",
+      email: process.env.SUPER_ADMIN_EMAIL || "peter.parker@avengers.com",
       password: hashedPassword,
       salt: salt,
       isSuperAdmin: true,
     },
   });
 
-  console.log('Seed data created successfully!');
-  console.log('Super Admin created:', {
+  console.log("Seed data created successfully!");
+  console.log("Super Admin created:", {
     name: spiderMan.name,
     email: spiderMan.email,
     isSuperAdmin: spiderMan.isSuperAdmin,
