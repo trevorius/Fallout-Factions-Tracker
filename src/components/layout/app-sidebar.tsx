@@ -95,6 +95,12 @@ export function AppSidebar() {
       icon: Swords,
       show: session?.user?.isSuperAdmin,
     },
+    {
+      name: "Unit Classes",
+      href: "/superadmin/unit-classes",
+      icon: Users,
+      show: session?.user?.isSuperAdmin,
+    },
   ];
 
   return (
