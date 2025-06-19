@@ -176,26 +176,31 @@ export function FactionFormDialog({
                                 <Heart className="h-4 w-4 mr-1 text-red-500" />
                                 {template.hp}
                               </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  handleEditUnit(template, unitClass)
-                                }
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDeleteUnit(template)}
-                              >
-                                Delete
-                              </Button>
+                              <div className="space-x-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleEditUnit(template, unitClass)
+                                  }
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDeleteUnit(template)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
                         <Button
+                          type="button"
                           variant="secondary"
                           className="mt-2 w-full"
                           onClick={() => handleAddUnit(unitClass)}

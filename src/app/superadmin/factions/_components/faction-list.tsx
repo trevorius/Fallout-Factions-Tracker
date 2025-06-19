@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Faction, UnitClass } from "@prisma/client";
+import { UnitClass } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { FactionFormDialog } from "./faction-form-dialog";
@@ -37,41 +37,46 @@ interface FactionListProps {
 
 export function FactionList({ factions, unitClasses }: FactionListProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedFaction, setSelectedFaction] = useState<
-    FactionWithTemplates | undefined
-  >(undefined);
+  const [selectedFactionId, setSelectedFactionId] = useState<string | null>(
+    null
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
+  const selectedFaction =
+    factions.find((f) => f.id === selectedFactionId) || null;
+  const selectedFactionForDeletion =
+    factions.find((f) => f.id === selectedFactionId) || null;
+
   const handleCreate = () => {
-    setSelectedFaction(undefined);
+    setSelectedFactionId(null);
     setDialogOpen(true);
   };
 
   const handleEdit = (faction: FactionWithTemplates) => {
-    setSelectedFaction(faction);
+    setSelectedFactionId(faction.id);
     setDialogOpen(true);
   };
 
   const handleDelete = (faction: FactionWithTemplates) => {
-    setSelectedFaction(faction);
+    setSelectedFactionId(faction.id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (selectedFaction) {
-      const result = await deleteFaction(selectedFaction.id);
+    if (selectedFactionForDeletion) {
+      const result = await deleteFaction(selectedFactionForDeletion.id);
 
-      if (result?.message) {
+      if (result?.message?.startsWith("Error")) {
         toast({
           title: result.message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Faction deleted successfully.",
+          title: result?.message || "Faction deleted successfully.",
         });
-        setSelectedFaction(undefined);
+        setSelectedFactionId(null);
       }
       setDeleteDialogOpen(false);
     }
@@ -119,7 +124,7 @@ export function FactionList({ factions, unitClasses }: FactionListProps) {
         key={selectedFaction?.id || "create"}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        faction={selectedFaction}
+        faction={selectedFaction || undefined}
         unitClasses={unitClasses}
       />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

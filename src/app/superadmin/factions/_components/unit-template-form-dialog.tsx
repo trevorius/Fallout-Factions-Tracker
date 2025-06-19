@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { FormState } from "../types";
 import { Heart } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface UnitTemplateFormDialogProps {
   open: boolean;
@@ -60,6 +61,7 @@ export function UnitTemplateFormDialog({
     message: "",
   });
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     if (state.message) {
@@ -69,9 +71,10 @@ export function UnitTemplateFormDialog({
       });
       if (!state.message.startsWith("Error")) {
         onOpenChange(false);
+        router.refresh();
       }
     }
-  }, [state, onOpenChange, toast]);
+  }, [state, onOpenChange, toast, router]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
