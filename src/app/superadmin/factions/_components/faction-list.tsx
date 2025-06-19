@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Faction } from "@prisma/client";
+import { Faction, UnitClass } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { FactionFormDialog } from "./faction-form-dialog";
@@ -24,16 +24,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Prisma } from "@prisma/client";
+
+type FactionWithTemplates = Prisma.FactionGetPayload<{
+  include: { unitTemplates: true };
+}>;
 
 interface FactionListProps {
-  factions: Faction[];
+  factions: FactionWithTemplates[];
+  unitClasses: UnitClass[];
 }
 
-export function FactionList({ factions }: FactionListProps) {
+export function FactionList({ factions, unitClasses }: FactionListProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedFaction, setSelectedFaction] = useState<Faction | undefined>(
-    undefined
-  );
+  const [selectedFaction, setSelectedFaction] = useState<
+    FactionWithTemplates | undefined
+  >(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -42,12 +48,12 @@ export function FactionList({ factions }: FactionListProps) {
     setDialogOpen(true);
   };
 
-  const handleEdit = (faction: Faction) => {
+  const handleEdit = (faction: FactionWithTemplates) => {
     setSelectedFaction(faction);
     setDialogOpen(true);
   };
 
-  const handleDelete = (faction: Faction) => {
+  const handleDelete = (faction: FactionWithTemplates) => {
     setSelectedFaction(faction);
     setDeleteDialogOpen(true);
   };
@@ -114,6 +120,7 @@ export function FactionList({ factions }: FactionListProps) {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         faction={selectedFaction}
+        unitClasses={unitClasses}
       />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
