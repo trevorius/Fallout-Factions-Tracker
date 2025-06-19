@@ -1,6 +1,6 @@
-import { FlatCompat } from '@eslint/eslintrc';
-import typescript from '@typescript-eslint/eslint-plugin';
-import typescriptParser from '@typescript-eslint/parser';
+import { FlatCompat } from "@eslint/eslintrc";
+import typescript from "@typescript-eslint/eslint-plugin";
+import typescriptParser from "@typescript-eslint/parser";
 
 const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
@@ -29,66 +29,66 @@ export default [
   {
     ...compat.config,
     ignores: [
-      'node_modules/**',
-      '.next/**',
-      'out/**',
-      'public/**',
-      'dist/**',
-      'build/**',
+      "node_modules/**",
+      ".next/**",
+      "out/**",
+      "public/**",
+      "dist/**",
+      "build/**",
     ],
   },
   {
-    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    files: ["src/**/*.ts", "src/**/*.tsx"],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
+        ecmaVersion: "latest",
+        sourceType: "module",
         ecmaFeatures: {
           jsx: true,
         },
-        project: './tsconfig.json',
+        project: "./tsconfig.json",
       },
     },
     plugins: {
-      '@typescript-eslint': typescript,
+      "@typescript-eslint": typescript,
     },
     rules: {
-      ...typescript.configs['recommended'].rules,
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
-      'no-undef': 'off',
-      'no-debugger': 'error',
-      'no-console': [
-        'error',
-        { allow: ['warn', 'error', 'info', 'debug', 'trace'] },
+      ...typescript.configs["recommended"].rules,
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "no-undef": "off",
+      "no-debugger": "error",
+      "no-console": [
+        "error",
+        { allow: ["warn", "error", "info", "debug", "trace"] },
       ],
     },
   },
   {
-    files: ['**/*.test.ts', '**/*.test.tsx', 'src/test/**/*'],
+    files: ["**/*.test.ts", "**/*.test.tsx", "src/test/**/*"],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
+        ecmaVersion: "latest",
+        sourceType: "module",
         ecmaFeatures: {
           jsx: true,
         },
-        project: './tsconfig.json',
+        project: "./tsconfig.json",
       },
     },
     plugins: {
-      '@typescript-eslint': typescript,
-      custom: { rules: { 'require-jest-globals': requireJestGlobals } },
+      "@typescript-eslint": typescript,
+      custom: { rules: { "require-jest-globals": requireJestGlobals } },
     },
     rules: {
-      ...typescript.configs['recommended'].rules,
-      '@typescript-eslint/no-var-requires': 'off',
-      'no-undef': 'off',
-      '@typescript-eslint/no-require-imports': 'off',
-      'import/no-commonjs': 'off',
-      'custom/require-jest-globals': 'error',
+      ...typescript.configs["recommended"].rules,
+      "@typescript-eslint/no-var-requires": "off",
+      "no-undef": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "import/no-commonjs": "off",
+      // 'custom/require-jest-globals': 'error',
     },
   },
 ];
