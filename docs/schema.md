@@ -296,6 +296,7 @@ erDiagram
         Int a
         Int l
         Int rating
+        Int hp
         String factionId
         String unitClassId
     }
@@ -388,7 +389,7 @@ The system distinguishes between "master list" items (created by a Super Admin) 
 - **Crew**: The central model for a player's team. It belongs to a `User` (player) and a `Faction`. It tracks resources like `caps`, `xp`, and `parts`.
 - **Unit**: A member of a `Crew`. When a unit's status becomes `LEGENDARY`, its `crewId` is set to null, and it becomes a mercenary available for hire within its `Organization`.
 - **Model**: Represents the single physical miniature for a `Unit`.
-- **UnitTemplate**: Defines the base stats and class for a type of unit that belongs to a specific `Faction`. This serves as the blueprint from which player `Unit`s are created.
+- **UnitTemplate**: Defines the base stats, class, and HP for a type of unit that belongs to a specific `Faction`. This serves as the blueprint from which player `Unit`s are created.
 
 ### Campaign & Gameplay Models
 

@@ -153,6 +153,7 @@ model Unit {
   a              Int
   l              Int
   rating         Int
+  hp             Int
   status         UnitStatus       @default(ACTIVE)
   crew           Crew?            @relation(fields: [crewId], references: [id])
   crewId         String?
@@ -512,9 +513,10 @@ model UnitTemplate {
   a     Int
   l     Int
   rating Int
+  hp    Int
 
   factionId String
-  faction   Faction   @relation(fields: [factionId], references: [id], onDelete: Cascade)
+  faction   Faction   @relation(fields: [factionId], references: [id])
 
   unitClassId String
   unitClass   UnitClass @relation(fields: [unitClassId], references: [id])
