@@ -1,16 +1,14 @@
-import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
+import { userIsSuperAdmin } from "@/lib/auth.utils";
 
 export default async function SuperAdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-
-  if (!session?.user?.isSuperAdmin) {
-    redirect('/unauthorized');
+  if (!(await userIsSuperAdmin())) {
+    redirect("/unauthorized");
   }
 
-  return <main className='flex-1 p-8'>{children}</main>;
+  return <main className="flex-1 p-8">{children}</main>;
 }
