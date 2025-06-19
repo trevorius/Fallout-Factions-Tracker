@@ -130,6 +130,7 @@ model Faction {
   name          String
   crews         Crew[]
   organizations OrganizationFaction[]
+  unitTemplates UnitTemplate[]
 }
 
 model OrganizationFaction {
@@ -174,6 +175,7 @@ model UnitClass {
   name          String
   units         Unit[]
   organizations OrganizationUnitClass[]
+  unitTemplates UnitTemplate[]
 }
 
 model OrganizationUnitClass {
@@ -497,4 +499,23 @@ model TemporaryHire {
   hiringCrewId String
   legendUnit   Unit   @relation(fields: [legendUnitId], references: [id])
   legendUnitId String
+}
+
+model UnitTemplate {
+  id    String @id @default(cuid())
+  name  String
+  s     Int
+  p     Int
+  e     Int
+  c     Int
+  i     Int
+  a     Int
+  l     Int
+  rating Int
+
+  factionId String
+  faction   Faction   @relation(fields: [factionId], references: [id], onDelete: Cascade)
+
+  unitClassId String
+  unitClass   UnitClass @relation(fields: [unitClassId], references: [id])
 }
