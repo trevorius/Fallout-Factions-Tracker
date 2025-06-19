@@ -44,7 +44,11 @@ erDiagram
     Faction {
         String id
         String name
+    }
+
+    OrganizationFaction {
         String organizationId
+        String factionId
     }
 
     Unit {
@@ -68,18 +72,26 @@ erDiagram
     UnitClass {
         String id
         String name
+    }
+
+    OrganizationUnitClass {
         String organizationId
+        String unitClassId
     }
 
     Injury {
         String id
         String name
         String description
-        String organizationId
         String specialAffected "nullable"
         Int specialModifier "nullable"
         Boolean causesAbsence
         Boolean causesDeath
+    }
+
+    OrganizationInjury {
+        String organizationId
+        String injuryId
     }
 
     UnitInjury {
@@ -91,7 +103,11 @@ erDiagram
         String id
         String name
         String description
+    }
+
+    OrganizationPerk {
         String organizationId
+        String perkId
     }
 
     UnitPerk {
@@ -104,7 +120,11 @@ erDiagram
         String name
         Int cost
         Boolean isRare
+    }
+
+    OrganizationChem {
         String organizationId
+        String chemId
     }
 
     CrewChem {
@@ -118,7 +138,11 @@ erDiagram
         String name
         String description
         Int tier
+    }
+
+    OrganizationQuest {
         String organizationId
+        String questId
     }
 
     CrewQuest {
@@ -137,7 +161,11 @@ erDiagram
         Int testDice
         String testAttribute
         String weaponTypeId
+    }
+
+    OrganizationStandardWeapon {
         String organizationId
+        String standardWeaponId
     }
 
     WeaponType {
@@ -164,7 +192,11 @@ erDiagram
         Int costModifier
         Int testDiceModifier
         String newTestAttribute "nullable"
+    }
+
+    OrganizationWeaponUpgrade {
         String organizationId
+        String weaponUpgradeId
     }
 
     StandardWeaponAvailableUpgrade {
@@ -181,7 +213,11 @@ erDiagram
         String id
         String name
         String description
+    }
+
+    OrganizationTrait {
         String organizationId
+        String traitId
     }
 
     WeaponTrait {
@@ -193,7 +229,11 @@ erDiagram
         String id
         String name
         String description
+    }
+
+    OrganizationCriticalTrait {
         String organizationId
+        String criticalTraitId
     }
 
     WeaponCriticalTrait {
@@ -227,6 +267,7 @@ erDiagram
         String id
         Boolean isStandard
         String unitId
+        String organizationId
     }
 
     Game {
@@ -244,32 +285,45 @@ erDiagram
         String legendUnitId
     }
 
-    User ||--o{ OrganizationMember : ""
-    Organization ||--o{ OrganizationMember : ""
-    Organization ||--o{ Crew : ""
-    Organization ||--o{ Faction : "defines"
-    Organization ||--o{ UnitClass : "defines"
-    Organization ||--o{ Injury : "defines"
-    Organization ||--o{ Perk : "defines"
-    Organization ||--o{ Chem : "defines"
-    Organization ||--o{ Quest : "defines"
-    Organization ||--o{ StandardWeapon : "defines"
-    Organization ||--o{ WeaponUpgrade : "defines"
-    Organization ||--o{ Trait : "defines"
-    Organization ||--o{ CriticalTrait : "defines"
+    User ||--o{ OrganizationMember : "has"
+    Organization ||--o{ OrganizationMember : "has"
     User ||--o{ Crew : "has"
-    Faction ||--o{ Crew : "belongs to"
+    Organization ||--o{ Crew : "has"
     Crew ||--o{ Unit : "has"
-    Crew ||--o{ CrewQuest : "tracks"
-    Quest ||--o{ CrewQuest : "is instance of"
+    Organization ||--o{ Unit : "is home to"
+    Faction ||--o{ Crew : "belongs to"
     UnitClass ||--o{ Unit : "is of class"
+
+    Organization ||--o{ OrganizationFaction : "selects"
+    Faction ||--o{ OrganizationFaction : "is selected by"
+    Organization ||--o{ OrganizationUnitClass : "selects"
+    UnitClass ||--o{ OrganizationUnitClass : "is selected by"
+    Organization ||--o{ OrganizationInjury : "selects"
+    Injury ||--o{ OrganizationInjury : "is selected by"
+    Organization ||--o{ OrganizationPerk : "selects"
+    Perk ||--o{ OrganizationPerk : "is selected by"
+    Organization ||--o{ OrganizationChem : "selects"
+    Chem ||--o{ OrganizationChem : "is selected by"
+    Organization ||--o{ OrganizationQuest : "selects"
+    Quest ||--o{ OrganizationQuest : "is selected by"
+    Organization ||--o{ OrganizationStandardWeapon : "selects"
+    StandardWeapon ||--o{ OrganizationStandardWeapon : "is selected by"
+    Organization ||--o{ OrganizationWeaponUpgrade : "selects"
+    WeaponUpgrade ||--o{ OrganizationWeaponUpgrade : "is selected by"
+    Organization ||--o{ OrganizationTrait : "selects"
+    Trait ||--o{ OrganizationTrait : "is selected by"
+    Organization ||--o{ OrganizationCriticalTrait : "selects"
+    CriticalTrait ||--o{ OrganizationCriticalTrait : "is selected by"
+
     Crew ||..o{ Unit : "captures"
-    Unit ||--o{ UnitInjury : ""
-    Injury ||--o{ UnitInjury : ""
-    Unit ||--o{ UnitPerk : ""
-    Perk ||--o{ UnitPerk : ""
-    Crew ||--o{ CrewChem : ""
-    Chem ||--o{ CrewChem : ""
+    Unit ||--o{ UnitInjury : "suffers"
+    Injury ||--o{ UnitInjury : "is suffered by"
+    Unit ||--o{ UnitPerk : "has"
+    Perk ||--o{ UnitPerk : "is held by"
+    Crew ||--o{ CrewChem : "has"
+    Chem ||--o{ CrewChem : "is held by"
+    Crew ||--o{ CrewQuest : "undertakes"
+    Quest ||--o{ CrewQuest : "is undertaken by"
     Unit ||--o{ UnitWeapon : "wields"
     StandardWeapon ||--o{ UnitWeapon : "is instance of"
     WeaponType ||--o{ StandardWeapon : "is of type"
@@ -281,62 +335,50 @@ erDiagram
     Trait ||--o{ WeaponTrait : ""
     UnitWeapon ||--o{ WeaponCriticalTrait : "has"
     CriticalTrait ||--o{ WeaponCriticalTrait : ""
-    Unit ||--|| Model : ""
+    Unit ||--|| Model : "is represented by"
     Organization ||--|| CampaignRule : "has"
     Organization ||--o{ Message : "has"
     OrganizationMember ||--o{ Message : "is author of"
-
+    Organization ||--o{ Game : "hosts"
+    Crew ||--o{ Game : "is crew one in"
+    Crew ||--o{ Game : "is crew two in"
+    Game ||--o{ TemporaryHire : "has hires for"
+    Crew ||--o{ TemporaryHire : "hires legend for"
+    Unit ||--o{ TemporaryHire : "is hired for"
+    Unit ||--|| WastelandLegend : "is"
+    Organization ||--o{ WastelandLegend : "has"
+}
 ```
 
 ## Data Models Explanation
 
 ### Core Models
 
-- **User**: Represents a registered user in the system. Linked to `OrganizationMember`.
-- **Organization**: Represents a gaming group or community. Each organization is a self-contained campaign.
-- **OrganizationMember**: A join table connecting `User` and `Organization`, defining a user's role within an organization. It includes a `canPostMessages` flag to control access to the message board.
+- **User**: Represents a registered user in the system. Can be a Super Admin.
+- **Organization**: Represents a gaming group or campaign. It is the central hub for all campaign-specific data.
+- **OrganizationMember**: A join table connecting a `User` to an `Organization` with a specific `role`.
 
-### Campaign & Organization Models
+### Template & Join Models (Super Admin vs. Organization Admin)
 
-- **CampaignRule**: A set of special rules for an organization's campaign, such as `maxNumberOfGamesAgainstSameCrew`. This has a one-to-one relationship with `Organization`.
-- **Message**: A post or reply on the organization's message board. Can be hidden by administrators.
-- **WastelandLegend**: Represents the official profile of a legendary unit. This record marks a `Unit` as a legend. The `isStandard` flag distinguishes between super-admin-created "official" legends and campaign-specific ones created by an organization admin.
+The system distinguishes between "master list" items (created by a Super Admin) and the items available in a specific campaign (chosen by an Organization Admin).
 
-### Gameplay & Metagame
-
-- **Game**: Represents a single game session played between two crews within an organization. This model replaces the need for a separate `Rivalry` table, as the history of games between crews can be derived from this table.
-- **TemporaryHire**: A record representing a contract to hire a legendary unit for a single `Game`. This links a `Crew` to a `Unit` whose `status` is `LEGENDARY`.
+- **Master Lists**: `Faction`, `UnitClass`, `Injury`, `Perk`, `Chem`, `Quest`, `StandardWeapon`, `WeaponUpgrade`, `Trait`, `CriticalTrait`. These are the global templates.
+- **Join Tables**: `OrganizationFaction`, `OrganizationUnitClass`, etc. These tables create a many-to-many relationship, allowing an Organization Admin to select which master list items are available for their campaign.
 
 ### Game-Specific Models
 
 - **Crew**: The central model for a player's team. It belongs to a `User` (player) and a `Faction`. It tracks resources like `caps`, `xp`, and `parts`.
-- **Faction**: A simple table to store the different playable factions (e.g., Brotherhood of Steel, Raiders). Each `Faction` is defined by an `Organization`.
-- **Unit**: A member of a `Crew`. It has base `S.P.E.C.I.A.L.` attributes and a `status`. When a unit's status becomes `LEGENDARY`, its `crewId` is set to null, and it becomes a mercenary available for hire within its `Organization`.
-- **UnitClass**: The role or specialization of a unit (e.g., Bruiser, Scavenger). Each `UnitClass` is defined by an `Organization`.
-- **Model**: Represents the single physical miniature for a `Unit`, holding a description.
+- **Unit**: A member of a `Crew`. When a unit's status becomes `LEGENDARY`, its `crewId` is set to null, and it becomes a mercenary available for hire within its `Organization`.
+- **Model**: Represents the single physical miniature for a `Unit`.
 
-### Items & Upgrades
+### Campaign & Gameplay Models
 
-The following tables represent the "master list" of items and rules available within a campaign. Each of these is defined by an `Organization`, allowing community owners to customize their game worlds.
-
-- **StandardWeapon**: A "template" for a weapon from the rulebook. It includes the weapon's `range`, `cost`, and the `testDice` and `testAttribute` required for skill checks.
-- **UnitWeapon**: A specific instance of a `StandardWeapon` that belongs to a `Unit`. This is the record that gets customized with upgrades. Its stats are copied from the `StandardWeapon` initially.
-- **WeaponUpgrade**: A modification that can be applied to a `UnitWeapon`. It can alter the weapon's range, cost, and even the dice and attribute used for its skill test.
-- **Trait`&`CriticalTrait**: Special rules that apply to weapons.
-- **Perk**: Special abilities or skills for a `Unit`.
-- **Injury**: Describes the effects of a negative condition. It can modify a `SPECIAL` attribute, or cause the unit to become `ABSENT` or `DEAD`. The application is responsible for updating the `Unit.status` based on these flags.
-- **Chem**: Consumable items a `Crew` can have in their stash.
-
-### Gameplay & Metagame
-
-- **Quest**: A goal a `Crew` can undertake. Like items, Quests are defined by an `Organization`.
-- **CrewQuest**: Tracks a `Crew`'s progress on a specific `Quest`.
-
-## Notes on Calculated Values
-
-- **Reputation (Rep)**: This is a calculated value: `Rep = sum(unit.rating for all present units)`.
-- **Unit Rating**: This is also a calculated value: `Unit Rating = unit.baseRating + sum(all applied weapon.cost)`.
-  These values should be computed by the application on-demand rather than stored in the database to prevent data becoming stale.
+- **CampaignRule**: Special rules for an organization's campaign.
+- **Message**: A post on the organization's message board.
+- **WastelandLegend**: Marks a `Unit` as a legend. Can be a "standard" legend (created by a Super Admin) or a campaign-specific one.
+- **Game**: A single game session played between two crews. This replaces the need for a `Rivalry` table.
+- **TemporaryHire**: A contract to hire a legendary unit for a single `Game`.
+- **CrewQuest**: Tracks a crew's progress on a `Quest`.
 
 This schema is designed based on the provided information and should be implemented in `prisma/schema.prisma`.
 
