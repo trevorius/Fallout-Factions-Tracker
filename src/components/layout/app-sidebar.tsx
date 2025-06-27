@@ -108,6 +108,12 @@ export function AppSidebar() {
       icon: Users,
       show: session?.user?.isSuperAdmin,
     },
+    {
+      name: "Weapons",
+      href: "/superadmin/standard-weapons",
+      icon: Swords,
+      show: session?.user?.isSuperAdmin,
+    },
   ];
 
   const traitsAndPerks = {
@@ -128,6 +134,12 @@ export function AppSidebar() {
       {
         name: "Perks",
         href: "/superadmin/perks",
+        show: session?.user?.isSuperAdmin,
+      },
+
+      {
+        name: "Weapon Types",
+        href: "/superadmin/weapon-types",
         show: session?.user?.isSuperAdmin,
       },
     ],
