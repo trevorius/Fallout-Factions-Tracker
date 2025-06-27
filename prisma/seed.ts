@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { seedOfficialData } from "./seeds/official-data";
 import { seedSuperAdmin } from "./seeds/super-admin";
+import { seedWeaponTraits } from "./seeds/weapon-traits";
+import { seedCriticalEffects } from "./seeds/critical-effects";
 // import crypto from "crypto";
 // import "dotenv/config";
 
@@ -18,6 +20,8 @@ async function main() {
   console.log("Start seeding ...");
   await seedSuperAdmin(prisma);
   await seedOfficialData(prisma);
+  await seedWeaponTraits();
+  await seedCriticalEffects();
   console.log("Seeding finished.");
 
   // We are commenting out the user creation part as it's destructive.
