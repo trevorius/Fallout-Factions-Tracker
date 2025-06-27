@@ -27,7 +27,7 @@ import {
 import { Prisma } from "@prisma/client";
 
 type FactionWithTemplates = Prisma.FactionGetPayload<{
-  include: { unitTemplates: true };
+  include: { unitTemplates: { include: { perks: true } } };
 }>;
 
 interface FactionListProps {
