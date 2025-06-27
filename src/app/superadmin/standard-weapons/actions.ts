@@ -5,11 +5,19 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { StandardWeaponState } from "./types";
 import { auth } from "@/auth";
+import { Prisma } from "@prisma/client";
 
 const UpgradeSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
-  costModifier: z.number(),
+  costModifier: z.number().optional(),
+  rangeNew: z.string().optional(),
+  testAttributeNew: z.enum(["S", "P", "E", "C", "I", "A", "L"]).optional(),
+  testValueModifier: z.number().optional(),
+  notesNew: z.string().optional(),
+  traits: z.array(z.string()).optional(),
+  criticalEffects: z.array(z.string()).optional(),
+  upgrades: z.string().optional(),
 });
 
 const StandardWeaponSchema = z.object({
@@ -36,6 +44,44 @@ const canCreateStandardWeapon = async () => {
   });
   return user?.isSuperAdmin;
 };
+
+async function handleUpgrades(
+  tx: Prisma.TransactionClient,
+  standardWeaponId: string,
+  upgrades: z.infer<typeof UpgradeSchema>[]
+) {
+  if (upgrades && upgrades.length > 0) {
+    // First delete existing available upgrades for this weapon
+    await tx.standardWeaponAvailableUpgrade.deleteMany({
+      where: { standardWeaponId },
+    });
+
+    for (const upgrade of upgrades) {
+      const { traits, criticalEffects, ...upgradeData } = upgrade;
+      const newUpgrade = await tx.weaponUpgrade.create({
+        data: {
+          ...upgradeData,
+          traits: {
+            create: traits?.map((traitId: string) => ({
+              trait: { connect: { id: traitId } },
+            })),
+          },
+          criticalEffects: {
+            create: criticalEffects?.map((criticalId: string) => ({
+              criticalEffect: { connect: { id: criticalId } },
+            })),
+          },
+        },
+      });
+      await tx.standardWeaponAvailableUpgrade.create({
+        data: {
+          standardWeaponId: standardWeaponId,
+          weaponUpgradeId: newUpgrade.id,
+        },
+      });
+    }
+  }
+}
 
 export async function createStandardWeapon(
   prevState: StandardWeaponState,
@@ -79,39 +125,25 @@ export async function createStandardWeapon(
   const upgrades = parsedUpgrades.data;
 
   try {
-    const newWeapon = await prisma.standardWeapon.create({
-      data: {
-        ...weaponData,
-        traits: {
-          create: traits?.map((traitId) => ({
-            trait: { connect: { id: traitId } },
-          })),
+    await prisma.$transaction(async (tx) => {
+      const newWeapon = await tx.standardWeapon.create({
+        data: {
+          ...weaponData,
+          traits: {
+            create: traits?.map((traitId) => ({
+              trait: { connect: { id: traitId } },
+            })),
+          },
+          criticalEffects: {
+            create: criticalEffects?.map((effectId) => ({
+              criticalEffect: { connect: { id: effectId } },
+            })),
+          },
         },
-        criticalEffects: {
-          create: criticalEffects?.map((effectId) => ({
-            criticalEffect: { connect: { id: effectId } },
-          })),
-        },
-      },
-    });
+      });
 
-    if (upgrades && upgrades.length > 0) {
-      for (const upgrade of upgrades) {
-        const newUpgrade = await prisma.weaponUpgrade.create({
-          data: {
-            name: upgrade.name,
-            description: upgrade.description,
-            costModifier: upgrade.costModifier,
-          },
-        });
-        await prisma.standardWeaponAvailableUpgrade.create({
-          data: {
-            standardWeaponId: newWeapon.id,
-            weaponUpgradeId: newUpgrade.id,
-          },
-        });
-      }
-    }
+      await handleUpgrades(tx, newWeapon.id, upgrades);
+    });
   } catch (error) {
     console.error(error);
     return {
@@ -185,33 +217,12 @@ export async function updateStandardWeapon(
           },
         },
       });
-
-      if (upgrades && upgrades.length > 0) {
-        await tx.standardWeaponAvailableUpgrade.deleteMany({
-          where: { standardWeaponId: id },
-        });
-
-        for (const upgrade of upgrades) {
-          const newUpgrade = await tx.weaponUpgrade.create({
-            data: {
-              name: upgrade.name,
-              description: upgrade.description,
-              costModifier: upgrade.costModifier,
-            },
-          });
-          await tx.standardWeaponAvailableUpgrade.create({
-            data: {
-              standardWeaponId: id,
-              weaponUpgradeId: newUpgrade.id,
-            },
-          });
-        }
-      }
+      await handleUpgrades(tx, id, upgrades);
     });
   } catch (error) {
     console.error(error);
     return {
-      message: "Database Error: Failed to Update Standard Weapon.",
+      message: "DatabaseError: Failed to Update Standard Weapon.",
     };
   }
 

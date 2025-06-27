@@ -32,7 +32,13 @@ import { Button } from "@/components/ui/button";
 type UpgradeFormData = {
   name: string;
   description?: string;
-  costModifier: number;
+  costModifier?: number;
+  rangeNew?: string;
+  testAttributeNew?: SPECIAL;
+  testValueModifier?: number;
+  notesNew?: string;
+  traits: Trait[];
+  criticalEffects: CriticalEffect[];
 };
 
 interface StandardWeaponFormDialogProps {
@@ -72,13 +78,16 @@ export function StandardWeaponFormDialog({
   const [upgrades, setUpgrades] = useState<Partial<UpgradeFormData>[]>([]);
 
   const addUpgrade = () => {
-    setUpgrades([...upgrades, { costModifier: 0 }]);
+    setUpgrades([
+      ...upgrades,
+      { costModifier: 0, traits: [], criticalEffects: [] },
+    ]);
   };
 
-  const handleUpgradeChange = (
+  const handleUpgradeChange = <K extends keyof UpgradeFormData>(
     index: number,
-    field: keyof UpgradeFormData,
-    value: string | number
+    field: K,
+    value: UpgradeFormData[K]
   ) => {
     const newUpgrades = [...upgrades];
     newUpgrades[index] = { ...newUpgrades[index], [field]: value };
@@ -108,7 +117,16 @@ export function StandardWeaponFormDialog({
     selectedCriticalEffects.forEach((effect) =>
       formData.append("criticalEffects", effect.id)
     );
-    formData.append("upgrades", JSON.stringify(upgrades));
+    formData.append(
+      "upgrades",
+      JSON.stringify(
+        upgrades.map((u) => ({
+          ...u,
+          traits: u.traits?.map((t) => t.id),
+          criticalEffects: u.criticalEffects?.map((c) => c.id),
+        }))
+      )
+    );
     dispatch(formData);
   };
 
@@ -332,47 +350,207 @@ export function StandardWeaponFormDialog({
                     Remove
                   </Button>
                 </div>
-                <div>
-                  <Label htmlFor={`upgrade-name-${index}`}>Name</Label>
-                  <Input
-                    id={`upgrade-name-${index}`}
-                    name={`upgrade-name-${index}`}
-                    value={upgrade.name ?? ""}
-                    onChange={(e) =>
-                      handleUpgradeChange(index, "name", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`upgrade-costModifier-${index}`}>
-                    Cost Modifier
-                  </Label>
-                  <Input
-                    id={`upgrade-costModifier-${index}`}
-                    name={`upgrade-costModifier-${index}`}
-                    type="number"
-                    value={upgrade.costModifier ?? 0}
-                    onChange={(e) =>
-                      handleUpgradeChange(
-                        index,
-                        "costModifier",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`upgrade-description-${index}`}>
-                    Description
-                  </Label>
-                  <Textarea
-                    id={`upgrade-description-${index}`}
-                    name={`upgrade-description-${index}`}
-                    value={upgrade.description ?? ""}
-                    onChange={(e) =>
-                      handleUpgradeChange(index, "description", e.target.value)
-                    }
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`upgrade-name-${index}`}>Name</Label>
+                    <Input
+                      id={`upgrade-name-${index}`}
+                      value={upgrade.name ?? ""}
+                      onChange={(e) =>
+                        handleUpgradeChange(index, "name", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`upgrade-costModifier-${index}`}>
+                      Cost Modifier
+                    </Label>
+                    <Input
+                      id={`upgrade-costModifier-${index}`}
+                      type="number"
+                      value={upgrade.costModifier ?? ""}
+                      onChange={(e) =>
+                        handleUpgradeChange(
+                          index,
+                          "costModifier",
+                          parseInt(e.target.value) || undefined
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`upgrade-rangeNew-${index}`}>
+                      New Range
+                    </Label>
+                    <Input
+                      id={`upgrade-rangeNew-${index}`}
+                      value={upgrade.rangeNew ?? ""}
+                      onChange={(e) =>
+                        handleUpgradeChange(index, "rangeNew", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`upgrade-testValueModifier-${index}`}>
+                      Test Value Modifier
+                    </Label>
+                    <Input
+                      id={`upgrade-testValueModifier-${index}`}
+                      type="number"
+                      value={upgrade.testValueModifier ?? ""}
+                      onChange={(e) =>
+                        handleUpgradeChange(
+                          index,
+                          "testValueModifier",
+                          parseInt(e.target.value) || undefined
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`upgrade-testAttributeNew-${index}`}>
+                      New Test Attribute
+                    </Label>
+                    <Select
+                      value={upgrade.testAttributeNew ?? ""}
+                      onValueChange={(value) =>
+                        handleUpgradeChange(
+                          index,
+                          "testAttributeNew",
+                          value as SPECIAL
+                        )
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an attribute" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(SPECIAL).map((attr) => (
+                          <SelectItem key={attr} value={attr}>
+                            {attr}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor={`upgrade-notesNew-${index}`}>
+                      New Notes
+                    </Label>
+                    <Textarea
+                      id={`upgrade-notesNew-${index}`}
+                      value={upgrade.notesNew ?? ""}
+                      onChange={(e) =>
+                        handleUpgradeChange(index, "notesNew", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label>Traits</Label>
+                    <Select
+                      value=""
+                      onValueChange={(value) => {
+                        const trait = traits.find((t) => t.id === value);
+                        if (trait) {
+                          handleUpgradeChange(index, "traits", [
+                            ...(upgrade.traits ?? []),
+                            trait,
+                          ]);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Add a trait" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {traits.map((trait) => (
+                          <SelectItem key={trait.id} value={trait.id}>
+                            {trait.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex gap-1 flex-wrap">
+                      {upgrade.traits?.map((trait, tIndex) => (
+                        <div
+                          key={tIndex}
+                          className="flex items-center gap-1 bg-secondary text-secondary-foreground rounded-md text-xs px-2 py-1"
+                        >
+                          <span>{trait.name}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0.5"
+                            onClick={() => {
+                              const newTraits = [...(upgrade.traits ?? [])];
+                              newTraits.splice(tIndex, 1);
+                              handleUpgradeChange(index, "traits", newTraits);
+                            }}
+                          >
+                            x
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label>Critical Effects</Label>
+                    <Select
+                      value=""
+                      onValueChange={(value) => {
+                        const effect = criticalEffects.find(
+                          (e) => e.id === value
+                        );
+                        if (effect) {
+                          handleUpgradeChange(index, "criticalEffects", [
+                            ...(upgrade.criticalEffects ?? []),
+                            effect,
+                          ]);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Add a critical effect" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {criticalEffects.map((effect) => (
+                          <SelectItem key={effect.id} value={effect.id}>
+                            {effect.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex gap-1 flex-wrap">
+                      {upgrade.criticalEffects?.map((effect, cIndex) => (
+                        <div
+                          key={cIndex}
+                          className="flex items-center gap-1 bg-secondary text-secondary-foreground rounded-md text-xs px-2 py-1"
+                        >
+                          <span>{effect.name}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0.5"
+                            onClick={() => {
+                              const newCriticals = [
+                                ...(upgrade.criticalEffects ?? []),
+                              ];
+                              newCriticals.splice(cIndex, 1);
+                              handleUpgradeChange(
+                                index,
+                                "criticalEffects",
+                                newCriticals
+                              );
+                            }}
+                          >
+                            x
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
