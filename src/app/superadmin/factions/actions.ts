@@ -40,6 +40,9 @@ export async function updateFaction(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  if (!(await canCreateFaction())) {
+    return { message: "Error: You are not authorized to update factions." };
+  }
   const name = formData.get("name") as string;
   try {
     if (!name) {
@@ -60,6 +63,9 @@ export async function updateFaction(
 }
 
 export async function deleteFaction(id: string) {
+  if (!(await canCreateFaction())) {
+    return { message: "Error: You are not authorized to delete factions." };
+  }
   try {
     await db.faction.delete({
       where: { id },

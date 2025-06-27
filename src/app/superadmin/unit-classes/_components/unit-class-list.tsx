@@ -8,11 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Perk, UnitClass } from "@prisma/client";
+import { UnitClass } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { FactionFormDialog } from "./faction-form-dialog";
-import { deleteFaction } from "../actions";
+import { UnitClassFormDialog } from "./unit-class-form-dialog";
+import { deleteUnitClass } from "../actions";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -24,64 +24,48 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Prisma } from "@prisma/client";
 
-type FactionWithTemplates = Prisma.FactionGetPayload<{
-  include: { unitTemplates: { include: { perks: true } } };
-}>;
-
-interface FactionListProps {
-  factions: FactionWithTemplates[];
+interface UnitClassListProps {
   unitClasses: UnitClass[];
-  perks: Perk[];
 }
 
-export function FactionList({
-  factions,
-  unitClasses,
-  perks,
-}: FactionListProps) {
+export function UnitClassList({ unitClasses }: UnitClassListProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedFactionId, setSelectedFactionId] = useState<string | null>(
-    null
-  );
+  const [selectedUnitClass, setSelectedUnitClass] = useState<
+    UnitClass | undefined
+  >(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const selectedFaction =
-    factions.find((f) => f.id === selectedFactionId) || null;
-  const selectedFactionForDeletion =
-    factions.find((f) => f.id === selectedFactionId) || null;
-
   const handleCreate = () => {
-    setSelectedFactionId(null);
+    setSelectedUnitClass(undefined);
     setDialogOpen(true);
   };
 
-  const handleEdit = (faction: FactionWithTemplates) => {
-    setSelectedFactionId(faction.id);
+  const handleEdit = (unitClass: UnitClass) => {
+    setSelectedUnitClass(unitClass);
     setDialogOpen(true);
   };
 
-  const handleDelete = (faction: FactionWithTemplates) => {
-    setSelectedFactionId(faction.id);
+  const handleDelete = (unitClass: UnitClass) => {
+    setSelectedUnitClass(unitClass);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (selectedFactionForDeletion) {
-      const result = await deleteFaction(selectedFactionForDeletion.id);
+    if (selectedUnitClass) {
+      const result = await deleteUnitClass(selectedUnitClass.id);
 
-      if (result?.message?.startsWith("Error")) {
+      if (result?.message.startsWith("Error")) {
         toast({
           title: result.message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: result?.message || "Faction deleted successfully.",
+          title: result.message,
         });
-        setSelectedFactionId(null);
+        setSelectedUnitClass(undefined);
       }
       setDeleteDialogOpen(false);
     }
@@ -90,7 +74,7 @@ export function FactionList({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={handleCreate}>Create Faction</Button>
+        <Button onClick={handleCreate}>Create Unit Class</Button>
       </div>
       <Table>
         <TableHeader>
@@ -100,22 +84,22 @@ export function FactionList({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {factions.map((faction) => (
-            <TableRow key={faction.id}>
-              <TableCell>{faction.name}</TableCell>
+          {unitClasses.map((unitClass) => (
+            <TableRow key={unitClass.id}>
+              <TableCell>{unitClass.name}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEdit(faction)}
+                    onClick={() => handleEdit(unitClass)}
                   >
                     Edit
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleDelete(faction)}
+                    onClick={() => handleDelete(unitClass)}
                   >
                     Delete
                   </Button>
@@ -125,13 +109,11 @@ export function FactionList({
           ))}
         </TableBody>
       </Table>
-      <FactionFormDialog
-        key={selectedFaction?.id || "create"}
+      <UnitClassFormDialog
+        key={selectedUnitClass?.id || "create"}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        faction={selectedFaction || undefined}
-        unitClasses={unitClasses}
-        perks={perks}
+        unitClass={selectedUnitClass}
       />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -139,7 +121,7 @@ export function FactionList({
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
-              faction.
+              unit class.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

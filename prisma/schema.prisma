@@ -49,7 +49,7 @@ model Organization {
   standardWeapons  OrganizationStandardWeapon[]
   weaponUpgrades   OrganizationWeaponUpgrade[]
   traits           OrganizationTrait[]
-  criticalTraits   OrganizationCriticalTrait[]
+  criticalEffects  OrganizationCriticalEffect[]
   campaignRule     CampaignRule?
   messages         Message[]
   wastelandLegends WastelandLegend[]
@@ -130,6 +130,7 @@ model Faction {
   name          String
   crews         Crew[]
   organizations OrganizationFaction[]
+  unitTemplates UnitTemplate[]
 }
 
 model OrganizationFaction {
@@ -152,6 +153,7 @@ model Unit {
   a              Int
   l              Int
   rating         Int
+  hp             Int
   status         UnitStatus       @default(ACTIVE)
   crew           Crew?            @relation(fields: [crewId], references: [id])
   crewId         String?
@@ -174,6 +176,7 @@ model UnitClass {
   name          String
   units         Unit[]
   organizations OrganizationUnitClass[]
+  unitTemplates UnitTemplate[]
 }
 
 model OrganizationUnitClass {
@@ -221,6 +224,7 @@ model Perk {
   description   String?
   units         UnitPerk[]
   organizations OrganizationPerk[]
+  unitTemplates UnitTemplatePerk[]
 }
 
 model OrganizationPerk {
@@ -298,22 +302,24 @@ model CrewQuest {
 }
 
 model StandardWeapon {
-  id                String                           @id @default(cuid())
-  name              String
-  range             Int
-  cost              Int
-  testDice          Int
-  testAttribute     SPECIAL
-  weaponType        WeaponType                       @relation(fields: [weaponTypeId], references: [id])
-  weaponTypeId      String
+  id              String                         @id @default(cuid())
+  name            String
+  range           String
+  testAttribute   SPECIAL
+  testValue       Int
+  notes           String?
+  weaponType      WeaponType                     @relation(fields: [weaponTypeId], references: [id])
+  weaponTypeId    String
+  organizations   OrganizationStandardWeapon[]
   availableUpgrades StandardWeaponAvailableUpgrade[]
-  unitWeapons       UnitWeapon[]
-  organizations     OrganizationStandardWeapon[]
+  appliedToWeapons  WeaponTemplateStandardWeapon[]
+  traits          WeaponTrait[]
+  criticalEffects WeaponCriticalEffect[]
 }
 
 model OrganizationStandardWeapon {
-  organization     Organization   @relation(fields: [organizationId], references: [id])
-  organizationId   String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
   standardWeapon   StandardWeapon @relation(fields: [standardWeaponId], references: [id])
   standardWeaponId String
 
@@ -327,32 +333,32 @@ model WeaponType {
 }
 
 model UnitWeapon {
-  id               String                     @id @default(cuid())
-  name             String
-  range            Int
-  cost             Int
-  testDice         Int
-  testAttribute    SPECIAL
-  unit             Unit                       @relation(fields: [unitId], references: [id])
-  unitId           String
-  standardWeapon   StandardWeapon             @relation(fields: [standardWeaponId], references: [id])
-  standardWeaponId String
-  appliedUpgrades  UnitWeaponAppliedUpgrade[]
-  traits           WeaponTrait[]
-  criticalTraits   WeaponCriticalTrait[]
+  id              String                     @id @default(cuid())
+  unit            Unit                       @relation(fields: [unitId], references: [id])
+  unitId          String
+  name            String
+  cost            Int
+  range           String
+  damage          String
+  rateOfFire      String
+  notes           String?
+  appliedUpgrades UnitWeaponAppliedUpgrade[]
 }
 
 model WeaponUpgrade {
-  id               String                           @id @default(cuid())
-  name             String
-  description      String?
-  rangeModifier    Int                              @default(0)
-  costModifier     Int                              @default(0)
-  testDiceModifier Int                              @default(0)
-  newTestAttribute SPECIAL?
-  availableFor     StandardWeaponAvailableUpgrade[]
-  appliedOn        UnitWeaponAppliedUpgrade[]
-  organizations    OrganizationWeaponUpgrade[]
+  id                  String                         @id @default(cuid())
+  name                String
+  description         String?
+  costModifier        Int?
+  rangeNew            String?
+  testAttributeNew    SPECIAL?
+  testValueModifier   Int?
+  notesNew            String?
+  availableFor        StandardWeaponAvailableUpgrade[]
+  appliedOn           UnitWeaponAppliedUpgrade[]
+  organizations       OrganizationWeaponUpgrade[]
+  traits              WeaponUpgradeTrait[]
+  criticalEffects     WeaponUpgradeCritical[]
 }
 
 model OrganizationWeaponUpgrade {
@@ -360,8 +366,11 @@ model OrganizationWeaponUpgrade {
   organizationId  String
   weaponUpgrade   WeaponUpgrade @relation(fields: [weaponUpgradeId], references: [id])
   weaponUpgradeId String
+  traitId         String
 
   @@id([organizationId, weaponUpgradeId])
+  @@index([weaponUpgradeId])
+  @@index([traitId])
 }
 
 model StandardWeaponAvailableUpgrade {
@@ -383,11 +392,13 @@ model UnitWeaponAppliedUpgrade {
 }
 
 model Trait {
-  id            String              @id @default(cuid())
+  id            String             @id @default(cuid())
   name          String
   description   String?
-  weapons       WeaponTrait[]
+  cost          Int                @default(0)
   organizations OrganizationTrait[]
+  weapons       WeaponTrait[]
+  upgrades      WeaponUpgradeTrait[]
 }
 
 model OrganizationTrait {
@@ -400,38 +411,43 @@ model OrganizationTrait {
 }
 
 model WeaponTrait {
-  unitWeapon   UnitWeapon @relation(fields: [unitWeaponId], references: [id])
-  unitWeaponId String
-  trait        Trait      @relation(fields: [traitId], references: [id])
-  traitId      String
+  id       String         @id @default(cuid())
+  weapon   StandardWeapon @relation(fields: [weaponId], references: [id], onDelete: Cascade)
+  weaponId String
+  trait    Trait          @relation(fields: [traitId], references: [id], onDelete: Cascade)
+  traitId  String
 
-  @@id([unitWeaponId, traitId])
+  @@index([weaponId])
+  @@index([traitId])
 }
 
-model CriticalTrait {
-  id            String                      @id @default(cuid())
-  name          String
-  description   String?
-  weapons       WeaponCriticalTrait[]
-  organizations OrganizationCriticalTrait[]
+model CriticalEffect {
+  id                 String                     @id @default(cuid())
+  name               String
+  description        String?
+  organizations      OrganizationCriticalEffect[]
+  weapons            WeaponCriticalEffect[]
+  upgrades           WeaponUpgradeCritical[]
 }
 
-model OrganizationCriticalTrait {
-  organization    Organization  @relation(fields: [organizationId], references: [id])
-  organizationId  String
-  criticalTrait   CriticalTrait @relation(fields: [criticalTraitId], references: [id])
-  criticalTraitId String
+model OrganizationCriticalEffect {
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  organizationId   String
+  criticalEffect   CriticalEffect      @relation(fields: [criticalEffectId], references: [id])
+  criticalEffectId String
 
-  @@id([organizationId, criticalTraitId])
+  @@id([organizationId, criticalEffectId])
 }
 
-model WeaponCriticalTrait {
-  unitWeapon      UnitWeapon    @relation(fields: [unitWeaponId], references: [id])
-  unitWeaponId    String
-  criticalTrait   CriticalTrait @relation(fields: [criticalTraitId], references: [id])
-  criticalTraitId String
+model WeaponCriticalEffect {
+  id               String         @id @default(cuid())
+  weapon           StandardWeapon @relation(fields: [weaponId], references: [id], onDelete: Cascade)
+  weaponId         String
+  criticalEffect   CriticalEffect @relation(fields: [criticalEffectId], references: [id], onDelete: Cascade)
+  criticalEffectId String
 
-  @@id([unitWeaponId, criticalTraitId])
+  @@index([weaponId])
+  @@index([criticalEffectId])
 }
 
 model Model {
@@ -497,4 +513,83 @@ model TemporaryHire {
   hiringCrewId String
   legendUnit   Unit   @relation(fields: [legendUnitId], references: [id])
   legendUnitId String
+}
+
+model UnitTemplate {
+  id    String @id @default(cuid())
+  name  String
+  s     Int
+  p     Int
+  e     Int
+  c     Int
+  i     Int
+  a     Int
+  l     Int
+  hp    Int
+
+  factionId String
+  faction   Faction   @relation(fields: [factionId], references: [id])
+
+  unitClassId String
+  unitClass   UnitClass @relation(fields: [unitClassId], references: [id])
+
+  perks           UnitTemplatePerk[]
+  weaponTemplates UnitTemplateWeaponTemplate[]
+}
+
+model UnitTemplatePerk {
+  unitTemplate   UnitTemplate @relation(fields: [unitTemplateId], references: [id])
+  unitTemplateId String
+  perk           Perk         @relation(fields: [perkId], references: [id])
+  perkId         String
+
+  @@id([unitTemplateId, perkId])
+}
+
+model WeaponTemplate {
+  id              String                         @id @default(cuid())
+  name            String
+  cost            Int
+  unitTemplates   UnitTemplateWeaponTemplate[]
+  standardWeapons WeaponTemplateStandardWeapon[]
+}
+
+model UnitTemplateWeaponTemplate {
+  unitTemplate     UnitTemplate   @relation(fields: [unitTemplateId], references: [id])
+  unitTemplateId   String
+  weaponTemplate   WeaponTemplate @relation(fields: [weaponTemplateId], references: [id])
+  weaponTemplateId String
+
+  @@id([unitTemplateId, weaponTemplateId])
+}
+
+model WeaponTemplateStandardWeapon {
+  weaponTemplate   WeaponTemplate @relation(fields: [weaponTemplateId], references: [id])
+  weaponTemplateId String
+  standardWeapon   StandardWeapon @relation(fields: [standardWeaponId], references: [id])
+  standardWeaponId String
+
+  @@id([weaponTemplateId, standardWeaponId])
+}
+
+model WeaponUpgradeTrait {
+  id              String        @id @default(cuid())
+  weaponUpgrade   WeaponUpgrade @relation(fields: [weaponUpgradeId], references: [id], onDelete: Cascade)
+  weaponUpgradeId String
+  trait           Trait         @relation(fields: [traitId], references: [id], onDelete: Cascade)
+  traitId         String
+
+  @@index([weaponUpgradeId])
+  @@index([traitId])
+}
+
+model WeaponUpgradeCritical {
+  id               String         @id @default(cuid())
+  weaponUpgrade    WeaponUpgrade  @relation(fields: [weaponUpgradeId], references: [id], onDelete: Cascade)
+  weaponUpgradeId  String
+  criticalEffect   CriticalEffect @relation(fields: [criticalEffectId], references: [id], onDelete: Cascade)
+  criticalEffectId String
+
+  @@index([weaponUpgradeId])
+  @@index([criticalEffectId])
 }

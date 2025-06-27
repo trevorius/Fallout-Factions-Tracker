@@ -8,11 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Perk, UnitClass } from "@prisma/client";
+import { Trait } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { FactionFormDialog } from "./faction-form-dialog";
-import { deleteFaction } from "../actions";
+import { TraitFormDialog } from "./trait-form-dialog";
+import { deleteTrait } from "../actions";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -24,53 +24,39 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Prisma } from "@prisma/client";
 
-type FactionWithTemplates = Prisma.FactionGetPayload<{
-  include: { unitTemplates: { include: { perks: true } } };
-}>;
-
-interface FactionListProps {
-  factions: FactionWithTemplates[];
-  unitClasses: UnitClass[];
-  perks: Perk[];
+interface TraitListProps {
+  traits: Trait[];
 }
 
-export function FactionList({
-  factions,
-  unitClasses,
-  perks,
-}: FactionListProps) {
+export function TraitList({ traits }: TraitListProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedFactionId, setSelectedFactionId] = useState<string | null>(
-    null
-  );
+  const [selectedTraitId, setSelectedTraitId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const selectedFaction =
-    factions.find((f) => f.id === selectedFactionId) || null;
-  const selectedFactionForDeletion =
-    factions.find((f) => f.id === selectedFactionId) || null;
+  const selectedTrait = traits.find((t) => t.id === selectedTraitId) || null;
+  const selectedTraitForDeletion =
+    traits.find((t) => t.id === selectedTraitId) || null;
 
   const handleCreate = () => {
-    setSelectedFactionId(null);
+    setSelectedTraitId(null);
     setDialogOpen(true);
   };
 
-  const handleEdit = (faction: FactionWithTemplates) => {
-    setSelectedFactionId(faction.id);
+  const handleEdit = (trait: Trait) => {
+    setSelectedTraitId(trait.id);
     setDialogOpen(true);
   };
 
-  const handleDelete = (faction: FactionWithTemplates) => {
-    setSelectedFactionId(faction.id);
+  const handleDelete = (trait: Trait) => {
+    setSelectedTraitId(trait.id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (selectedFactionForDeletion) {
-      const result = await deleteFaction(selectedFactionForDeletion.id);
+    if (selectedTraitForDeletion) {
+      const result = await deleteTrait(selectedTraitForDeletion.id);
 
       if (result?.message?.startsWith("Error")) {
         toast({
@@ -79,9 +65,9 @@ export function FactionList({
         });
       } else {
         toast({
-          title: result?.message || "Faction deleted successfully.",
+          title: result?.message || "Trait deleted successfully.",
         });
-        setSelectedFactionId(null);
+        setSelectedTraitId(null);
       }
       setDeleteDialogOpen(false);
     }
@@ -90,32 +76,34 @@ export function FactionList({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={handleCreate}>Create Faction</Button>
+        <Button onClick={handleCreate}>Create Trait</Button>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
+            <TableHead>Description</TableHead>
             <TableHead className="w-[200px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {factions.map((faction) => (
-            <TableRow key={faction.id}>
-              <TableCell>{faction.name}</TableCell>
+          {traits.map((trait) => (
+            <TableRow key={trait.id}>
+              <TableCell>{trait.name}</TableCell>
+              <TableCell>{trait.description}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEdit(faction)}
+                    onClick={() => handleEdit(trait)}
                   >
                     Edit
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleDelete(faction)}
+                    onClick={() => handleDelete(trait)}
                   >
                     Delete
                   </Button>
@@ -125,13 +113,11 @@ export function FactionList({
           ))}
         </TableBody>
       </Table>
-      <FactionFormDialog
-        key={selectedFaction?.id || "create"}
+      <TraitFormDialog
+        key={selectedTrait?.id || "create"}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        faction={selectedFaction || undefined}
-        unitClasses={unitClasses}
-        perks={perks}
+        trait={selectedTrait || undefined}
       />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -139,7 +125,7 @@ export function FactionList({
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
-              faction.
+              trait.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

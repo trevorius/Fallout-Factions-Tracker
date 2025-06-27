@@ -221,24 +221,24 @@ erDiagram
     }
 
     WeaponTrait {
-        String unitWeaponId
+        String weaponId
         String traitId
     }
 
-    CriticalTrait {
+    CriticalEffect {
         String id
         String name
         String description
     }
 
-    OrganizationCriticalTrait {
+    OrganizationCriticalEffect {
         String organizationId
-        String criticalTraitId
+        String criticalEffectId
     }
 
-    WeaponCriticalTrait {
-        String unitWeaponId
-        String criticalTraitId
+    WeaponCriticalEffect {
+        String weaponId
+        String criticalEffectId
     }
 
     Model {
@@ -285,6 +285,22 @@ erDiagram
         String legendUnitId
     }
 
+    UnitTemplate {
+        String id
+        String name
+        Int s
+        Int p
+        Int e
+        Int c
+        Int i
+        Int a
+        Int l
+        Int rating
+        Int hp
+        String factionId
+        String unitClassId
+    }
+
     User ||--o{ OrganizationMember : "has"
     Organization ||--o{ OrganizationMember : "has"
     User ||--o{ Crew : "has"
@@ -293,6 +309,9 @@ erDiagram
     Organization ||--o{ Unit : "is home to"
     Faction ||--o{ Crew : "belongs to"
     UnitClass ||--o{ Unit : "is of class"
+
+    Faction ||--o{ UnitTemplate : "defines templates for"
+    UnitClass ||--o{ UnitTemplate : "categorizes"
 
     Organization ||--o{ OrganizationFaction : "selects"
     Faction ||--o{ OrganizationFaction : "is selected by"
@@ -312,8 +331,8 @@ erDiagram
     WeaponUpgrade ||--o{ OrganizationWeaponUpgrade : "is selected by"
     Organization ||--o{ OrganizationTrait : "selects"
     Trait ||--o{ OrganizationTrait : "is selected by"
-    Organization ||--o{ OrganizationCriticalTrait : "selects"
-    CriticalTrait ||--o{ OrganizationCriticalTrait : "is selected by"
+    Organization ||--o{ OrganizationCriticalEffect : "selects"
+    CriticalEffect ||--o{ OrganizationCriticalEffect : "is selected by"
 
     Crew ||..o{ Unit : "captures"
     Unit ||--o{ UnitInjury : "suffers"
@@ -332,9 +351,9 @@ erDiagram
     UnitWeapon ||--o{ UnitWeaponAppliedUpgrade : "has"
     WeaponUpgrade ||--o{ UnitWeaponAppliedUpgrade : "is"
     UnitWeapon ||--o{ WeaponTrait : "has"
-    Trait ||--o{ WeaponTrait : ""
-    UnitWeapon ||--o{ WeaponCriticalTrait : "has"
-    CriticalTrait ||--o{ WeaponCriticalTrait : ""
+    Trait ||--o{ WeaponTrait : "is in"
+    UnitWeapon ||--o{ WeaponCriticalEffect : "has"
+    CriticalEffect ||--o{ WeaponCriticalEffect : "is in"
     Unit ||--|| Model : "is represented by"
     Organization ||--|| CampaignRule : "has"
     Organization ||--o{ Message : "has"
@@ -362,7 +381,7 @@ erDiagram
 
 The system distinguishes between "master list" items (created by a Super Admin) and the items available in a specific campaign (chosen by an Organization Admin).
 
-- **Master Lists**: `Faction`, `UnitClass`, `Injury`, `Perk`, `Chem`, `Quest`, `StandardWeapon`, `WeaponUpgrade`, `Trait`, `CriticalTrait`. These are the global templates.
+- **Master Lists**: `Faction`, `UnitClass`, `UnitTemplate`, `Injury`, `Perk`, `Chem`, `Quest`, `StandardWeapon`, `WeaponUpgrade`, `Trait`, `CriticalEffect`. These are the global templates.
 - **Join Tables**: `OrganizationFaction`, `OrganizationUnitClass`, etc. These tables create a many-to-many relationship, allowing an Organization Admin to select which master list items are available for their campaign.
 
 ### Game-Specific Models
@@ -370,6 +389,7 @@ The system distinguishes between "master list" items (created by a Super Admin) 
 - **Crew**: The central model for a player's team. It belongs to a `User` (player) and a `Faction`. It tracks resources like `caps`, `xp`, and `parts`.
 - **Unit**: A member of a `Crew`. When a unit's status becomes `LEGENDARY`, its `crewId` is set to null, and it becomes a mercenary available for hire within its `Organization`.
 - **Model**: Represents the single physical miniature for a `Unit`.
+- **UnitTemplate**: Defines the base stats, class, and HP for a type of unit that belongs to a specific `Faction`. This serves as the blueprint from which player `Unit`s are created.
 
 ### Campaign & Gameplay Models
 

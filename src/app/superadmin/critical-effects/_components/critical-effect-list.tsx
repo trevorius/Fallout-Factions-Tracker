@@ -8,11 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Perk, UnitClass } from "@prisma/client";
+import { CriticalEffect } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { FactionFormDialog } from "./faction-form-dialog";
-import { deleteFaction } from "../actions";
+import { CriticalEffectFormDialog } from "./critical-effect-form-dialog";
+import { deleteCriticalEffect } from "../actions";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -24,53 +24,42 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Prisma } from "@prisma/client";
 
-type FactionWithTemplates = Prisma.FactionGetPayload<{
-  include: { unitTemplates: { include: { perks: true } } };
-}>;
-
-interface FactionListProps {
-  factions: FactionWithTemplates[];
-  unitClasses: UnitClass[];
-  perks: Perk[];
+interface CriticalEffectListProps {
+  criticalEffects: CriticalEffect[];
 }
 
-export function FactionList({
-  factions,
-  unitClasses,
-  perks,
-}: FactionListProps) {
+export function CriticalEffectList({
+  criticalEffects,
+}: CriticalEffectListProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedFactionId, setSelectedFactionId] = useState<string | null>(
-    null
-  );
+  const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const selectedFaction =
-    factions.find((f) => f.id === selectedFactionId) || null;
-  const selectedFactionForDeletion =
-    factions.find((f) => f.id === selectedFactionId) || null;
+  const selectedEffect =
+    criticalEffects.find((t) => t.id === selectedEffectId) || null;
+  const selectedEffectForDeletion =
+    criticalEffects.find((t) => t.id === selectedEffectId) || null;
 
   const handleCreate = () => {
-    setSelectedFactionId(null);
+    setSelectedEffectId(null);
     setDialogOpen(true);
   };
 
-  const handleEdit = (faction: FactionWithTemplates) => {
-    setSelectedFactionId(faction.id);
+  const handleEdit = (effect: CriticalEffect) => {
+    setSelectedEffectId(effect.id);
     setDialogOpen(true);
   };
 
-  const handleDelete = (faction: FactionWithTemplates) => {
-    setSelectedFactionId(faction.id);
+  const handleDelete = (effect: CriticalEffect) => {
+    setSelectedEffectId(effect.id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (selectedFactionForDeletion) {
-      const result = await deleteFaction(selectedFactionForDeletion.id);
+    if (selectedEffectForDeletion) {
+      const result = await deleteCriticalEffect(selectedEffectForDeletion.id);
 
       if (result?.message?.startsWith("Error")) {
         toast({
@@ -79,9 +68,9 @@ export function FactionList({
         });
       } else {
         toast({
-          title: result?.message || "Faction deleted successfully.",
+          title: result?.message || "Critical Effect deleted successfully.",
         });
-        setSelectedFactionId(null);
+        setSelectedEffectId(null);
       }
       setDeleteDialogOpen(false);
     }
@@ -90,32 +79,34 @@ export function FactionList({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={handleCreate}>Create Faction</Button>
+        <Button onClick={handleCreate}>Create Critical Effect</Button>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
+            <TableHead>Description</TableHead>
             <TableHead className="w-[200px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {factions.map((faction) => (
-            <TableRow key={faction.id}>
-              <TableCell>{faction.name}</TableCell>
+          {criticalEffects.map((effect) => (
+            <TableRow key={effect.id}>
+              <TableCell>{effect.name}</TableCell>
+              <TableCell>{effect.description}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEdit(faction)}
+                    onClick={() => handleEdit(effect)}
                   >
                     Edit
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleDelete(faction)}
+                    onClick={() => handleDelete(effect)}
                   >
                     Delete
                   </Button>
@@ -125,13 +116,11 @@ export function FactionList({
           ))}
         </TableBody>
       </Table>
-      <FactionFormDialog
-        key={selectedFaction?.id || "create"}
+      <CriticalEffectFormDialog
+        key={selectedEffect?.id || "create"}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        faction={selectedFaction || undefined}
-        unitClasses={unitClasses}
-        perks={perks}
+        criticalEffect={selectedEffect || undefined}
       />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -139,7 +128,7 @@ export function FactionList({
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
-              faction.
+              critical effect.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

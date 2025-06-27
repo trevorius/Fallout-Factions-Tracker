@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
   Swords,
+  Tags,
   User,
   Users,
 } from "lucide-react";
@@ -35,6 +36,12 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "../ui/sidebar";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/accordion";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -95,7 +102,48 @@ export function AppSidebar() {
       icon: Swords,
       show: session?.user?.isSuperAdmin,
     },
+    {
+      name: "Unit Classes",
+      href: "/superadmin/unit-classes",
+      icon: Users,
+      show: session?.user?.isSuperAdmin,
+    },
+    {
+      name: "Weapons",
+      href: "/superadmin/standard-weapons",
+      icon: Swords,
+      show: session?.user?.isSuperAdmin,
+    },
   ];
+
+  const traitsAndPerks = {
+    name: "Traits & Perks",
+    icon: Tags,
+    show: session?.user?.isSuperAdmin,
+    subItems: [
+      {
+        name: "Weapon Traits",
+        href: "/superadmin/traits",
+        show: session?.user?.isSuperAdmin,
+      },
+      {
+        name: "Critical Effects",
+        href: "/superadmin/critical-effects",
+        show: session?.user?.isSuperAdmin,
+      },
+      {
+        name: "Perks",
+        href: "/superadmin/perks",
+        show: session?.user?.isSuperAdmin,
+      },
+
+      {
+        name: "Weapon Types",
+        href: "/superadmin/weapon-types",
+        show: session?.user?.isSuperAdmin,
+      },
+    ],
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -138,6 +186,52 @@ export function AppSidebar() {
                         </SidebarMenuItem>
                       );
                     }
+                  )}
+                  {traitsAndPerks.show && (
+                    <SidebarMenuItem>
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem
+                          value="traits-perks"
+                          className="border-b-0"
+                        >
+                          <SidebarMenuButton
+                            asChild
+                            className="w-full justify-between hover:no-underline p-0"
+                          >
+                            <AccordionTrigger className="w-full justify-between p-3">
+                              <div className="flex items-center gap-3">
+                                <traitsAndPerks.icon className="h-4 w-4" />
+                                <span>{traitsAndPerks.name}</span>
+                              </div>
+                            </AccordionTrigger>
+                          </SidebarMenuButton>
+                          <AccordionContent className="p-0 pl-7">
+                            <SidebarMenu>
+                              {traitsAndPerks.subItems
+                                .filter((item) => item.show)
+                                .map((item) => {
+                                  const isActive = pathname === item.href;
+                                  return (
+                                    <SidebarMenuItem key={item.name}>
+                                      <SidebarMenuButton
+                                        asChild
+                                        isActive={isActive}
+                                      >
+                                        <Link
+                                          href={item.href}
+                                          className="flex items-center gap-3"
+                                        >
+                                          <span>{item.name}</span>
+                                        </Link>
+                                      </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                  );
+                                })}
+                            </SidebarMenu>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </SidebarMenuItem>
                   )}
                 </SidebarMenu>
               </SidebarGroupContent>
