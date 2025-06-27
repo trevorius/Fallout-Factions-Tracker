@@ -1,9 +1,9 @@
 // existing imports...
 
-import 'server-only';
-import { generateSalt, hashPassword } from '../auth';
-import { prisma } from '../prisma';
-import { generatePassword } from '../words';
+import "server-only";
+import { hashPassword } from "@/lib/auth.utils";
+import { prisma } from "../prisma";
+import { generatePassword } from "../words";
 
 /**
  * Creates or finds a user and assigns them as an organization owner
@@ -29,16 +29,15 @@ export async function createOrFindAccount(
   if (user) {
     user.password = null;
   } else {
-    const salt = generateSalt();
     const tempPassword = generatePassword();
-    const hashedPassword = await hashPassword(tempPassword, salt);
+    const { hash, salt } = await hashPassword(tempPassword);
 
     user = await prisma.user.create({
       data: {
         email: ownerEmail,
         name: ownerName,
         salt,
-        password: hashedPassword,
+        password: hash,
       },
     });
     user.password = tempPassword;

@@ -20,37 +20,481 @@ enum OrganizationRole {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String               @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String               @unique
   salt          String
   password      String
-  isSuperAdmin  Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  isSuperAdmin  Boolean              @default(false)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
   organizations OrganizationMember[]
+  crews         Crew[]
 }
 
 model Organization {
-  id          String    @id @default(cuid())
-  name        String
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  members     OrganizationMember[]
+  id               String                       @id @default(cuid())
+  name             String
+  description      String?
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+  members          OrganizationMember[]
+  crews            Crew[]
+  factions         OrganizationFaction[]
+  unitClasses      OrganizationUnitClass[]
+  injuries         OrganizationInjury[]
+  perks            OrganizationPerk[]
+  chems            OrganizationChem[]
+  quests           OrganizationQuest[]
+  standardWeapons  OrganizationStandardWeapon[]
+  weaponUpgrades   OrganizationWeaponUpgrade[]
+  traits           OrganizationTrait[]
+  criticalTraits   OrganizationCriticalTrait[]
+  campaignRule     CampaignRule?
+  messages         Message[]
+  wastelandLegends WastelandLegend[]
+  games            Game[]
+  units            Unit[]
 }
 
 model OrganizationMember {
-  id             String           @id @default(cuid())
-  organization   Organization     @relation(fields: [organizationId], references: [id])
-  organizationId String
-  user           User             @relation(fields: [userId], references: [id])
-  userId         String
-  role           OrganizationRole
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id              String           @id @default(cuid())
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  organizationId  String
+  user            User             @relation(fields: [userId], references: [id])
+  userId          String
+  role            OrganizationRole
+  canPostMessages Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  messages        Message[]
 
   @@unique([organizationId, userId])
   @@index([userId])
   @@index([organizationId])
+}
+
+// ---------------------------------------------
+// --------------- Enums -----------------------
+// ---------------------------------------------
+enum UnitStatus {
+  ACTIVE
+  ABSENT
+  DEAD
+  LEGENDARY
+}
+
+enum SPECIAL {
+  S
+  P
+  E
+  C
+  I
+  A
+  L
+}
+
+// ---------------------------------------------
+// ---------- Game Specific Models -------------
+// ---------------------------------------------
+
+model Crew {
+  id             String          @id @default(cuid())
+  name           String
+  caps           Int             @default(0)
+  parts          Int             @default(0)
+  scout          Int             @default(0)
+  reach          Int             @default(0)
+  xp             Int             @default(0)
+  tier           Int             @default(0)
+  power          Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  user           User            @relation(fields: [userId], references: [id])
+  userId         String
+  faction        Faction         @relation(fields: [factionId], references: [id])
+  factionId      String
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  organizationId String
+  units          Unit[]
+  quests         CrewQuest[]
+  chems          CrewChem[]
+  capturedUnits  Unit[]          @relation("CaptorCrew")
+  gamesAsCrewOne Game[]          @relation("CrewOneGames")
+  gamesAsCrewTwo Game[]          @relation("CrewTwoGames")
+  hiredLegends   TemporaryHire[]
+}
+
+model Faction {
+  id            String                @id @default(cuid())
+  name          String
+  crews         Crew[]
+  organizations OrganizationFaction[]
+}
+
+model OrganizationFaction {
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  faction        Faction      @relation(fields: [factionId], references: [id])
+  factionId      String
+
+  @@id([organizationId, factionId])
+}
+
+model Unit {
+  id             String           @id @default(cuid())
+  name           String
+  s              Int
+  p              Int
+  e              Int
+  c              Int
+  i              Int
+  a              Int
+  l              Int
+  rating         Int
+  status         UnitStatus       @default(ACTIVE)
+  crew           Crew?            @relation(fields: [crewId], references: [id])
+  crewId         String?
+  unitClass      UnitClass        @relation(fields: [unitClassId], references: [id])
+  unitClassId    String
+  captorCrew     Crew?            @relation("CaptorCrew", fields: [captorCrewId], references: [id])
+  captorCrewId   String?
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  organizationId String
+  injuries       UnitInjury[]
+  perks          UnitPerk[]
+  weapons        UnitWeapon[]
+  model          Model?
+  legend         WastelandLegend?
+  hires          TemporaryHire[]
+}
+
+model UnitClass {
+  id            String                  @id @default(cuid())
+  name          String
+  units         Unit[]
+  organizations OrganizationUnitClass[]
+}
+
+model OrganizationUnitClass {
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  unitClass      UnitClass    @relation(fields: [unitClassId], references: [id])
+  unitClassId    String
+
+  @@id([organizationId, unitClassId])
+}
+
+model Injury {
+  id              String               @id @default(cuid())
+  name            String
+  description     String?
+  specialAffected SPECIAL?
+  specialModifier Int?
+  causesAbsence   Boolean              @default(false)
+  causesDeath     Boolean              @default(false)
+  units           UnitInjury[]
+  organizations   OrganizationInjury[]
+}
+
+model OrganizationInjury {
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  injury         Injury       @relation(fields: [injuryId], references: [id])
+  injuryId       String
+
+  @@id([organizationId, injuryId])
+}
+
+model UnitInjury {
+  unit     Unit   @relation(fields: [unitId], references: [id])
+  unitId   String
+  injury   Injury @relation(fields: [injuryId], references: [id])
+  injuryId String
+
+  @@id([unitId, injuryId])
+}
+
+model Perk {
+  id            String             @id @default(cuid())
+  name          String
+  description   String?
+  units         UnitPerk[]
+  organizations OrganizationPerk[]
+}
+
+model OrganizationPerk {
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  perk           Perk         @relation(fields: [perkId], references: [id])
+  perkId         String
+
+  @@id([organizationId, perkId])
+}
+
+model UnitPerk {
+  unit   Unit   @relation(fields: [unitId], references: [id])
+  unitId String
+  perk   Perk   @relation(fields: [perkId], references: [id])
+  perkId String
+
+  @@id([unitId, perkId])
+}
+
+model Chem {
+  id            String             @id @default(cuid())
+  name          String
+  cost          Int
+  isRare        Boolean            @default(false)
+  crews         CrewChem[]
+  organizations OrganizationChem[]
+}
+
+model OrganizationChem {
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  chem           Chem         @relation(fields: [chemId], references: [id])
+  chemId         String
+
+  @@id([organizationId, chemId])
+}
+
+model CrewChem {
+  crew     Crew   @relation(fields: [crewId], references: [id])
+  crewId   String
+  chem     Chem   @relation(fields: [chemId], references: [id])
+  chemId   String
+  quantity Int
+
+  @@id([crewId, chemId])
+}
+
+model Quest {
+  id            String              @id @default(cuid())
+  name          String
+  description   String?
+  tier          Int
+  crews         CrewQuest[]
+  organizations OrganizationQuest[]
+}
+
+model OrganizationQuest {
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  quest          Quest        @relation(fields: [questId], references: [id])
+  questId        String
+
+  @@id([organizationId, questId])
+}
+
+model CrewQuest {
+  id       String @id @default(cuid())
+  crew     Crew   @relation(fields: [crewId], references: [id])
+  crewId   String
+  quest    Quest  @relation(fields: [questId], references: [id])
+  questId  String
+  progress Int    @default(0)
+  target   Int
+}
+
+model StandardWeapon {
+  id                String                           @id @default(cuid())
+  name              String
+  range             Int
+  cost              Int
+  testDice          Int
+  testAttribute     SPECIAL
+  weaponType        WeaponType                       @relation(fields: [weaponTypeId], references: [id])
+  weaponTypeId      String
+  availableUpgrades StandardWeaponAvailableUpgrade[]
+  unitWeapons       UnitWeapon[]
+  organizations     OrganizationStandardWeapon[]
+}
+
+model OrganizationStandardWeapon {
+  organization     Organization   @relation(fields: [organizationId], references: [id])
+  organizationId   String
+  standardWeapon   StandardWeapon @relation(fields: [standardWeaponId], references: [id])
+  standardWeaponId String
+
+  @@id([organizationId, standardWeaponId])
+}
+
+model WeaponType {
+  id              String           @id @default(cuid())
+  name            String
+  standardWeapons StandardWeapon[]
+}
+
+model UnitWeapon {
+  id               String                     @id @default(cuid())
+  name             String
+  range            Int
+  cost             Int
+  testDice         Int
+  testAttribute    SPECIAL
+  unit             Unit                       @relation(fields: [unitId], references: [id])
+  unitId           String
+  standardWeapon   StandardWeapon             @relation(fields: [standardWeaponId], references: [id])
+  standardWeaponId String
+  appliedUpgrades  UnitWeaponAppliedUpgrade[]
+  traits           WeaponTrait[]
+  criticalTraits   WeaponCriticalTrait[]
+}
+
+model WeaponUpgrade {
+  id               String                           @id @default(cuid())
+  name             String
+  description      String?
+  rangeModifier    Int                              @default(0)
+  costModifier     Int                              @default(0)
+  testDiceModifier Int                              @default(0)
+  newTestAttribute SPECIAL?
+  availableFor     StandardWeaponAvailableUpgrade[]
+  appliedOn        UnitWeaponAppliedUpgrade[]
+  organizations    OrganizationWeaponUpgrade[]
+}
+
+model OrganizationWeaponUpgrade {
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  organizationId  String
+  weaponUpgrade   WeaponUpgrade @relation(fields: [weaponUpgradeId], references: [id])
+  weaponUpgradeId String
+
+  @@id([organizationId, weaponUpgradeId])
+}
+
+model StandardWeaponAvailableUpgrade {
+  standardWeapon   StandardWeapon @relation(fields: [standardWeaponId], references: [id])
+  standardWeaponId String
+  weaponUpgrade    WeaponUpgrade  @relation(fields: [weaponUpgradeId], references: [id])
+  weaponUpgradeId  String
+
+  @@id([standardWeaponId, weaponUpgradeId])
+}
+
+model UnitWeaponAppliedUpgrade {
+  unitWeapon      UnitWeapon    @relation(fields: [unitWeaponId], references: [id])
+  unitWeaponId    String
+  weaponUpgrade   WeaponUpgrade @relation(fields: [weaponUpgradeId], references: [id])
+  weaponUpgradeId String
+
+  @@id([unitWeaponId, weaponUpgradeId])
+}
+
+model Trait {
+  id            String              @id @default(cuid())
+  name          String
+  description   String?
+  weapons       WeaponTrait[]
+  organizations OrganizationTrait[]
+}
+
+model OrganizationTrait {
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  trait          Trait        @relation(fields: [traitId], references: [id])
+  traitId        String
+
+  @@id([organizationId, traitId])
+}
+
+model WeaponTrait {
+  unitWeapon   UnitWeapon @relation(fields: [unitWeaponId], references: [id])
+  unitWeaponId String
+  trait        Trait      @relation(fields: [traitId], references: [id])
+  traitId      String
+
+  @@id([unitWeaponId, traitId])
+}
+
+model CriticalTrait {
+  id            String                      @id @default(cuid())
+  name          String
+  description   String?
+  weapons       WeaponCriticalTrait[]
+  organizations OrganizationCriticalTrait[]
+}
+
+model OrganizationCriticalTrait {
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  organizationId  String
+  criticalTrait   CriticalTrait @relation(fields: [criticalTraitId], references: [id])
+  criticalTraitId String
+
+  @@id([organizationId, criticalTraitId])
+}
+
+model WeaponCriticalTrait {
+  unitWeapon      UnitWeapon    @relation(fields: [unitWeaponId], references: [id])
+  unitWeaponId    String
+  criticalTrait   CriticalTrait @relation(fields: [criticalTraitId], references: [id])
+  criticalTraitId String
+
+  @@id([unitWeaponId, criticalTraitId])
+}
+
+model Model {
+  id          String  @id @default(cuid())
+  description String?
+  unit        Unit    @relation(fields: [unitId], references: [id])
+  unitId      String  @unique
+}
+
+// ---------------------------------------------
+// -------- Campaign Specific Models -----------
+// ---------------------------------------------
+
+model CampaignRule {
+  id                              String       @id @default(cuid())
+  maxNumberOfGamesAgainstSameCrew Int          @default(0)
+  organization                    Organization @relation(fields: [organizationId], references: [id])
+  organizationId                  String       @unique
+}
+
+model Message {
+  id             String             @id @default(cuid())
+  title          String?
+  content        String
+  isHidden       Boolean            @default(false)
+  author         OrganizationMember @relation(fields: [authorId], references: [id])
+  authorId       String
+  organization   Organization       @relation(fields: [organizationId], references: [id])
+  organizationId String
+  parent         Message?           @relation("MessageReplies", fields: [parentId], references: [id])
+  parentId       String?
+  replies        Message[]          @relation("MessageReplies")
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+model WastelandLegend {
+  id             String       @id @default(cuid())
+  isStandard     Boolean      @default(false)
+  unit           Unit         @relation(fields: [unitId], references: [id])
+  unitId         String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+}
+
+model Game {
+  id             String          @id @default(cuid())
+  date           DateTime        @default(now())
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  organizationId String
+  crewOne        Crew            @relation("CrewOneGames", fields: [crewOneId], references: [id])
+  crewOneId      String
+  crewTwo        Crew            @relation("CrewTwoGames", fields: [crewTwoId], references: [id])
+  crewTwoId      String
+  hiredLegends   TemporaryHire[]
+}
+
+model TemporaryHire {
+  id           String @id @default(cuid())
+  game         Game   @relation(fields: [gameId], references: [id])
+  gameId       String
+  hiringCrew   Crew   @relation(fields: [hiringCrewId], references: [id])
+  hiringCrewId String
+  legendUnit   Unit   @relation(fields: [legendUnitId], references: [id])
+  legendUnitId String
 }

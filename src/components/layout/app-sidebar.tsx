@@ -1,20 +1,27 @@
-'use client';
+"use client";
 
-import { OrganizationSwitcher } from '@/components/organization/organization-switcher';
-import { useOrganization } from '@/providers/organization.provider';
-import { OrganizationRole } from '@prisma/client';
-import { Building2, LayoutDashboard, LogOut, User, Users } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Avatar, AvatarFallback } from '../ui/avatar';
+import { OrganizationSwitcher } from "@/components/organization/organization-switcher";
+import { useOrganization } from "@/providers/organization.provider";
+import { OrganizationRole } from "@prisma/client";
+import {
+  Building2,
+  LayoutDashboard,
+  LogOut,
+  Swords,
+  User,
+  Users,
+} from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+} from "../ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -27,7 +34,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from '../ui/sidebar';
+} from "../ui/sidebar";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -45,15 +52,15 @@ export function AppSidebar() {
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase();
   };
 
   const OrganizationNavigation = [
     {
-      name: 'Dashboard',
+      name: "Dashboard",
       href: `/organizations/${organization?.id}`,
       icon: LayoutDashboard,
       show: session?.user,
@@ -62,7 +69,7 @@ export function AppSidebar() {
     // owner routes
     // owner/admin routes
     {
-      name: 'Users',
+      name: "Users",
       href: `/organizations/${organization?.id}/users`,
       icon: Users,
       show: userShow,
@@ -71,30 +78,36 @@ export function AppSidebar() {
   ];
   const SuperAdminNavigation = [
     {
-      name: 'Dashboard',
-      href: '/superadmin',
+      name: "Dashboard",
+      href: "/superadmin",
       icon: LayoutDashboard,
       show: session?.user,
     },
     {
-      name: 'Organizations',
-      href: '/superadmin/organization',
+      name: "Organizations",
+      href: "/superadmin/organization",
       icon: Building2,
+      show: session?.user?.isSuperAdmin,
+    },
+    {
+      name: "Factions",
+      href: "/superadmin/factions",
+      icon: Swords,
       show: session?.user?.isSuperAdmin,
     },
   ];
 
   return (
-    <Sidebar collapsible='icon'>
-      <SidebarHeader className='px-6 flex flex-col group-data-[collapsible=icon]:px-2'>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="px-6 flex flex-col group-data-[collapsible=icon]:px-2">
         <Link
-          href='/'
-          className='flex items-center gap-2 font-semibold group-data-[collapsible=icon]:overflow-hidden'
+          href="/"
+          className="flex items-center gap-2 font-semibold group-data-[collapsible=icon]:overflow-hidden"
         >
           {process.env.NEXT_PUBLIC_APP_NAME}
         </Link>
         {session?.user && (
-          <div className='group-data-[collapsible=icon]:hidden'>
+          <div className="group-data-[collapsible=icon]:hidden">
             <OrganizationSwitcher />
           </div>
         )}
@@ -116,9 +129,9 @@ export function AppSidebar() {
                           <SidebarMenuButton asChild isActive={isActive}>
                             <Link
                               href={item.href}
-                              className='flex items-center gap-3'
+                              className="flex items-center gap-3"
                             >
-                              <Icon className='h-4 w-4' />
+                              <Icon className="h-4 w-4" />
                               <span>{item.name}</span>
                             </Link>
                           </SidebarMenuButton>
@@ -147,9 +160,9 @@ export function AppSidebar() {
                         <SidebarMenuButton asChild isActive={isActive}>
                           <Link
                             href={item.href}
-                            className='flex items-center gap-3'
+                            className="flex items-center gap-3"
                           >
-                            <Icon className='h-4 w-4' />
+                            <Icon className="h-4 w-4" />
                             <span>{item.name}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -171,45 +184,45 @@ export function AppSidebar() {
       <SidebarSeparator />
       {session?.user && (
         <SidebarFooter
-          className='border-t p-4 group-data-[collapsible=icon]:p-2'
-          data-testid='sidebar-footer'
+          className="border-t p-4 group-data-[collapsible=icon]:p-2"
+          data-testid="sidebar-footer"
         >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className='flex items-center gap-3 px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center hover:cursor-pointer'>
+              <div className="flex items-center gap-3 px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center hover:cursor-pointer">
                 <Avatar>
                   <AvatarFallback>
                     {session?.user?.name
                       ? getInitials(session.user.name)
-                      : '??'}
+                      : "??"}
                   </AvatarFallback>
                 </Avatar>
-                <div className='flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden'>
-                  <span className='text-sm font-medium'>
+                <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
+                  <span className="text-sm font-medium">
                     {session?.user?.name}
                   </span>
-                  <span className='text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap'>
+                  <span className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
                     {session?.user?.email}
                   </span>
                 </div>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align='start' className='w-56'>
+            <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem asChild>
                 <Link
-                  href='/profile'
-                  className='flex items-center gap-2 cursor-pointer'
+                  href="/profile"
+                  className="flex items-center gap-2 cursor-pointer"
                 >
-                  <User className='h-4 w-4' />
+                  <User className="h-4 w-4" />
                   <span>Profile</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className='text-destructive focus:text-destructive cursor-pointer'
-                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="text-destructive focus:text-destructive cursor-pointer"
+                onClick={() => signOut({ callbackUrl: "/login" })}
               >
-                <LogOut className='h-4 w-4 mr-2' />
+                <LogOut className="h-4 w-4 mr-2" />
                 <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>

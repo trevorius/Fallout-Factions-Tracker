@@ -2,7 +2,13 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, install the project dependencies using the `--legacy-peer-deps` flag to avoid resolution conflicts with React versions:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -20,6 +26,12 @@ You can start editing the page by modifying `app/page.js`. The page auto-updates
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Project Architecture
+
+This project's architecture and data models are documented to ensure clarity and consistency.
+
+- **[Database Schema](./docs/schema.md)**: View the detailed database schema, including an entity-relationship diagram and model explanations.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
@@ -29,8 +41,24 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deployment on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project is optimized for deployment on the [Vercel Platform](https://vercel.com/new).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Configuration Steps
+
+1.  **Connect Your Repository**: Import your GitHub repository into Vercel.
+
+2.  **Set Build Command**: In the project settings on Vercel, override the default build command and set it to:
+
+    ```
+    npm run build:prod
+    ```
+
+    This command ensures that database migrations are applied before the application is built.
+
+3.  **Add Environment Variable**: Set up the `DATABASE_URL` environment variable in your Vercel project's settings. This should be the full connection string to your production database.
+    - **Variable Name**: `DATABASE_URL`
+    - **Value**: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE`
+
+After configuring these settings, Vercel will automatically build and deploy your project upon every `git push` to the main branch.

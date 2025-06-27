@@ -1,4 +1,8 @@
-import { User } from '@prisma/client';
+import "server-only";
+
+import { User } from "@prisma/client";
+import { auth } from "@/auth";
+import { prisma } from "./prisma";
 
 /**
  * Verifies a password against a stored hash using Web Crypto API
@@ -22,15 +26,15 @@ export async function verifyPassword(
   // Create hash of input password
   const passwordBuffer = encoder.encode(inputPassword);
   const hashBuffer = await crypto.subtle.digest(
-    'SHA-256',
+    "SHA-256",
     new Uint8Array([...salt, ...passwordBuffer])
   );
 
   // Convert hash to hex string
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const inputHash = hashArray
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 
   return inputHash === storedHash;
 }
@@ -50,7 +54,7 @@ export async function hashPassword(
   // Create hash
   const passwordBuffer = encoder.encode(password);
   const hashBuffer = await crypto.subtle.digest(
-    'SHA-256',
+    "SHA-256",
     new Uint8Array([...salt, ...passwordBuffer])
   );
 
@@ -59,8 +63,8 @@ export async function hashPassword(
   const saltArray = Array.from(salt);
 
   return {
-    hash: hashArray.map((b) => b.toString(16).padStart(2, '0')).join(''),
-    salt: saltArray.map((b) => b.toString(16).padStart(2, '0')).join(''),
+    hash: hashArray.map((b) => b.toString(16).padStart(2, "0")).join(""),
+    salt: saltArray.map((b) => b.toString(16).padStart(2, "0")).join(""),
   };
 }
 
@@ -78,4 +82,21 @@ export function sanitizeUser(user: User): AuthUser {
     email: user.email,
     isSuperAdmin: user.isSuperAdmin,
   };
+}
+
+export async function userIsSuperAdmin() {
+  const session = await auth();
+  if (!session?.user) {
+    return false;
+  }
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      isSuperAdmin: true,
+    },
+  });
+
+  return user?.isSuperAdmin ?? false;
 }
