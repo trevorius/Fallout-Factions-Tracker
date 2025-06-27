@@ -221,24 +221,24 @@ erDiagram
     }
 
     WeaponTrait {
-        String unitWeaponId
+        String weaponId
         String traitId
     }
 
-    CriticalTrait {
+    CriticalEffect {
         String id
         String name
         String description
     }
 
-    OrganizationCriticalTrait {
+    OrganizationCriticalEffect {
         String organizationId
-        String criticalTraitId
+        String criticalEffectId
     }
 
-    WeaponCriticalTrait {
-        String unitWeaponId
-        String criticalTraitId
+    WeaponCriticalEffect {
+        String weaponId
+        String criticalEffectId
     }
 
     Model {
@@ -331,8 +331,8 @@ erDiagram
     WeaponUpgrade ||--o{ OrganizationWeaponUpgrade : "is selected by"
     Organization ||--o{ OrganizationTrait : "selects"
     Trait ||--o{ OrganizationTrait : "is selected by"
-    Organization ||--o{ OrganizationCriticalTrait : "selects"
-    CriticalTrait ||--o{ OrganizationCriticalTrait : "is selected by"
+    Organization ||--o{ OrganizationCriticalEffect : "selects"
+    CriticalEffect ||--o{ OrganizationCriticalEffect : "is selected by"
 
     Crew ||..o{ Unit : "captures"
     Unit ||--o{ UnitInjury : "suffers"
@@ -351,9 +351,9 @@ erDiagram
     UnitWeapon ||--o{ UnitWeaponAppliedUpgrade : "has"
     WeaponUpgrade ||--o{ UnitWeaponAppliedUpgrade : "is"
     UnitWeapon ||--o{ WeaponTrait : "has"
-    Trait ||--o{ WeaponTrait : ""
-    UnitWeapon ||--o{ WeaponCriticalTrait : "has"
-    CriticalTrait ||--o{ WeaponCriticalTrait : ""
+    Trait ||--o{ WeaponTrait : "is in"
+    UnitWeapon ||--o{ WeaponCriticalEffect : "has"
+    CriticalEffect ||--o{ WeaponCriticalEffect : "is in"
     Unit ||--|| Model : "is represented by"
     Organization ||--|| CampaignRule : "has"
     Organization ||--o{ Message : "has"
@@ -381,7 +381,7 @@ erDiagram
 
 The system distinguishes between "master list" items (created by a Super Admin) and the items available in a specific campaign (chosen by an Organization Admin).
 
-- **Master Lists**: `Faction`, `UnitClass`, `UnitTemplate`, `Injury`, `Perk`, `Chem`, `Quest`, `StandardWeapon`, `WeaponUpgrade`, `Trait`, `CriticalTrait`. These are the global templates.
+- **Master Lists**: `Faction`, `UnitClass`, `UnitTemplate`, `Injury`, `Perk`, `Chem`, `Quest`, `StandardWeapon`, `WeaponUpgrade`, `Trait`, `CriticalEffect`. These are the global templates.
 - **Join Tables**: `OrganizationFaction`, `OrganizationUnitClass`, etc. These tables create a many-to-many relationship, allowing an Organization Admin to select which master list items are available for their campaign.
 
 ### Game-Specific Models
