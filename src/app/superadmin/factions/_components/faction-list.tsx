@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UnitClass } from "@prisma/client";
+import { Perk, UnitClass } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { FactionFormDialog } from "./faction-form-dialog";
@@ -33,9 +33,14 @@ type FactionWithTemplates = Prisma.FactionGetPayload<{
 interface FactionListProps {
   factions: FactionWithTemplates[];
   unitClasses: UnitClass[];
+  perks: Perk[];
 }
 
-export function FactionList({ factions, unitClasses }: FactionListProps) {
+export function FactionList({
+  factions,
+  unitClasses,
+  perks,
+}: FactionListProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedFactionId, setSelectedFactionId] = useState<string | null>(
     null
@@ -126,6 +131,7 @@ export function FactionList({ factions, unitClasses }: FactionListProps) {
         onOpenChange={setDialogOpen}
         faction={selectedFaction || undefined}
         unitClasses={unitClasses}
+        perks={perks}
       />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

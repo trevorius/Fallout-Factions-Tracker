@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Prisma, UnitClass } from "@prisma/client";
+import { Perk, Prisma, UnitClass } from "@prisma/client";
 import { useActionState, useEffect } from "react";
 import { createFaction, updateFaction } from "../actions";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +40,13 @@ import { deleteUnitTemplate } from "../unit-template-actions";
 import { Heart } from "lucide-react";
 
 type FactionWithTemplates = Prisma.FactionGetPayload<{
-  include: { unitTemplates: true };
+  include: {
+    unitTemplates: {
+      include: {
+        perks: true;
+      };
+    };
+  };
 }>;
 
 interface FactionFormDialogProps {
@@ -48,6 +54,7 @@ interface FactionFormDialogProps {
   onOpenChange: (open: boolean) => void;
   faction?: FactionWithTemplates;
   unitClasses: UnitClass[];
+  perks: Perk[];
 }
 
 const initialState: FormState = {
@@ -59,18 +66,16 @@ export function FactionFormDialog({
   onOpenChange,
   faction,
   unitClasses,
+  perks,
 }: FactionFormDialogProps) {
   const action = faction ? updateFaction.bind(null, faction.id) : createFaction;
   const [state, formAction] = useActionState(action, initialState);
   const { toast } = useToast();
 
   const [unitTemplateDialogOpen, setUnitTemplateDialogOpen] = useState(false);
-  const [selectedUnitTemplate, setSelectedUnitTemplate] = useState<
-    UnitTemplate | undefined
-  >(undefined);
-  const [selectedUnitClass, setSelectedUnitClass] = useState<
-    UnitClass | undefined
-  >(undefined);
+  const [selectedUnitTemplate, setSelectedUnitTemplate] =
+    useState<FactionWithTemplates["unitTemplates"][0]>();
+  const [selectedUnitClass, setSelectedUnitClass] = useState<UnitClass>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -94,13 +99,18 @@ export function FactionFormDialog({
     setUnitTemplateDialogOpen(true);
   };
 
-  const handleEditUnit = (template: UnitTemplate, unitClass: UnitClass) => {
+  const handleEditUnit = (
+    template: FactionWithTemplates["unitTemplates"][0],
+    unitClass: UnitClass
+  ) => {
     setSelectedUnitTemplate(template);
     setSelectedUnitClass(unitClass);
     setUnitTemplateDialogOpen(true);
   };
 
-  const handleDeleteUnit = (template: UnitTemplate) => {
+  const handleDeleteUnit = (
+    template: FactionWithTemplates["unitTemplates"][0]
+  ) => {
     setSelectedUnitTemplate(template);
     setDeleteDialogOpen(true);
   };
@@ -169,9 +179,6 @@ export function FactionFormDialog({
                           >
                             <span>{template.name}</span>
                             <div className="flex items-center space-x-2">
-                              <span className="text-sm text-muted-foreground">
-                                Rating: {template.rating}
-                              </span>
                               <div className="flex items-center text-sm text-muted-foreground">
                                 <Heart className="h-4 w-4 mr-1 text-red-500" />
                                 {template.hp}
@@ -227,6 +234,7 @@ export function FactionFormDialog({
             unitClass={selectedUnitClass}
             unitTemplate={selectedUnitTemplate}
             factionId={faction.id}
+            perks={perks}
           />
         )}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

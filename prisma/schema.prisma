@@ -224,6 +224,7 @@ model Perk {
   description   String?
   units         UnitPerk[]
   organizations OrganizationPerk[]
+  unitTemplates UnitTemplatePerk[]
 }
 
 model OrganizationPerk {
@@ -312,6 +313,7 @@ model StandardWeapon {
   availableUpgrades StandardWeaponAvailableUpgrade[]
   unitWeapons       UnitWeapon[]
   organizations     OrganizationStandardWeapon[]
+  weaponTemplates   WeaponTemplateStandardWeapon[]
 }
 
 model OrganizationStandardWeapon {
@@ -511,7 +513,6 @@ model UnitTemplate {
   i     Int
   a     Int
   l     Int
-  rating Int
   hp    Int
 
   factionId String
@@ -519,4 +520,42 @@ model UnitTemplate {
 
   unitClassId String
   unitClass   UnitClass @relation(fields: [unitClassId], references: [id])
+
+  perks           UnitTemplatePerk[]
+  weaponTemplates UnitTemplateWeaponTemplate[]
+}
+
+model UnitTemplatePerk {
+  unitTemplate   UnitTemplate @relation(fields: [unitTemplateId], references: [id])
+  unitTemplateId String
+  perk           Perk         @relation(fields: [perkId], references: [id])
+  perkId         String
+
+  @@id([unitTemplateId, perkId])
+}
+
+model WeaponTemplate {
+  id              String                         @id @default(cuid())
+  name            String
+  cost            Int
+  unitTemplates   UnitTemplateWeaponTemplate[]
+  standardWeapons WeaponTemplateStandardWeapon[]
+}
+
+model UnitTemplateWeaponTemplate {
+  unitTemplate     UnitTemplate   @relation(fields: [unitTemplateId], references: [id])
+  unitTemplateId   String
+  weaponTemplate   WeaponTemplate @relation(fields: [weaponTemplateId], references: [id])
+  weaponTemplateId String
+
+  @@id([unitTemplateId, weaponTemplateId])
+}
+
+model WeaponTemplateStandardWeapon {
+  weaponTemplate   WeaponTemplate @relation(fields: [weaponTemplateId], references: [id])
+  weaponTemplateId String
+  standardWeapon   StandardWeapon @relation(fields: [standardWeaponId], references: [id])
+  standardWeaponId String
+
+  @@id([weaponTemplateId, standardWeaponId])
 }

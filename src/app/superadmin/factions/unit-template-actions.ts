@@ -31,13 +31,32 @@ export async function createUnitTemplate(
     const i = parseInt(formData.get("i") as string);
     const a = parseInt(formData.get("a") as string);
     const l = parseInt(formData.get("l") as string);
-    const rating = parseInt(formData.get("rating") as string);
     const hp = parseInt(formData.get("hp") as string);
     const factionId = formData.get("factionId") as string;
     const unitClassId = formData.get("unitClassId") as string;
+    const perks = JSON.parse(formData.get("perks") as string) as string[];
 
     await db.unitTemplate.create({
-      data: { name, s, p, e, c, i, a, l, rating, hp, factionId, unitClassId },
+      data: {
+        name,
+        s,
+        p,
+        e,
+        c,
+        i,
+        a,
+        l,
+        hp,
+        factionId,
+        unitClassId,
+        perks: {
+          create: perks.map((perkId) => ({
+            perk: {
+              connect: { id: perkId },
+            },
+          })),
+        },
+      },
     });
 
     revalidatePath(`/superadmin/factions`);
@@ -69,12 +88,30 @@ export async function updateUnitTemplate(
     const i = parseInt(formData.get("i") as string);
     const a = parseInt(formData.get("a") as string);
     const l = parseInt(formData.get("l") as string);
-    const rating = parseInt(formData.get("rating") as string);
     const hp = parseInt(formData.get("hp") as string);
+    const perks = JSON.parse(formData.get("perks") as string) as string[];
 
     await db.unitTemplate.update({
       where: { id },
-      data: { name, s, p, e, c, i, a, l, rating, hp },
+      data: {
+        name,
+        s,
+        p,
+        e,
+        c,
+        i,
+        a,
+        l,
+        hp,
+        perks: {
+          deleteMany: {},
+          create: perks.map((perkId) => ({
+            perk: {
+              connect: { id: perkId },
+            },
+          })),
+        },
+      },
     });
 
     revalidatePath(`/superadmin/factions`);

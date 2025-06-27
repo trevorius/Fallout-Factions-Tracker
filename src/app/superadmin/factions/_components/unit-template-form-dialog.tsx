@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UnitClass, UnitTemplate } from "@prisma/client";
-import { useActionState, useEffect } from "react";
+import { Perk, UnitClass, UnitTemplate } from "@prisma/client";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   createUnitTemplate,
@@ -22,13 +22,15 @@ import { useToast } from "@/hooks/use-toast";
 import { FormState } from "../types";
 import { Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { MultiSelect, OptionType } from "@/components/ui-custom/multi-select";
 
 interface UnitTemplateFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  unitTemplate?: UnitTemplate;
+  unitTemplate?: UnitTemplate & { perks: { perkId: string }[] };
   unitClass: UnitClass;
   factionId: string;
+  perks: Perk[];
 }
 
 function SubmitButton({ isEditing }: { isEditing: boolean }) {
@@ -52,6 +54,7 @@ export function UnitTemplateFormDialog({
   unitTemplate,
   unitClass,
   factionId,
+  perks,
 }: UnitTemplateFormDialogProps) {
   const action = unitTemplate
     ? updateUnitTemplate.bind(null, unitTemplate.id)
@@ -62,6 +65,14 @@ export function UnitTemplateFormDialog({
   });
   const { toast } = useToast();
   const router = useRouter();
+  const [selectedPerks, setSelectedPerks] = useState<string[]>(
+    unitTemplate?.perks.map((p) => p.perkId) || []
+  );
+
+  const perkOptions: OptionType[] = perks.map((perk) => ({
+    value: perk.id,
+    label: perk.name,
+  }));
 
   useEffect(() => {
     if (state.message) {
@@ -87,7 +98,12 @@ export function UnitTemplateFormDialog({
             Define the base stats for this unit template.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction}>
+        <form
+          action={(formData) => {
+            formData.append("perks", JSON.stringify(selectedPerks));
+            formAction(formData);
+          }}
+        >
           <input type="hidden" name="factionId" value={factionId} />
           <input type="hidden" name="unitClassId" value={unitClass.id} />
           <div className="grid grid-cols-2 gap-4 py-4">
@@ -183,13 +199,12 @@ export function UnitTemplateFormDialog({
               />
             </div>
             <div className="col-span-2">
-              <Label htmlFor="rating">Rating</Label>
-              <Input
-                id="rating"
-                name="rating"
-                type="number"
-                defaultValue={unitTemplate?.rating}
-                required
+              <Label htmlFor="perks">Perks</Label>
+              <MultiSelect
+                options={perkOptions}
+                selected={selectedPerks}
+                onChange={setSelectedPerks}
+                placeholder="Select perks..."
               />
             </div>
           </div>
