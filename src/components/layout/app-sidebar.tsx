@@ -125,6 +125,11 @@ export function AppSidebar() {
         href: "/superadmin/critical-effects",
         show: session?.user?.isSuperAdmin,
       },
+      {
+        name: "Perks",
+        href: "/superadmin/perks",
+        show: session?.user?.isSuperAdmin,
+      },
     ],
   };
 
