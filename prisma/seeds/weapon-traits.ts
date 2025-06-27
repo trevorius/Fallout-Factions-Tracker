@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import type { PrismaClient } from "@prisma/client";
 
 const weaponTraits = [
   {
@@ -11,10 +9,10 @@ const weaponTraits = [
   {
     name: 'Area (X")',
     description:
-      'When making an Attack Action with this Weapon, the Active player nominates a Target point on the Battlefield instead of a Target model. This must be a point Visible to the attacking model on the Battlefield surface, or a Terrain Feature. Each model (from either crew) within X" of the selected point counts as a Target model for the attack.\\nMake a single Attack Test, to which no Bonus Dice can be applied. Then resolve the Inflict Damage step once for each Target model, in an order chosen by the Active player. If a rule adjusts the amount of Damage inflicted, or affects the Target Model (for example, the Ignite (X) or Maim Critical Effects), this does not carry over between models, and is instead tracked on each individual mode.\\nDo not resolve Confusion until Damage has been applied to all models.',
+      'When making an Attack Action with this Weapon, the Active player nominates a Target point on the Battlefield instead of a Target model. This must be a point Visible to the attacking model on the Battlefield surface, or a Terrain Feature. Each model (from either crew) within X" of the selected point counts as a Target model for the attack. Make a single Attack Test, to which no Bonus Dice can be applied. Then resolve the Inflict Damage step once for each Target model. If a rule adjusts the amount of Damage inflicted, or affects the Target Model, this does not carry over between models. Do not resolve Confusion until Damage has been applied to all models.',
   },
   {
-    name: "Big Swing (X)",
+    name: 'Big Swing (X")',
     description:
       'When making an Attack Action with this Weapon, the attacking model can Take Fatigue to increase its Effective Range by X".',
   },
@@ -66,7 +64,7 @@ const weaponTraits = [
   {
     name: "Storm (+X)",
     description:
-      'When creating a Dice Pool for Attack Action with this Weapon, add X Bonus Dice to the Pool if the Target is within half of the Weapon\'s Effective Range. For example, if the weapon has the Rifle (10") Type, the Attack will gain X Bonus Dice if the Target is within 5"',
+      "When creating a Dice Pool for Attack Action with this Weapon, add X Bonus Dice to the Pool if the Target is within half of the Weapon's Effective Range.",
   },
   {
     name: "Unwieldy (X)",
@@ -80,7 +78,7 @@ const weaponTraits = [
   },
 ];
 
-export async function seedWeaponTraits() {
+export async function seedWeaponTraits(prisma: PrismaClient) {
   console.log(`Seeding weapon traits...`);
   for (const trait of weaponTraits) {
     const existingTrait = await prisma.trait.findFirst({

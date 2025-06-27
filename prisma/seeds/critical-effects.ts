@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import type { PrismaClient } from "@prisma/client";
 
 const criticalEffects = [
   {
@@ -41,11 +39,11 @@ const criticalEffects = [
   {
     name: "Suppress (X)",
     description:
-      "At the end of the Inflict Damage step, the opposing player rolls X dice. If any of them score higher than the Target model's Intelligence, it Suffers 1 Fatigue.",
+      "At the end of the Inflict Damage step, the opposing player rolls X dice. For each one that scores higher than the Target model's Intelligence, it Suffers 1 Fatigue.",
   },
 ];
 
-export async function seedCriticalEffects() {
+export async function seedCriticalEffects(prisma: PrismaClient) {
   console.log(`Seeding critical effects...`);
   for (const effect of criticalEffects) {
     const existingEffect = await prisma.criticalEffect.findFirst({

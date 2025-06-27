@@ -311,24 +311,26 @@ model CrewQuest {
 }
 
 model StandardWeapon {
-  id              String                         @id @default(cuid())
-  name            String
-  range           String
-  testAttribute   SPECIAL
-  testValue       Int
-  notes           String?
-  weaponType      WeaponType                     @relation(fields: [weaponTypeId], references: [id])
-  weaponTypeId    String
-  organizations   OrganizationStandardWeapon[]
+  id                String                           @id @default(cuid())
+  name              String
+  range             String
+  testAttribute     SPECIAL
+  testValue         Int
+  rating            Int                              @default(0)
+  notes             String?
+  organizations     OrganizationStandardWeapon[]
+  weaponType        WeaponType                       @relation(fields: [weaponTypeId], references: [id])
+  weaponTypeId      String
   availableUpgrades StandardWeaponAvailableUpgrade[]
   appliedToWeapons  WeaponTemplateStandardWeapon[]
-  traits          WeaponTrait[]
-  criticalEffects WeaponCriticalEffect[]
+  traits            WeaponTrait[]
+  criticalEffects   WeaponCriticalEffect[]
+  appliedOn         UnitWeapon[]
 }
 
 model OrganizationStandardWeapon {
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
+  organization     Organization   @relation(fields: [organizationId], references: [id])
+  organizationId   String
   standardWeapon   StandardWeapon @relation(fields: [standardWeaponId], references: [id])
   standardWeaponId String
 
@@ -337,37 +339,48 @@ model OrganizationStandardWeapon {
 
 model WeaponType {
   id              String           @id @default(cuid())
-  name            String
+  name            String           @unique
   standardWeapons StandardWeapon[]
 }
 
 model UnitWeapon {
-  id              String                     @id @default(cuid())
-  unit            Unit                       @relation(fields: [unitId], references: [id])
-  unitId          String
-  name            String
-  cost            Int
-  range           String
-  damage          String
-  rateOfFire      String
-  notes           String?
-  appliedUpgrades UnitWeaponAppliedUpgrade[]
+  id               String                     @id @default(cuid())
+  unit             Unit                       @relation(fields: [unitId], references: [id])
+  unitId           String
+  standardWeapon   StandardWeapon?            @relation(fields: [standardWeaponId], references: [id])
+  standardWeaponId String?
+  name             String
+  cost             Int
+  range            String
+  damage           String
+  rateOfFire       String
+  notes            String?
+  appliedUpgrades  UnitWeaponAppliedUpgrade[]
 }
 
 model WeaponUpgrade {
-  id                  String                         @id @default(cuid())
-  name                String
-  description         String?
-  costModifier        Int?
-  rangeNew            String?
-  testAttributeNew    SPECIAL?
-  testValueModifier   Int?
-  notesNew            String?
-  availableFor        StandardWeaponAvailableUpgrade[]
-  appliedOn           UnitWeaponAppliedUpgrade[]
-  organizations       OrganizationWeaponUpgrade[]
-  traits              WeaponUpgradeTrait[]
-  criticalEffects     WeaponUpgradeCritical[]
+  id                             String                           @id @default(cuid())
+  name                           String
+  description                    String?
+  cost                           Int                              @default(0)
+  costModifier                   Int?
+  rangeNew                       String?
+  testAttributeNew               SPECIAL?
+  testValueNew                   Int?
+  ratingNew                      Int?
+  notesNew                       String?
+  sModifier                      Int?
+  pModifier                      Int?
+  eModifier                      Int?
+  cModifier                      Int?
+  iModifier                      Int?
+  aModifier                      Int?
+  lModifier                      Int?
+  traits                         WeaponUpgradeTrait[]
+  criticalEffects                WeaponUpgradeCritical[]
+  OrganizationWeaponUpgrade      OrganizationWeaponUpgrade[]
+  StandardWeaponAvailableUpgrade StandardWeaponAvailableUpgrade[]
+  UnitWeaponAppliedUpgrade       UnitWeaponAppliedUpgrade[]
 }
 
 model OrganizationWeaponUpgrade {
@@ -401,10 +414,10 @@ model UnitWeaponAppliedUpgrade {
 }
 
 model Trait {
-  id            String             @id @default(cuid())
+  id            String               @id @default(cuid())
   name          String
   description   String?
-  cost          Int                @default(0)
+  cost          Int                  @default(0)
   organizations OrganizationTrait[]
   weapons       WeaponTrait[]
   upgrades      WeaponUpgradeTrait[]
@@ -431,18 +444,18 @@ model WeaponTrait {
 }
 
 model CriticalEffect {
-  id                 String                     @id @default(cuid())
-  name               String
-  description        String?
-  organizations      OrganizationCriticalEffect[]
-  weapons            WeaponCriticalEffect[]
-  upgrades           WeaponUpgradeCritical[]
+  id            String                       @id @default(cuid())
+  name          String
+  description   String?
+  organizations OrganizationCriticalEffect[]
+  weapons       WeaponCriticalEffect[]
+  upgrades      WeaponUpgradeCritical[]
 }
 
 model OrganizationCriticalEffect {
-  organization     Organization @relation(fields: [organizationId], references: [id])
+  organization     Organization   @relation(fields: [organizationId], references: [id])
   organizationId   String
-  criticalEffect   CriticalEffect      @relation(fields: [criticalEffectId], references: [id])
+  criticalEffect   CriticalEffect @relation(fields: [criticalEffectId], references: [id])
   criticalEffectId String
 
   @@id([organizationId, criticalEffectId])
@@ -525,19 +538,19 @@ model TemporaryHire {
 }
 
 model UnitTemplate {
-  id    String @id @default(cuid())
-  name  String
-  s     Int
-  p     Int
-  e     Int
-  c     Int
-  i     Int
-  a     Int
-  l     Int
-  hp    Int
+  id   String @id @default(cuid())
+  name String
+  s    Int
+  p    Int
+  e    Int
+  c    Int
+  i    Int
+  a    Int
+  l    Int
+  hp   Int
 
   factionId String
-  faction   Faction   @relation(fields: [factionId], references: [id])
+  faction   Faction @relation(fields: [factionId], references: [id])
 
   unitClassId String
   unitClass   UnitClass @relation(fields: [unitClassId], references: [id])

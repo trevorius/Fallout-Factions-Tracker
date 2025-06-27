@@ -33,10 +33,12 @@ import { Button } from "@/components/ui/button";
 type UpgradeFormData = {
   name: string;
   description?: string | null;
+  cost?: number | null;
   costModifier?: number | null;
   rangeNew?: string | null;
   testAttributeNew?: SPECIAL | null;
-  testValueModifier?: number | null;
+  testValueNew?: number | null;
+  ratingNew?: number | null;
   notesNew?: string | null;
   traits: Trait[];
   criticalEffects: CriticalEffect[];
@@ -384,6 +386,21 @@ export function StandardWeaponFormDialog({
                     />
                   </div>
                   <div>
+                    <Label htmlFor={`upgrade-cost-${index}`}>Cost</Label>
+                    <Input
+                      id={`upgrade-cost-${index}`}
+                      type="number"
+                      value={upgrade.cost ?? ""}
+                      onChange={(e) =>
+                        handleUpgradeChange(
+                          index,
+                          "cost",
+                          parseInt(e.target.value) || undefined
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor={`upgrade-costModifier-${index}`}>
                       Cost Modifier
                     </Label>
@@ -413,17 +430,32 @@ export function StandardWeaponFormDialog({
                     />
                   </div>
                   <div>
-                    <Label htmlFor={`upgrade-testValueModifier-${index}`}>
-                      Test Value Modifier
+                    <Label htmlFor={`upgrade-testValueNew-${index}`}>
+                      Test Value
                     </Label>
                     <Input
-                      id={`upgrade-testValueModifier-${index}`}
+                      id={`upgrade-testValueNew-${index}`}
                       type="number"
-                      value={upgrade.testValueModifier ?? ""}
+                      value={upgrade.testValueNew ?? ""}
                       onChange={(e) =>
                         handleUpgradeChange(
                           index,
-                          "testValueModifier",
+                          "testValueNew",
+                          parseInt(e.target.value) || undefined
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`upgrade-ratingNew-${index}`}>Rating</Label>
+                    <Input
+                      id={`upgrade-ratingNew-${index}`}
+                      type="number"
+                      value={upgrade.ratingNew ?? ""}
+                      onChange={(e) =>
+                        handleUpgradeChange(
+                          index,
+                          "ratingNew",
                           parseInt(e.target.value) || undefined
                         )
                       }
