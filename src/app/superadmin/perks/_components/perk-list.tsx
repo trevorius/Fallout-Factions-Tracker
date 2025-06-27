@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Perk } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { PerkFormDialog } from "./perk-form-dialog";
@@ -24,9 +23,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Prisma } from "@prisma/client";
+
+type PerkWithRequisite = Prisma.PerkGetPayload<{
+  include: { requisite: true };
+}>;
 
 interface PerkListProps {
-  perks: Perk[];
+  perks: PerkWithRequisite[];
 }
 
 export function PerkList({ perks }: PerkListProps) {
@@ -44,12 +48,12 @@ export function PerkList({ perks }: PerkListProps) {
     setDialogOpen(true);
   };
 
-  const handleEdit = (perk: Perk) => {
+  const handleEdit = (perk: PerkWithRequisite) => {
     setSelectedPerkId(perk.id);
     setDialogOpen(true);
   };
 
-  const handleDelete = (perk: Perk) => {
+  const handleDelete = (perk: PerkWithRequisite) => {
     setSelectedPerkId(perk.id);
     setDeleteDialogOpen(true);
   };
@@ -83,6 +87,7 @@ export function PerkList({ perks }: PerkListProps) {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
+            <TableHead>Requisite</TableHead>
             <TableHead className="w-[200px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -91,6 +96,11 @@ export function PerkList({ perks }: PerkListProps) {
             <TableRow key={perk.id}>
               <TableCell>{perk.name}</TableCell>
               <TableCell>{perk.description}</TableCell>
+              <TableCell>
+                {perk.requisite
+                  ? `${perk.requisite.special}: ${perk.requisite.value}`
+                  : "N/A"}
+              </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button

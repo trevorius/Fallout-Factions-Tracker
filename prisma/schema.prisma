@@ -220,11 +220,12 @@ model UnitInjury {
 
 model Perk {
   id            String             @id @default(cuid())
-  name          String
+  name          String             @unique
   description   String?
   units         UnitPerk[]
   organizations OrganizationPerk[]
   unitTemplates UnitTemplatePerk[]
+  requisite     PerkRequisite?
 }
 
 model OrganizationPerk {
@@ -245,9 +246,17 @@ model UnitPerk {
   @@id([unitId, perkId])
 }
 
+model PerkRequisite {
+  id      String  @id @default(cuid())
+  perk    Perk    @relation(fields: [perkId], references: [id], onDelete: Cascade)
+  perkId  String  @unique
+  special SPECIAL
+  value   Int
+}
+
 model Chem {
   id            String             @id @default(cuid())
-  name          String
+  name          String             @unique
   cost          Int
   isRare        Boolean            @default(false)
   crews         CrewChem[]

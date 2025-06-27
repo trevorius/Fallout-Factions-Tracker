@@ -101,8 +101,15 @@ erDiagram
 
     Perk {
         String id
-        String name
-        String description
+        String name "unique"
+        String description "nullable"
+    }
+
+    PerkRequisite {
+        String id
+        String perkId "unique"
+        SPECIAL special
+        Int value
     }
 
     OrganizationPerk {
@@ -117,7 +124,7 @@ erDiagram
 
     Chem {
         String id
-        String name
+        String name "unique"
         Int cost
         Boolean isRare
     }
@@ -156,10 +163,10 @@ erDiagram
     StandardWeapon {
         String id
         String name
-        Int range
-        Int cost
-        Int testDice
+        String range
         String testAttribute
+        Int testValue
+        String notes "nullable"
         String weaponTypeId
     }
 
@@ -176,7 +183,7 @@ erDiagram
     UnitWeapon {
         String id
         String name
-        Int range
+        String range
         Int cost
         Int testDice
         String testAttribute
@@ -187,11 +194,12 @@ erDiagram
     WeaponUpgrade {
         String id
         String name
-        String description
-        Int rangeModifier
-        Int costModifier
-        Int testDiceModifier
-        String newTestAttribute "nullable"
+        String description "nullable"
+        Int costModifier "nullable"
+        String rangeNew "nullable"
+        String testAttributeNew "nullable"
+        Int testValueModifier "nullable"
+        String notesNew "nullable"
     }
 
     OrganizationWeaponUpgrade {
@@ -249,40 +257,29 @@ erDiagram
 
     Message {
         String id
-        String title "nullable"
         String content
-        Boolean isHidden
-        String authorId
-        String organizationId
-        String parentId "nullable"
-    }
-
-    CampaignRule {
-        String id
-        Int maxNumberOfGamesAgainstSameCrew
+        String userId
         String organizationId
     }
 
     WastelandLegend {
         String id
-        Boolean isStandard
-        String unitId
+        String name
         String organizationId
     }
 
     Game {
         String id
-        String date
-        String organizationId
+        String status
         String crewOneId
         String crewTwoId
+        String organizationId
     }
 
     TemporaryHire {
         String id
-        String gameId
-        String hiringCrewId
-        String legendUnitId
+        String crewId
+        String unitId
     }
 
     UnitTemplate {
@@ -295,77 +292,108 @@ erDiagram
         Int i
         Int a
         Int l
-        Int rating
         Int hp
         String factionId
         String unitClassId
     }
 
+    UnitTemplatePerk {
+        String unitTemplateId
+        String perkId
+    }
+
+    WeaponTemplate {
+        String id
+        String name
+    }
+
+    UnitTemplateWeaponTemplate {
+        String unitTemplateId
+        String weaponTemplateId
+    }
+
+    WeaponTemplateStandardWeapon {
+        String weaponTemplateId
+        String standardWeaponId
+    }
+
+    WeaponUpgradeTrait {
+        String weaponUpgradeId
+        String traitId
+    }
+
+    WeaponUpgradeCritical {
+        String weaponUpgradeId
+        String criticalEffectId
+    }
+
     User ||--o{ OrganizationMember : "has"
     Organization ||--o{ OrganizationMember : "has"
-    User ||--o{ Crew : "has"
     Organization ||--o{ Crew : "has"
+    User ||--o{ Crew : "has"
+    Faction ||--o{ Crew : "has"
+    Organization ||--o{ OrganizationFaction : "has"
+    Faction ||--o{ OrganizationFaction : "has"
     Crew ||--o{ Unit : "has"
-    Organization ||--o{ Unit : "is home to"
-    Faction ||--o{ Crew : "belongs to"
-    UnitClass ||--o{ Unit : "is of class"
-
-    Faction ||--o{ UnitTemplate : "defines templates for"
-    UnitClass ||--o{ UnitTemplate : "categorizes"
-
-    Organization ||--o{ OrganizationFaction : "selects"
-    Faction ||--o{ OrganizationFaction : "is selected by"
-    Organization ||--o{ OrganizationUnitClass : "selects"
-    UnitClass ||--o{ OrganizationUnitClass : "is selected by"
-    Organization ||--o{ OrganizationInjury : "selects"
-    Injury ||--o{ OrganizationInjury : "is selected by"
-    Organization ||--o{ OrganizationPerk : "selects"
-    Perk ||--o{ OrganizationPerk : "is selected by"
-    Organization ||--o{ OrganizationChem : "selects"
-    Chem ||--o{ OrganizationChem : "is selected by"
-    Organization ||--o{ OrganizationQuest : "selects"
-    Quest ||--o{ OrganizationQuest : "is selected by"
-    Organization ||--o{ OrganizationStandardWeapon : "selects"
-    StandardWeapon ||--o{ OrganizationStandardWeapon : "is selected by"
-    Organization ||--o{ OrganizationWeaponUpgrade : "selects"
-    WeaponUpgrade ||--o{ OrganizationWeaponUpgrade : "is selected by"
-    Organization ||--o{ OrganizationTrait : "selects"
-    Trait ||--o{ OrganizationTrait : "is selected by"
-    Organization ||--o{ OrganizationCriticalEffect : "selects"
-    CriticalEffect ||--o{ OrganizationCriticalEffect : "is selected by"
-
-    Crew ||..o{ Unit : "captures"
-    Unit ||--o{ UnitInjury : "suffers"
-    Injury ||--o{ UnitInjury : "is suffered by"
+    UnitClass ||--o{ Unit : "has"
+    Organization ||--o{ Unit : "has"
+    Organization ||--o{ OrganizationUnitClass : "has"
+    UnitClass ||--o{ OrganizationUnitClass : "has"
+    Unit ||--o{ UnitInjury : "has"
+    Injury ||--o{ UnitInjury : "has"
+    Organization ||--o{ OrganizationInjury : "has"
+    Injury ||--o{ OrganizationInjury : "has"
     Unit ||--o{ UnitPerk : "has"
-    Perk ||--o{ UnitPerk : "is held by"
+    Perk ||--o{ UnitPerk : "has"
+    Perk ||--o{ PerkRequisite : "has"
+    Organization ||--o{ OrganizationPerk : "has"
+    Perk ||--o{ OrganizationPerk : "has"
     Crew ||--o{ CrewChem : "has"
-    Chem ||--o{ CrewChem : "is held by"
-    Crew ||--o{ CrewQuest : "undertakes"
-    Quest ||--o{ CrewQuest : "is undertaken by"
-    Unit ||--o{ UnitWeapon : "wields"
-    StandardWeapon ||--o{ UnitWeapon : "is instance of"
-    WeaponType ||--o{ StandardWeapon : "is of type"
-    StandardWeapon ||--o{ StandardWeaponAvailableUpgrade : "can have"
-    WeaponUpgrade ||--o{ StandardWeaponAvailableUpgrade : "is"
+    Chem ||--o{ CrewChem : "has"
+    Organization ||--o{ OrganizationChem : "has"
+    Chem ||--o{ OrganizationChem : "has"
+    Crew ||--o{ CrewQuest : "has"
+    Quest ||--o{ CrewQuest : "has"
+    Organization ||--o{ OrganizationQuest : "has"
+    Quest ||--o{ OrganizationQuest : "has"
+    WeaponType ||--o{ StandardWeapon : "has"
+    Organization ||--o{ OrganizationStandardWeapon : "has"
+    StandardWeapon ||--o{ OrganizationStandardWeapon : "has"
+    StandardWeapon ||--o{ UnitWeapon : "has"
+    Unit ||--o{ UnitWeapon : "has"
     UnitWeapon ||--o{ UnitWeaponAppliedUpgrade : "has"
-    WeaponUpgrade ||--o{ UnitWeaponAppliedUpgrade : "is"
+    WeaponUpgrade ||--o{ UnitWeaponAppliedUpgrade : "has"
+    StandardWeapon ||--o{ StandardWeaponAvailableUpgrade : "has"
+    WeaponUpgrade ||--o{ StandardWeaponAvailableUpgrade : "has"
+    Organization ||--o{ OrganizationWeaponUpgrade : "has"
+    WeaponUpgrade ||--o{ OrganizationWeaponUpgrade : "has"
+    Trait ||--o{ WeaponTrait : "has"
     UnitWeapon ||--o{ WeaponTrait : "has"
-    Trait ||--o{ WeaponTrait : "is in"
+    Organization ||--o{ OrganizationTrait : "has"
+    Trait ||--o{ OrganizationTrait : "has"
+    CriticalEffect ||--o{ WeaponCriticalEffect : "has"
     UnitWeapon ||--o{ WeaponCriticalEffect : "has"
-    CriticalEffect ||--o{ WeaponCriticalEffect : "is in"
-    Unit ||--|| Model : "is represented by"
-    Organization ||--|| CampaignRule : "has"
+    Organization ||--o{ OrganizationCriticalEffect : "has"
+    CriticalEffect ||--o{ OrganizationCriticalEffect : "has"
+    Unit ||--o{ Model : "has"
+    User ||--o{ Message : "has"
     Organization ||--o{ Message : "has"
-    OrganizationMember ||--o{ Message : "is author of"
-    Organization ||--o{ Game : "hosts"
-    Crew ||--o{ Game : "is crew one in"
-    Crew ||--o{ Game : "is crew two in"
-    Game ||--o{ TemporaryHire : "has hires for"
-    Crew ||--o{ TemporaryHire : "hires legend for"
-    Unit ||--o{ TemporaryHire : "is hired for"
-    Unit ||--|| WastelandLegend : "is"
     Organization ||--o{ WastelandLegend : "has"
+    Organization ||--o{ Game : "has"
+    Crew ||--o{ Game : "has"
+    Unit ||--o{ TemporaryHire : "has"
+    Faction ||--o{ UnitTemplate : "has"
+    UnitClass ||--o{ UnitTemplate : "has"
+    UnitTemplate ||--o{ UnitTemplatePerk : "has"
+    Perk ||--o{ UnitTemplatePerk : "has"
+    UnitTemplate ||--o{ UnitTemplateWeaponTemplate : "has"
+    WeaponTemplate ||--o{ UnitTemplateWeaponTemplate : "has"
+    WeaponTemplate ||--o{ WeaponTemplateStandardWeapon : "has"
+    StandardWeapon ||--o{ WeaponTemplateStandardWeapon : "has"
+    WeaponUpgrade ||--o{ WeaponUpgradeTrait : "has"
+    Trait ||--o{ WeaponUpgradeTrait : "has"
+    WeaponUpgrade ||--o{ WeaponUpgradeCritical : "has"
+    CriticalEffect ||--o{ WeaponUpgradeCritical : "has"
 }
 ```
 

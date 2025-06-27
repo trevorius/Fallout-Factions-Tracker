@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { seedOfficialData } from "./seeds/official-data";
+import { seedSuperAdmin } from "./seeds/super-admin";
 // import crypto from "crypto";
 // import "dotenv/config";
 
@@ -14,6 +15,11 @@ const prisma = new PrismaClient();
 // }
 
 async function main() {
+  console.log("Start seeding ...");
+  await seedSuperAdmin(prisma);
+  await seedOfficialData(prisma);
+  console.log("Seeding finished.");
+
   // We are commenting out the user creation part as it's destructive.
   // // Delete existing data if any
   // await prisma.organizationMember.deleteMany();
@@ -43,8 +49,6 @@ async function main() {
   //   email: spiderMan.email,
   //   isSuperAdmin: spiderMan.isSuperAdmin,
   // });
-
-  await seedOfficialData();
 }
 
 main()
