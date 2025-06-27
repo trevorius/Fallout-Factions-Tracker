@@ -415,7 +415,7 @@ model UnitWeaponAppliedUpgrade {
 
 model Trait {
   id            String               @id @default(cuid())
-  name          String
+  name          String               @unique
   description   String?
   cost          Int                  @default(0)
   organizations OrganizationTrait[]
@@ -445,7 +445,7 @@ model WeaponTrait {
 
 model CriticalEffect {
   id            String                       @id @default(cuid())
-  name          String
+  name          String                       @unique
   description   String?
   organizations OrganizationCriticalEffect[]
   weapons       WeaponCriticalEffect[]

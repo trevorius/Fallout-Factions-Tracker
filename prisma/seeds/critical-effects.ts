@@ -44,17 +44,24 @@ const criticalEffects = [
 ];
 
 export async function seedCriticalEffects(prisma: PrismaClient) {
-  console.log(`Seeding critical effects...`);
-  for (const effect of criticalEffects) {
-    const existingEffect = await prisma.criticalEffect.findFirst({
-      where: { name: effect.name },
-    });
-    if (!existingEffect) {
-      await prisma.criticalEffect.create({
-        data: effect,
+  console.log("Seeding critical effects...");
+  for (const criticalEffect of criticalEffects) {
+    try {
+      await prisma.criticalEffect.upsert({
+        where: { name: criticalEffect.name },
+        update: {},
+        create: {
+          name: criticalEffect.name,
+          description: criticalEffect.description,
+        },
       });
-      console.log(`  Created critical effect: ${effect.name}`);
+      console.log(`  Upserted critical effect: ${criticalEffect.name}`);
+    } catch (e) {
+      console.error(
+        `Error seeding critical effect "${criticalEffect.name}":`,
+        e
+      );
     }
   }
-  console.log(`Seeding critical effects finished.`);
+  console.log("Critical effects seeding finished.");
 }

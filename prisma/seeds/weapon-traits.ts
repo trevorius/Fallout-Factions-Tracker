@@ -79,17 +79,23 @@ const weaponTraits = [
 ];
 
 export async function seedWeaponTraits(prisma: PrismaClient) {
-  console.log(`Seeding weapon traits...`);
+  console.log("Seeding weapon traits...");
+
   for (const trait of weaponTraits) {
-    const existingTrait = await prisma.trait.findFirst({
-      where: { name: trait.name },
-    });
-    if (!existingTrait) {
-      await prisma.trait.create({
-        data: trait,
+    try {
+      await prisma.trait.upsert({
+        where: { name: trait.name },
+        update: {},
+        create: {
+          name: trait.name,
+          description: trait.description,
+        },
       });
-      console.log(`  Created weapon trait: ${trait.name}`);
+      console.log(`  Upserted trait: ${trait.name}`);
+    } catch (e) {
+      console.error(`Error seeding trait "${trait.name}":`, e);
     }
   }
-  console.log(`Seeding weapon traits finished.`);
+
+  console.log("Weapon traits seeding finished.");
 }
