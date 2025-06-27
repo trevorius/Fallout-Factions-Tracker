@@ -5,6 +5,7 @@ import {
   StandardWeapon,
   Trait,
   WeaponType,
+  WeaponUpgrade,
 } from "@prisma/client";
 import {
   Table,
@@ -24,6 +25,12 @@ type StandardWeaponWithRelations = StandardWeapon & {
   weaponType: WeaponType;
   traits: { trait: Trait }[];
   criticalEffects: { criticalEffect: CriticalEffect }[];
+  availableUpgrades: {
+    weaponUpgrade: WeaponUpgrade & {
+      traits: { trait: Trait }[];
+      criticalEffects: { criticalEffect: CriticalEffect }[];
+    };
+  }[];
 };
 interface StandardWeaponListProps {
   standardWeapons: StandardWeaponWithRelations[];

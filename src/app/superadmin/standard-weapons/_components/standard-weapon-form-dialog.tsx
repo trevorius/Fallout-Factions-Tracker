@@ -17,6 +17,7 @@ import {
   StandardWeapon,
   Trait,
   WeaponType,
+  WeaponUpgrade,
 } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -31,12 +32,12 @@ import { Button } from "@/components/ui/button";
 
 type UpgradeFormData = {
   name: string;
-  description?: string;
-  costModifier?: number;
-  rangeNew?: string;
-  testAttributeNew?: SPECIAL;
-  testValueModifier?: number;
-  notesNew?: string;
+  description?: string | null;
+  costModifier?: number | null;
+  rangeNew?: string | null;
+  testAttributeNew?: SPECIAL | null;
+  testValueModifier?: number | null;
+  notesNew?: string | null;
   traits: Trait[];
   criticalEffects: CriticalEffect[];
 };
@@ -47,6 +48,12 @@ interface StandardWeaponFormDialogProps {
   weapon?: StandardWeapon & {
     traits: { trait: Trait }[];
     criticalEffects: { criticalEffect: CriticalEffect }[];
+    availableUpgrades: {
+      weaponUpgrade: WeaponUpgrade & {
+        traits: { trait: Trait }[];
+        criticalEffects: { criticalEffect: CriticalEffect }[];
+      };
+    }[];
   };
   weaponTypes: WeaponType[];
   traits: Trait[];
@@ -76,6 +83,21 @@ export function StandardWeaponFormDialog({
   >(weapon?.criticalEffects.map((c) => c.criticalEffect) ?? []);
 
   const [upgrades, setUpgrades] = useState<Partial<UpgradeFormData>[]>([]);
+
+  useEffect(() => {
+    if (weapon?.availableUpgrades) {
+      const initialUpgrades = weapon.availableUpgrades.map((upg) => ({
+        ...upg.weaponUpgrade,
+        traits: upg.weaponUpgrade.traits.map((t) => t.trait),
+        criticalEffects: upg.weaponUpgrade.criticalEffects.map(
+          (c) => c.criticalEffect
+        ),
+      }));
+      setUpgrades(initialUpgrades);
+    } else {
+      setUpgrades([]);
+    }
+  }, [weapon]);
 
   const addUpgrade = () => {
     setUpgrades([
@@ -417,7 +439,7 @@ export function StandardWeaponFormDialog({
                         handleUpgradeChange(
                           index,
                           "testAttributeNew",
-                          value as SPECIAL
+                          value as SPECIAL | null
                         )
                       }
                     >

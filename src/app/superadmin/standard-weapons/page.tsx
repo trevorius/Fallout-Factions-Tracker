@@ -7,6 +7,16 @@ export default async function StandardWeaponsPage() {
       weaponType: true,
       traits: { include: { trait: true } },
       criticalEffects: { include: { criticalEffect: true } },
+      availableUpgrades: {
+        include: {
+          weaponUpgrade: {
+            include: {
+              traits: { include: { trait: true } },
+              criticalEffects: { include: { criticalEffect: true } },
+            },
+          },
+        },
+      },
     },
   });
   const weaponTypes = await prisma.weaponType.findMany();

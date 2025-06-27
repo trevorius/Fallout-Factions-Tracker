@@ -50,12 +50,33 @@ async function handleUpgrades(
   standardWeaponId: string,
   upgrades: z.infer<typeof UpgradeSchema>[]
 ) {
-  if (upgrades && upgrades.length > 0) {
-    // First delete existing available upgrades for this weapon
+  // First, find all existing upgrade links for this weapon
+  const existingLinks = await tx.standardWeaponAvailableUpgrade.findMany({
+    where: { standardWeaponId },
+    select: { weaponUpgradeId: true },
+  });
+
+  // If there are existing upgrades, delete them and their links
+  if (existingLinks.length > 0) {
+    const upgradeIdsToDelete = existingLinks.map(
+      (link) => link.weaponUpgradeId
+    );
+
+    // Delete the links
     await tx.standardWeaponAvailableUpgrade.deleteMany({
       where: { standardWeaponId },
     });
 
+    // Delete the actual upgrades
+    await tx.weaponUpgrade.deleteMany({
+      where: {
+        id: { in: upgradeIdsToDelete },
+      },
+    });
+  }
+
+  // If new upgrades are provided, create them
+  if (upgrades && upgrades.length > 0) {
     for (const upgrade of upgrades) {
       const { traits, criticalEffects, ...upgradeData } = upgrade;
       const newUpgrade = await tx.weaponUpgrade.create({
