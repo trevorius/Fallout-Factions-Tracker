@@ -110,27 +110,28 @@ function CrewsListTable({ crews, organizationId }: CrewsListTableProps) {
 export default async function CrewsPage({
   params,
 }: {
-  params: { organizationId: string };
+  params: Promise<{ organizationId: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.id) {
     return <p>You must be logged in to view this page.</p>;
   }
 
-  const crews = await getCrewsForUser(params.organizationId, session.user.id);
+  const { organizationId } = await params;
+  const crews = await getCrewsForUser(organizationId, session.user.id);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">My Crews</h1>
         <Button asChild>
-          <Link href={`/organizations/${params.organizationId}/crews/new`}>
+          <Link href={`/organizations/${organizationId}/crews/new`}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Create Crew
           </Link>
         </Button>
       </div>
-      <CrewsListTable crews={crews} organizationId={params.organizationId} />
+      <CrewsListTable crews={crews} organizationId={organizationId} />
     </div>
   );
 }

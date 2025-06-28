@@ -74,9 +74,9 @@ async function getTemplateData(organizationId: string) {
 export default async function TemplateAdminPage({
   params,
 }: {
-  params: { organizationId: string };
+  params: Promise<{ organizationId: string }>;
 }) {
-  const { organizationId } = params;
+  const { organizationId } = await params;
   const templateData = await getTemplateData(organizationId);
 
   if (!templateData.organization) {

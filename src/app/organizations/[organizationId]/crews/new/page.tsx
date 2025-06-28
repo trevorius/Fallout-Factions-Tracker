@@ -21,9 +21,10 @@ async function getNewCrewPageData(organizationId: string) {
 export default async function NewCrewPage({
   params,
 }: {
-  params: { organizationId: string };
+  params: Promise<{ organizationId: string }>;
 }) {
-  const { factions } = await getNewCrewPageData(params.organizationId);
+  const { organizationId } = await params;
+  const { factions } = await getNewCrewPageData(organizationId);
 
   return (
     <div>
@@ -33,7 +34,7 @@ export default async function NewCrewPage({
           Choose a faction and start building your crew by adding units.
         </p>
       </div>
-      <CrewForm factions={factions} organizationId={params.organizationId} />
+      <CrewForm factions={factions} organizationId={organizationId} />
     </div>
   );
 }

@@ -3,16 +3,18 @@ import { OrganizationRole } from "@prisma/client";
 
 type AdminLayoutProps = {
   children: React.ReactNode;
-  params: { organizationId: string };
+  params: Promise<{ organizationId: string }>;
 };
 
 export default async function AdminLayout({
   children,
   params,
 }: AdminLayoutProps) {
+  const { organizationId } = await params;
+
   return (
     <RoleGuardian
-      routeParams={{ organizationId: params.organizationId }}
+      routeParams={{ organizationId }}
       variant="redirect"
       roles={[OrganizationRole.OWNER, OrganizationRole.ADMIN]}
     >
