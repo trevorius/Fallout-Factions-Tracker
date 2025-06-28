@@ -238,112 +238,118 @@ export async function seedRaiders() {
   for (const unitData of raidersFactionData) {
     console.log(`- Processing Unit: ${unitData.unitClassName}`);
     try {
-      for (const typeName of unitData.unitClassTypes) {
-        const unitClass = await db.unitClass.findFirst({
-          where: { name: { equals: typeName, mode: "insensitive" } },
-        });
-        if (!unitClass) {
-          console.error(`  - Skipping: UnitClass '${typeName}' not found.`);
-          continue;
-        }
+      // Prioritize 'LEADER' if available, otherwise take the first class type.
+      const typeName = unitData.unitClassTypes.includes("LEADER")
+        ? "LEADER"
+        : unitData.unitClassTypes[0];
 
-        const unitTemplate = await db.unitTemplate.upsert({
-          where: { name: unitData.unitClassName },
-          update: {
-            s: unitData.s,
-            p: unitData.p,
-            e: unitData.e,
-            c: unitData.c,
-            i: unitData.i,
-            a: unitData.a,
-            l: unitData.l,
-            hp: unitData.hp,
-          },
-          create: {
-            name: unitData.unitClassName,
-            s: unitData.s,
-            p: unitData.p,
-            e: unitData.e,
-            c: unitData.c,
-            i: unitData.i,
-            a: unitData.a,
-            l: unitData.l,
-            hp: unitData.hp,
-            factionId: faction.id,
-            unitClassId: unitClass.id,
-          },
-        });
+      const unitClass = await db.unitClass.findFirst({
+        where: { name: { equals: typeName, mode: "insensitive" } },
+      });
+      if (!unitClass) {
+        console.error(
+          `  - Skipping: UnitClass '${typeName}' not found for unit '${unitData.unitClassName}'.`
+        );
+        continue;
+      }
 
-        // Link perks
-        const perkIds = (
+      const unitTemplate = await db.unitTemplate.upsert({
+        where: { name: unitData.unitClassName },
+        update: {
+          s: unitData.s,
+          p: unitData.p,
+          e: unitData.e,
+          c: unitData.c,
+          i: unitData.i,
+          a: unitData.a,
+          l: unitData.l,
+          hp: unitData.hp,
+          unitClassId: unitClass.id,
+        },
+        create: {
+          name: unitData.unitClassName,
+          s: unitData.s,
+          p: unitData.p,
+          e: unitData.e,
+          c: unitData.c,
+          i: unitData.i,
+          a: unitData.a,
+          l: unitData.l,
+          hp: unitData.hp,
+          factionId: faction.id,
+          unitClassId: unitClass.id,
+        },
+      });
+
+      // Link perks
+      const perkIds = (
+        await Promise.all(
+          unitData.perks.map((p) =>
+            db.perk.findFirst({
+              where: { name: { equals: p, mode: "insensitive" } },
+            })
+          )
+        )
+      )
+        .filter((p) => p)
+        .map((p) => p!.id);
+      await db.unitTemplatePerk.deleteMany({
+        where: { unitTemplateId: unitTemplate.id },
+      });
+      if (perkIds.length > 0) {
+        await db.unitTemplatePerk.createMany({
+          data: perkIds.map((perkId) => ({
+            unitTemplateId: unitTemplate.id,
+            perkId,
+          })),
+        });
+        console.log(`  - Linked ${perkIds.length} perks.`);
+      }
+
+      // Create and link weapon templates
+      for (const ws of unitData.weaponSets) {
+        console.log(`    - Processing Weapon Set: ${ws.name}`);
+        const weaponIds = (
           await Promise.all(
-            unitData.perks.map((p) =>
-              db.perk.findFirst({
-                where: { name: { equals: p, mode: "insensitive" } },
+            ws.weapons.map((w) =>
+              db.standardWeapon.findFirst({
+                where: { name: { equals: w, mode: "insensitive" } },
               })
             )
           )
         )
-          .filter((p) => p)
-          .map((p) => p!.id);
-        await db.unitTemplatePerk.deleteMany({
-          where: { unitTemplateId: unitTemplate.id },
-        });
-        if (perkIds.length > 0) {
-          await db.unitTemplatePerk.createMany({
-            data: perkIds.map((perkId) => ({
-              unitTemplateId: unitTemplate.id,
-              perkId,
-            })),
-          });
-          console.log(`  - Linked ${perkIds.length} perks.`);
-        }
+          .filter((w) => w)
+          .map((w) => w!.id);
 
-        // Create and link weapon templates
-        for (const ws of unitData.weaponSets) {
-          console.log(`    - Processing Weapon Set: ${ws.name}`);
-          const weaponIds = (
-            await Promise.all(
-              ws.weapons.map((w) =>
-                db.standardWeapon.findFirst({
-                  where: { name: { equals: w, mode: "insensitive" } },
-                })
-              )
-            )
-          )
-            .filter((w) => w)
-            .map((w) => w!.id);
-
-          if (weaponIds.length !== ws.weapons.length) {
-            console.error(
-              `      - ERROR: Not all standard weapons found for Weapon Set '${ws.name}'. Skipping.`
-            );
-            continue;
-          }
-
-          const uniqueWsName = await getUniqueWeaponTemplateName(ws.name);
-
-          const weaponTemplate = await db.weaponTemplate.create({
-            data: { name: uniqueWsName, cost: ws.cost },
-          });
-
-          await db.weaponTemplateStandardWeapon.createMany({
-            data: weaponIds.map((weaponId) => ({
-              weaponTemplateId: weaponTemplate.id,
-              standardWeaponId: weaponId,
-            })),
-          });
-
-          await db.unitTemplateWeaponTemplate.create({
-            data: {
-              unitTemplateId: unitTemplate.id,
-              weaponTemplateId: weaponTemplate.id,
-            },
-          });
-          console.log(
-            `      - Created and linked Weapon Template: ${uniqueWsName}`
+        if (weaponIds.length !== ws.weapons.length) {
+          console.error(
+            `      - ERROR: Not all standard weapons found for Weapon Set '${ws.name}'. Skipping.`
           );
+          continue;
         }
+
+        const uniqueWsName = await getUniqueWeaponTemplateName(ws.name);
+
+        const weaponTemplate = await db.weaponTemplate.create({
+          data: { name: uniqueWsName, cost: ws.cost },
+        });
+
+        await db.weaponTemplateStandardWeapon.createMany({
+          data: weaponIds.map((weaponId) => ({
+            weaponTemplateId: weaponTemplate.id,
+            standardWeaponId: weaponId,
+          })),
+        });
+
+        await db.unitTemplateWeaponTemplate.create({
+          data: {
+            unitTemplateId: unitTemplate.id,
+            weaponTemplateId: weaponTemplate.id,
+          },
+        });
+        console.log(
+          `      - Created and linked Weapon Template: ${uniqueWsName}`
+        );
       }
     } catch (error) {
       console.error(
