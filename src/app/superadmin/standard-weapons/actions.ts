@@ -10,10 +10,12 @@ import { Prisma } from "@prisma/client";
 const UpgradeSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
+  cost: z.number().optional(),
   costModifier: z.number().optional(),
   rangeNew: z.string().optional(),
   testAttributeNew: z.enum(["S", "P", "E", "C", "I", "A", "L"]).optional(),
-  testValueModifier: z.number().optional(),
+  testValueNew: z.number().optional(),
+  ratingNew: z.number().optional(),
   notesNew: z.string().optional(),
   traits: z.array(z.string()).optional(),
   criticalEffects: z.array(z.string()).optional(),

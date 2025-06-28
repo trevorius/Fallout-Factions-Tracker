@@ -25,7 +25,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { UnitTemplateFormDialog } from "./unit-template-form-dialog";
 import { useState } from "react";
-import { UnitTemplate } from "@prisma/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,12 +37,26 @@ import {
 } from "@/components/ui/alert-dialog";
 import { deleteUnitTemplate } from "../unit-template-actions";
 import { Heart } from "lucide-react";
+import { StandardWeapon } from "@prisma/client";
 
 type FactionWithTemplates = Prisma.FactionGetPayload<{
   include: {
     unitTemplates: {
       include: {
         perks: true;
+        weaponTemplates: {
+          include: {
+            weaponTemplate: {
+              include: {
+                standardWeapons: {
+                  include: {
+                    standardWeapon: true;
+                  };
+                };
+              };
+            };
+          };
+        };
       };
     };
   };
@@ -55,6 +68,7 @@ interface FactionFormDialogProps {
   faction?: FactionWithTemplates;
   unitClasses: UnitClass[];
   perks: Perk[];
+  standardWeapons: StandardWeapon[];
 }
 
 const initialState: FormState = {
@@ -67,6 +81,7 @@ export function FactionFormDialog({
   faction,
   unitClasses,
   perks,
+  standardWeapons,
 }: FactionFormDialogProps) {
   const action = faction ? updateFaction.bind(null, faction.id) : createFaction;
   const [state, formAction] = useActionState(action, initialState);
@@ -235,6 +250,7 @@ export function FactionFormDialog({
             unitTemplate={selectedUnitTemplate}
             factionId={faction.id}
             perks={perks}
+            standardWeapons={standardWeapons}
           />
         )}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

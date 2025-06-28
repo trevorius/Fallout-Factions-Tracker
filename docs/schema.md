@@ -1,6 +1,6 @@
-# Fallout Factions Tracker: Database Schema
+# Fallout Factions Tracker - Database Schema
 
-This document outlines the database schema for the Fallout Factions Tracker application. The schema is designed to be flexible and extensible, allowing for future updates to the game rules.
+This document provides a visual representation of the database schema for the Fallout Factions Tracker application. The diagram below is generated from the `prisma/schema.prisma` file and illustrates the relationships between all data models.
 
 ## Schema Diagram
 
@@ -10,22 +10,28 @@ erDiagram
         String id
         String name
         String email
+        String salt
+        String password
         Boolean isSuperAdmin
+        DateTime createdAt
+        DateTime updatedAt
     }
-
     Organization {
         String id
         String name
+        String description
+        DateTime createdAt
+        DateTime updatedAt
     }
-
     OrganizationMember {
         String id
         String organizationId
         String userId
-        String role
+        OrganizationRole role
         Boolean canPostMessages
+        DateTime createdAt
+        DateTime updatedAt
     }
-
     Crew {
         String id
         String name
@@ -36,21 +42,20 @@ erDiagram
         Int xp
         Int tier
         Int power
+        DateTime createdAt
+        DateTime updatedAt
         String userId
         String factionId
         String organizationId
     }
-
     Faction {
         String id
         String name
     }
-
     OrganizationFaction {
         String organizationId
         String factionId
     }
-
     Unit {
         String id
         String name
@@ -62,229 +67,185 @@ erDiagram
         Int a
         Int l
         Int rating
-        String status
-        String crewId "nullable"
+        Int hp
+        UnitStatus status
+        String crewId
         String unitClassId
-        String captorCrewId "nullable"
+        String captorCrewId
         String organizationId
     }
-
     UnitClass {
         String id
         String name
     }
-
     OrganizationUnitClass {
         String organizationId
         String unitClassId
     }
-
     Injury {
         String id
         String name
         String description
-        String specialAffected "nullable"
-        Int specialModifier "nullable"
+        SPECIAL specialAffected
+        Int specialModifier
         Boolean causesAbsence
         Boolean causesDeath
     }
-
     OrganizationInjury {
         String organizationId
         String injuryId
     }
-
     UnitInjury {
         String unitId
         String injuryId
     }
-
     Perk {
         String id
         String name
         String description
     }
-
+    PerkRequisite {
+        String id
+        SPECIAL special
+        Int value
+        String perkId
+    }
     OrganizationPerk {
         String organizationId
         String perkId
     }
-
     UnitPerk {
         String unitId
         String perkId
     }
-
     Chem {
         String id
         String name
-        Int cost
-        Boolean isRare
+        String description
     }
-
     OrganizationChem {
         String organizationId
         String chemId
     }
-
     CrewChem {
         String crewId
         String chemId
-        Int quantity
     }
-
     Quest {
         String id
         String name
         String description
-        Int tier
     }
-
     OrganizationQuest {
         String organizationId
         String questId
     }
-
     CrewQuest {
-        String id
         String crewId
         String questId
-        Int progress
-        Int target
     }
-
     StandardWeapon {
         String id
         String name
-        Int range
-        Int cost
-        Int testDice
-        String testAttribute
+        String range
+        SPECIAL testAttribute
+        Int testValue
+        Int rating
         String weaponTypeId
     }
-
     OrganizationStandardWeapon {
         String organizationId
         String standardWeaponId
     }
-
     WeaponType {
         String id
         String name
     }
-
     UnitWeapon {
-        String id
-        String name
-        Int range
-        Int cost
-        Int testDice
-        String testAttribute
         String unitId
-        String standardWeaponId
+        String weaponTemplateId
     }
-
     WeaponUpgrade {
         String id
         String name
         String description
-        Int rangeModifier
-        Int costModifier
-        Int testDiceModifier
-        String newTestAttribute "nullable"
+        Int cost
     }
-
     OrganizationWeaponUpgrade {
         String organizationId
         String weaponUpgradeId
     }
-
     StandardWeaponAvailableUpgrade {
         String standardWeaponId
         String weaponUpgradeId
     }
-
     UnitWeaponAppliedUpgrade {
         String unitWeaponId
         String weaponUpgradeId
     }
-
     Trait {
         String id
         String name
         String description
     }
-
     OrganizationTrait {
         String organizationId
         String traitId
     }
-
     WeaponTrait {
         String weaponId
         String traitId
     }
-
     CriticalEffect {
         String id
         String name
         String description
     }
-
     OrganizationCriticalEffect {
         String organizationId
         String criticalEffectId
     }
-
     WeaponCriticalEffect {
         String weaponId
         String criticalEffectId
     }
-
     Model {
         String id
-        String description
-        String unitId
+        String name
+        String imageUrl
     }
-
-    Message {
-        String id
-        String title "nullable"
-        String content
-        Boolean isHidden
-        String authorId
-        String organizationId
-        String parentId "nullable"
-    }
-
     CampaignRule {
         String id
-        Int maxNumberOfGamesAgainstSameCrew
+        String name
+        String description
         String organizationId
     }
-
+    Message {
+        String id
+        String content
+        DateTime createdAt
+        String organizationId
+        String organizationMemberId
+    }
     WastelandLegend {
         String id
-        Boolean isStandard
-        String unitId
+        String name
         String organizationId
     }
-
     Game {
         String id
-        String date
+        DateTime date
+        String scenario
+        String notes
         String organizationId
         String crewOneId
         String crewTwoId
     }
-
     TemporaryHire {
         String id
-        String gameId
-        String hiringCrewId
-        String legendUnitId
+        String crewId
+        String unitId
     }
-
     UnitTemplate {
         String id
         String name
@@ -295,77 +256,193 @@ erDiagram
         Int i
         Int a
         Int l
-        Int rating
         Int hp
         String factionId
         String unitClassId
     }
+    UnitTemplatePerk {
+        String unitTemplateId
+        String perkId
+    }
+    WeaponTemplate {
+        String id
+        String name
+        Int cost
+    }
+    OrganizationWeaponTemplate {
+        String organizationId
+        String weaponTemplateId
+    }
+    UnitTemplateWeaponTemplate {
+        String unitTemplateId
+        String weaponTemplateId
+    }
+    WeaponTemplateStandardWeapon {
+        String weaponTemplateId
+        String standardWeaponId
+    }
+    WeaponUpgradeTrait {
+        String weaponUpgradeId
+        String traitId
+    }
+    WeaponUpgradeCritical {
+        String weaponUpgradeId
+        String criticalEffectId
+    }
+    OrganizationUnitTemplate {
+        String organizationId
+        String unitTemplateId
+    }
 
-    User ||--o{ OrganizationMember : "has"
-    Organization ||--o{ OrganizationMember : "has"
-    User ||--o{ Crew : "has"
-    Organization ||--o{ Crew : "has"
-    Crew ||--o{ Unit : "has"
-    Organization ||--o{ Unit : "is home to"
-    Faction ||--o{ Crew : "belongs to"
-    UnitClass ||--o{ Unit : "is of class"
-
-    Faction ||--o{ UnitTemplate : "defines templates for"
-    UnitClass ||--o{ UnitTemplate : "categorizes"
-
-    Organization ||--o{ OrganizationFaction : "selects"
-    Faction ||--o{ OrganizationFaction : "is selected by"
-    Organization ||--o{ OrganizationUnitClass : "selects"
-    UnitClass ||--o{ OrganizationUnitClass : "is selected by"
-    Organization ||--o{ OrganizationInjury : "selects"
-    Injury ||--o{ OrganizationInjury : "is selected by"
-    Organization ||--o{ OrganizationPerk : "selects"
-    Perk ||--o{ OrganizationPerk : "is selected by"
-    Organization ||--o{ OrganizationChem : "selects"
-    Chem ||--o{ OrganizationChem : "is selected by"
-    Organization ||--o{ OrganizationQuest : "selects"
-    Quest ||--o{ OrganizationQuest : "is selected by"
-    Organization ||--o{ OrganizationStandardWeapon : "selects"
-    StandardWeapon ||--o{ OrganizationStandardWeapon : "is selected by"
-    Organization ||--o{ OrganizationWeaponUpgrade : "selects"
-    WeaponUpgrade ||--o{ OrganizationWeaponUpgrade : "is selected by"
-    Organization ||--o{ OrganizationTrait : "selects"
-    Trait ||--o{ OrganizationTrait : "is selected by"
-    Organization ||--o{ OrganizationCriticalEffect : "selects"
-    CriticalEffect ||--o{ OrganizationCriticalEffect : "is selected by"
-
-    Crew ||..o{ Unit : "captures"
-    Unit ||--o{ UnitInjury : "suffers"
-    Injury ||--o{ UnitInjury : "is suffered by"
-    Unit ||--o{ UnitPerk : "has"
-    Perk ||--o{ UnitPerk : "is held by"
-    Crew ||--o{ CrewChem : "has"
-    Chem ||--o{ CrewChem : "is held by"
-    Crew ||--o{ CrewQuest : "undertakes"
-    Quest ||--o{ CrewQuest : "is undertaken by"
-    Unit ||--o{ UnitWeapon : "wields"
-    StandardWeapon ||--o{ UnitWeapon : "is instance of"
-    WeaponType ||--o{ StandardWeapon : "is of type"
-    StandardWeapon ||--o{ StandardWeaponAvailableUpgrade : "can have"
-    WeaponUpgrade ||--o{ StandardWeaponAvailableUpgrade : "is"
-    UnitWeapon ||--o{ UnitWeaponAppliedUpgrade : "has"
-    WeaponUpgrade ||--o{ UnitWeaponAppliedUpgrade : "is"
-    UnitWeapon ||--o{ WeaponTrait : "has"
-    Trait ||--o{ WeaponTrait : "is in"
-    UnitWeapon ||--o{ WeaponCriticalEffect : "has"
-    CriticalEffect ||--o{ WeaponCriticalEffect : "is in"
-    Unit ||--|| Model : "is represented by"
-    Organization ||--|| CampaignRule : "has"
-    Organization ||--o{ Message : "has"
-    OrganizationMember ||--o{ Message : "is author of"
-    Organization ||--o{ Game : "hosts"
-    Crew ||--o{ Game : "is crew one in"
-    Crew ||--o{ Game : "is crew two in"
-    Game ||--o{ TemporaryHire : "has hires for"
-    Crew ||--o{ TemporaryHire : "hires legend for"
-    Unit ||--o{ TemporaryHire : "is hired for"
-    Unit ||--|| WastelandLegend : "is"
-    Organization ||--o{ WastelandLegend : "has"
+    User ||--o{ OrganizationMember : "organizations"
+    User ||--o{ Crew : "crews"
+    Organization ||--o{ OrganizationMember : "members"
+    Organization ||--o{ Crew : "crews"
+    Organization ||--o{ OrganizationFaction : "factions"
+    Organization ||--o{ OrganizationUnitClass : "unitClasses"
+    Organization ||--o{ OrganizationInjury : "injuries"
+    Organization ||--o{ OrganizationPerk : "perks"
+    Organization ||--o{ OrganizationChem : "chems"
+    Organization ||--o{ OrganizationQuest : "quests"
+    Organization ||--o{ OrganizationStandardWeapon : "standardWeapons"
+    Organization ||--o{ OrganizationWeaponUpgrade : "weaponUpgrades"
+    Organization ||--o{ OrganizationTrait : "traits"
+    Organization ||--o{ OrganizationCriticalEffect : "criticalEffects"
+    Organization ||--o{ OrganizationWeaponTemplate : "weaponTemplates"
+    Organization ||--o{ OrganizationUnitTemplate : "unitTemplates"
+    Organization ||--o{ WastelandLegend : "wastelandLegends"
+    Organization ||--o{ Game : "games"
+    Organization ||--o{ Unit : "units"
+    Organization ||--o{ Message : "messages"
+    Organization }o--|| CampaignRule : "campaignRule"
+    OrganizationMember }o--|| User : "user"
+    OrganizationMember }o--|| Organization : "organization"
+    OrganizationMember ||--o{ Message : "messages"
+    Crew }o--|| User : "user"
+    Crew }o--|| Faction : "faction"
+    Crew }o--|| Organization : "organization"
+    Crew ||--o{ Unit : "units"
+    Crew ||--o{ CrewQuest : "quests"
+    Crew ||--o{ CrewChem : "chems"
+    Crew ||--o{ TemporaryHire : "hiredLegends"
+    Unit }o--|{ Crew : "capturedUnits"
+    Game }o--|{ Crew : "gamesAsCrewOne"
+    Game }o--|{ Crew : "gamesAsCrewTwo"
+    Faction ||--o{ Crew : "crews"
+    Faction ||--o{ OrganizationFaction : "organizations"
+    Faction ||--o{ UnitTemplate : "unitTemplates"
+    OrganizationFaction }o--|| Organization : "organization"
+    OrganizationFaction }o--|| Faction : "faction"
+    Unit }o--|| Crew : "crew"
+    Unit }o--|| UnitClass : "unitClass"
+    Unit }o--|| Organization : "organization"
+    Unit ||--o{ UnitInjury : "injuries"
+    Unit ||--o{ UnitPerk : "perks"
+    Unit ||--o{ UnitWeapon : "weapons"
+    Unit ||--o{ TemporaryHire : "hires"
+    Unit }o--|{ Crew : "captorCrew"
+    Unit }o--|| Model : "model"
+    Unit }o--|| WastelandLegend : "legend"
+    UnitClass ||--o{ Unit : "units"
+    UnitClass ||--o{ OrganizationUnitClass : "organizations"
+    UnitClass ||--o{ UnitTemplate : "unitTemplates"
+    OrganizationUnitClass }o--|| Organization : "organization"
+    OrganizationUnitClass }o--|| UnitClass : "unitClass"
+    Injury ||--o{ UnitInjury : "units"
+    Injury ||--o{ OrganizationInjury : "organizations"
+    OrganizationInjury }o--|| Organization : "organization"
+    OrganizationInjury }o--|| Injury : "injury"
+    UnitInjury }o--|| Unit : "unit"
+    UnitInjury }o--|| Injury : "injury"
+    Perk ||--o{ UnitPerk : "units"
+    Perk ||--o{ OrganizationPerk : "organizations"
+    Perk ||--o{ UnitTemplatePerk : "unitTemplates"
+    Perk }o--|| PerkRequisite : "requisite"
+    PerkRequisite }o--|| Perk : "perk"
+    OrganizationPerk }o--|| Organization : "organization"
+    OrganizationPerk }o--|| Perk : "perk"
+    UnitPerk }o--|| Unit : "unit"
+    UnitPerk }o--|| Perk : "perk"
+    Chem ||--o{ CrewChem : "crews"
+    Chem ||--o{ OrganizationChem : "organizations"
+    OrganizationChem }o--|| Organization : "organization"
+    OrganizationChem }o--|| Chem : "chem"
+    CrewChem }o--|| Crew : "crew"
+    CrewChem }o--|| Chem : "chem"
+    Quest ||--o{ CrewQuest : "crews"
+    Quest ||--o{ OrganizationQuest : "organizations"
+    OrganizationQuest }o--|| Organization : "organization"
+    OrganizationQuest }o--|| Quest : "quest"
+    CrewQuest }o--|| Crew : "crew"
+    CrewQuest }o--|| Quest : "quest"
+    StandardWeapon ||--o{ OrganizationStandardWeapon : "organizations"
+    StandardWeapon ||--o{ StandardWeaponAvailableUpgrade : "availableUpgrades"
+    StandardWeapon ||--o{ WeaponTemplateStandardWeapon : "weaponTemplates"
+    StandardWeapon }o--|| WeaponType : "weaponType"
+    OrganizationStandardWeapon }o--|| Organization : "organization"
+    OrganizationStandardWeapon }o--|| StandardWeapon : "standardWeapon"
+    WeaponType ||--o{ StandardWeapon : "standardWeapons"
+    UnitWeapon }o--|| Unit : "unit"
+    UnitWeapon }o--|| WeaponTemplate : "weaponTemplate"
+    WeaponUpgrade ||--o{ OrganizationWeaponUpgrade : "organizations"
+    WeaponUpgrade ||--o{ StandardWeaponAvailableUpgrade : "standardWeapons"
+    WeaponUpgrade ||--o{ UnitWeaponAppliedUpgrade : "appliedTo"
+    WeaponUpgrade ||--o{ WeaponUpgradeTrait : "traits"
+    WeaponUpgrade ||--o{ WeaponUpgradeCritical : "criticalEffects"
+    OrganizationWeaponUpgrade }o--|| Organization : "organization"
+    OrganizationWeaponUpgrade }o--|| WeaponUpgrade : "weaponUpgrade"
+    StandardWeaponAvailableUpgrade }o--|| StandardWeapon : "standardWeapon"
+    StandardWeaponAvailableUpgrade }o--|| WeaponUpgrade : "weaponUpgrade"
+    UnitWeaponAppliedUpgrade }o--|| UnitWeapon : "unitWeapon"
+    UnitWeaponAppliedUpgrade }o--|| WeaponUpgrade : "weaponUpgrade"
+    Trait ||--o{ OrganizationTrait : "organizations"
+    Trait ||--o{ WeaponTrait : "weapons"
+    Trait ||--o{ WeaponUpgradeTrait : "weaponUpgrades"
+    OrganizationTrait }o--|| Organization : "organization"
+    OrganizationTrait }o--|| Trait : "trait"
+    WeaponTrait }o--|| StandardWeapon : "weapon"
+    WeaponTrait }o--|| Trait : "trait"
+    CriticalEffect ||--o{ OrganizationCriticalEffect : "organizations"
+    CriticalEffect ||--o{ WeaponCriticalEffect : "weapons"
+    CriticalEffect ||--o{ WeaponUpgradeCritical : "weaponUpgrades"
+    OrganizationCriticalEffect }o--|| Organization : "organization"
+    OrganizationCriticalEffect }o--|| CriticalEffect : "criticalEffect"
+    WeaponCriticalEffect }o--|| StandardWeapon : "weapon"
+    WeaponCriticalEffect }o--|| CriticalEffect : "criticalEffect"
+    Model }o--|| Unit : "unit"
+    CampaignRule }o--|| Organization : "organization"
+    Message }o--|| Organization : "organization"
+    Message }o--|| OrganizationMember : "author"
+    WastelandLegend }o--|| Organization : "organization"
+    WastelandLegend }o--|| Unit : "unit"
+    Game }o--|| Organization : "organization"
+    Game }o--|| Crew : "crewOne"
+    Game }o--|| Crew : "crewTwo"
+    TemporaryHire }o--|| Crew : "crew"
+    TemporaryHire }o--|| Unit : "unit"
+    UnitTemplate ||--o{ UnitTemplatePerk : "perks"
+    UnitTemplate ||--o{ OrganizationUnitTemplate : "organizations"
+    UnitTemplate ||--o{ UnitTemplateWeaponTemplate : "weaponTemplates"
+    UnitTemplate }o--|| Faction : "faction"
+    UnitTemplate }o--|| UnitClass : "unitClass"
+    UnitTemplatePerk }o--|| UnitTemplate : "unitTemplate"
+    UnitTemplatePerk }o--|| Perk : "perk"
+    WeaponTemplate ||--o{ OrganizationWeaponTemplate : "organizations"
+    WeaponTemplate ||--o{ UnitTemplateWeaponTemplate : "unitTemplates"
+    WeaponTemplate ||--o{ WeaponTemplateStandardWeapon : "standardWeapons"
+    WeaponTemplate ||--o{ UnitWeapon : "units"
+    OrganizationWeaponTemplate }o--|| Organization : "organization"
+    OrganizationWeaponTemplate }o--|| WeaponTemplate : "weaponTemplate"
+    UnitTemplateWeaponTemplate }o--|| UnitTemplate : "unitTemplate"
+    UnitTemplateWeaponTemplate }o--|| WeaponTemplate : "weaponTemplate"
+    WeaponTemplateStandardWeapon }o--|| WeaponTemplate : "weaponTemplate"
+    WeaponTemplateStandardWeapon }o--|| StandardWeapon : "standardWeapon"
+    WeaponUpgradeTrait }o--|| WeaponUpgrade : "weaponUpgrade"
+    WeaponUpgradeTrait }o--|| Trait : "trait"
+    WeaponUpgradeCritical }o--|| WeaponUpgrade : "weaponUpgrade"
+    WeaponUpgradeCritical }o--|| CriticalEffect : "criticalEffect"
+    OrganizationUnitTemplate }o--|| Organization : "organization"
+    OrganizationUnitTemplate }o--|| UnitTemplate : "unitTemplate"
 }
 ```
 
@@ -373,34 +450,27 @@ erDiagram
 
 ### Core Models
 
-- **User**: Represents a registered user in the system. Can be a Super Admin.
-- **Organization**: Represents a gaming group or campaign. It is the central hub for all campaign-specific data.
-- **OrganizationMember**: A join table connecting a `User` to an `Organization` with a specific `role`.
+- **User**: Represents a registered user. The `isSuperAdmin` flag grants access to global data management.
+- **Organization**: The central hub for a gaming group or campaign. It contains all campaign-specific data and settings.
+- **OrganizationMember**: A join table that connects a `User` to an `Organization` and assigns them a `role` (e.g., OWNER, ADMIN, USER).
 
-### Template & Join Models (Super Admin vs. Organization Admin)
+### Game Asset & Template Management
 
-The system distinguishes between "master list" items (created by a Super Admin) and the items available in a specific campaign (chosen by an Organization Admin).
+The schema uses a layered approach to manage game assets. A **Super Admin** creates the global "master list" of items, and an **Organization Admin** selects which of these items are available for their specific campaign.
 
-- **Master Lists**: `Faction`, `UnitClass`, `UnitTemplate`, `Injury`, `Perk`, `Chem`, `Quest`, `StandardWeapon`, `WeaponUpgrade`, `Trait`, `CriticalEffect`. These are the global templates.
-- **Join Tables**: `OrganizationFaction`, `OrganizationUnitClass`, etc. These tables create a many-to-many relationship, allowing an Organization Admin to select which master list items are available for their campaign.
+- **Master Lists (Super Admin)**: These are the global templates for all game assets, such as `Faction`, `UnitClass`, `Perk`, `StandardWeapon`, `WeaponUpgrade`, etc.
+- **Availability Join Tables (Organization Admin)**: Tables like `OrganizationFaction`, `OrganizationPerk`, and `OrganizationStandardWeapon` create a many-to-many relationship. They don't store asset data themselves but simply link an `Organization` to the master list items, making them available within that campaign.
 
-### Game-Specific Models
+### Gameplay Models
 
-- **Crew**: The central model for a player's team. It belongs to a `User` (player) and a `Faction`. It tracks resources like `caps`, `xp`, and `parts`.
-- **Unit**: A member of a `Crew`. When a unit's status becomes `LEGENDARY`, its `crewId` is set to null, and it becomes a mercenary available for hire within its `Organization`.
-- **Model**: Represents the single physical miniature for a `Unit`.
-- **UnitTemplate**: Defines the base stats, class, and HP for a type of unit that belongs to a specific `Faction`. This serves as the blueprint from which player `Unit`s are created.
+- **Crew**: A player's team of units within an `Organization`. It belongs to a `User` and a `Faction`, and it tracks resources like `caps` and `xp`.
+- **Unit**: A character within a `Crew`. It is based on a `UnitTemplate` and has stats (S.P.E.C.I.A.L.), hit points (`hp`), and a status.
+- **UnitTemplate**: A blueprint for a unit, defining its base stats, `Faction`, and `UnitClass`. These are created by Super Admins.
+- **WeaponTemplate**: A "loadout" or "package" that combines one or more `StandardWeapon`s at a set `cost`. These are linked to `UnitTemplate`s to define a unit's available equipment options.
+- **StandardWeapon**: A base weapon with its own stats, `WeaponType`, and available `WeaponUpgrade`s.
+- **WeaponUpgrade**: A modification that can be applied to a `StandardWeapon` to alter its characteristics.
 
-### Campaign & Gameplay Models
-
-- **CampaignRule**: Special rules for an organization's campaign.
-- **Message**: A post on the organization's message board.
-- **WastelandLegend**: Marks a `Unit` as a legend. Can be a "standard" legend (created by a Super Admin) or a campaign-specific one.
-- **Game**: A single game session played between two crews. This replaces the need for a `Rivalry` table.
-- **TemporaryHire**: A contract to hire a legendary unit for a single `Game`.
-- **CrewQuest**: Tracks a crew's progress on a `Quest`.
-
-This schema is designed based on the provided information and should be implemented in `prisma/schema.prisma`.
+This updated schema provides a more robust and scalable foundation for the application, clearly separating global game data from campaign-specific instances.
 
 ```
 

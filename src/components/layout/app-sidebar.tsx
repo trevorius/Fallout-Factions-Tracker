@@ -7,6 +7,8 @@ import {
   Building2,
   LayoutDashboard,
   LogOut,
+  Settings,
+  Shield,
   Swords,
   Tags,
   User,
@@ -72,17 +74,33 @@ export function AppSidebar() {
       icon: LayoutDashboard,
       show: session?.user,
     },
-
-    // owner routes
-    // owner/admin routes
     {
       name: "Users",
       href: `/organizations/${organization?.id}/users`,
       icon: Users,
       show: userShow,
     },
-    // owner/admin/user routes
+    {
+      name: "Crews",
+      href: `/organizations/${organization?.id}/crews`,
+      icon: Shield,
+      show: userShow,
+    },
   ];
+
+  const adminNavigation = {
+    name: "Admin",
+    icon: Settings,
+    show: adminShow,
+    subItems: [
+      {
+        name: "Template Management",
+        href: `/organizations/${organization?.id}/admin/templates`,
+        show: adminShow,
+      },
+    ],
+  };
+
   const SuperAdminNavigation = [
     {
       name: "Dashboard",
@@ -264,16 +282,54 @@ export function AppSidebar() {
                     );
                   }
                 )}
+                {adminNavigation.show && (
+                  <SidebarMenuItem>
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="admin" className="border-b-0">
+                        <SidebarMenuButton
+                          asChild
+                          className="w-full justify-between hover:no-underline p-0"
+                        >
+                          <AccordionTrigger className="w-full justify-between p-3">
+                            <div className="flex items-center gap-3">
+                              <adminNavigation.icon className="h-4 w-4" />
+                              <span>{adminNavigation.name}</span>
+                            </div>
+                          </AccordionTrigger>
+                        </SidebarMenuButton>
+                        <AccordionContent className="p-0 pl-7">
+                          <SidebarMenu>
+                            {adminNavigation.subItems
+                              .filter((item) => item.show)
+                              .map((item) => {
+                                const isActive = pathname === item.href;
+                                return (
+                                  <SidebarMenuItem key={item.name}>
+                                    <SidebarMenuButton
+                                      asChild
+                                      isActive={isActive}
+                                    >
+                                      <Link
+                                        href={item.href}
+                                        className="flex items-center gap-3"
+                                      >
+                                        <span>{item.name}</span>
+                                      </Link>
+                                    </SidebarMenuButton>
+                                  </SidebarMenuItem>
+                                );
+                              })}
+                          </SidebarMenu>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
             <SidebarSeparator />
           </SidebarGroup>
         )}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu></SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
       <SidebarSeparator />
       {session?.user && (

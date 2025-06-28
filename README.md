@@ -31,6 +31,8 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 This project's architecture and data models are documented to ensure clarity and consistency.
 
 - **[Database Schema](./docs/schema.md)**: View the detailed database schema, including an entity-relationship diagram and model explanations.
+- **[Super Admin Documentation](./docs/superadmin/README.md)**: Find guides for managing global game assets like factions, weapons, and unit templates.
+- **[Organization Template Management](./docs/organization-template-management.md)**: Learn how admins can manage game assets for their organization.
 
 ## Learn More
 

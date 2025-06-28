@@ -1,4 +1,6 @@
 {
   "jest.runMode": "watch",
   "jest.jestCommandLine": "npm test --",
+  "WillLuke.nextjs.addTypesOnSave": true,
+  "WillLuke.nextjs.hasPrompted": true
 }

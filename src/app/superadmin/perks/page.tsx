@@ -2,7 +2,11 @@ import { prisma as db } from "@/lib/prisma";
 import { PerkList } from "./_components/perk-list";
 
 export default async function PerksPage() {
-  const perks = await db.perk.findMany();
+  const perks = await db.perk.findMany({
+    include: {
+      requisite: true,
+    },
+  });
 
   return (
     <div className="p-6">

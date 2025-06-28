@@ -7,12 +7,26 @@ export default async function FactionsPage() {
       unitTemplates: {
         include: {
           perks: true,
+          weaponTemplates: {
+            include: {
+              weaponTemplate: {
+                include: {
+                  standardWeapons: {
+                    include: {
+                      standardWeapon: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
   });
   const unitClasses = await db.unitClass.findMany();
   const perks = await db.perk.findMany();
+  const standardWeapons = await db.standardWeapon.findMany();
 
   return (
     <div className="p-6">
@@ -21,6 +35,7 @@ export default async function FactionsPage() {
         factions={factions}
         unitClasses={unitClasses}
         perks={perks}
+        standardWeapons={standardWeapons}
       />
     </div>
   );

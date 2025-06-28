@@ -1,23 +1,43 @@
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient, SPECIAL } from "@prisma/client";
+import { perksData, specialMap } from "./perk-data";
 
-const prisma = new PrismaClient();
+export async function seedPerks(prisma: PrismaClient) {
+  console.log("Seeding official perk data...");
 
-export async function seedOfficialData() {
-  console.log("Seeding official data...");
-
-  // TODO: Add upsert logic for official weapon data here
-
-  console.log("Official data seeding complete.");
-}
-
-// Allow this script to be run directly
-if (require.main === module) {
-  seedOfficialData()
-    .catch((e) => {
-      console.error(e);
-      process.exit(1);
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
+  for (const perkData of perksData) {
+    const { requisite, ...data } = perkData;
+    await prisma.perk.upsert({
+      where: { name: data.name },
+      create: {
+        ...data,
+        requisite: requisite
+          ? {
+              create: {
+                special: specialMap[requisite.special],
+                value: requisite.value,
+              },
+            }
+          : undefined,
+      },
+      update: {
+        ...data,
+        requisite: requisite
+          ? {
+              upsert: {
+                create: {
+                  special: specialMap[requisite.special],
+                  value: requisite.value,
+                },
+                update: {
+                  special: specialMap[requisite.special],
+                  value: requisite.value,
+                },
+              },
+            }
+          : undefined, // Note: This will not delete existing requisites on update
+      },
     });
+  }
+
+  console.log("Official perk data seeding complete.");
 }

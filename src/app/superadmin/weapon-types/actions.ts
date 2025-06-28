@@ -45,6 +45,7 @@ export async function createWeaponType(
       data: validatedFields.data,
     });
   } catch (error) {
+    console.error("Database Error: Failed to Create Weapon Type.", error);
     return {
       message: "Database Error: Failed to Create Weapon Type.",
     };
@@ -82,6 +83,7 @@ export async function updateWeaponType(
       data: validatedFields.data,
     });
   } catch (error) {
+    console.error("Database Error: Failed to Update Weapon Type.", error);
     return {
       message: "Database Error: Failed to Update Weapon Type.",
     };
@@ -105,6 +107,7 @@ export async function deleteWeaponType(id: string) {
     revalidatePath("/superadmin/weapon-types");
     return { message: "Weapon Type deleted." };
   } catch (error) {
+    console.error("Database Error: Failed to Delete Weapon Type.", error);
     return {
       message: "Database Error: Failed to Delete Weapon Type.",
     };
