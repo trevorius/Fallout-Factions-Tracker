@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
+  Shield,
   Swords,
   Tags,
   User,
@@ -77,6 +78,12 @@ export function AppSidebar() {
       name: "Users",
       href: `/organizations/${organization?.id}/users`,
       icon: Users,
+      show: userShow,
+    },
+    {
+      name: "Crews",
+      href: `/organizations/${organization?.id}/crews`,
+      icon: Shield,
       show: userShow,
     },
   ];
