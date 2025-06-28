@@ -58,7 +58,7 @@ function CrewsListTable({ crews, organizationId }: CrewsListTableProps) {
             <TableHead>Faction</TableHead>
             <TableHead>Games</TableHead>
             <TableHead>Tier</TableHead>
-            <TableHead>Rating</TableHead>
+            <TableHead>Reputation</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -76,7 +76,7 @@ function CrewsListTable({ crews, organizationId }: CrewsListTableProps) {
                 <TableCell>{crew.faction.name}</TableCell>
                 <TableCell>{crew.gamesPlayed}</TableCell>
                 <TableCell>{crew.tier}</TableCell>
-                <TableCell>{crew.power}</TableCell>
+                <TableCell>{crew.reputation}</TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="sm" asChild>

@@ -89,7 +89,7 @@ export async function createCrew(
     return { message: "You must add at least one unit to the crew." };
   }
 
-  const initialPower = roster.reduce((acc, item) => acc + item.cost, 0);
+  const initialReputation = roster.reduce((acc, item) => acc + item.cost, 0);
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -99,7 +99,7 @@ export async function createCrew(
           factionId,
           organizationId,
           userId: session.user.id,
-          power: initialPower,
+          reputation: initialReputation,
           tier: 1,
         },
       });
@@ -212,4 +212,77 @@ export async function deleteCrew(crewId: string, organizationId: string) {
 
   revalidatePath(`/organizations/${organizationId}/crews`);
   return { success: true, message: "Crew deleted successfully." };
+}
+
+export async function updateCrew(
+  prevState: { message: string; success: boolean },
+  payload: { crewId: string; organizationId: string; formData: FormData }
+) {
+  const { crewId, organizationId, formData } = payload;
+  const session = await auth();
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      message: "You must be logged in to update a crew.",
+    };
+  }
+
+  const crew = await prisma.crew.findUnique({
+    where: { id: crewId, userId: session.user.id },
+    include: { units: { select: { id: true } } },
+  });
+
+  if (!crew) {
+    return {
+      success: false,
+      message: "Crew not found or you are not authorized.",
+    };
+  }
+  const unitIdsInCrew = new Set(crew.units.map((u) => u.id));
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      for (const [key, value] of formData.entries()) {
+        const newName = value as string;
+
+        if (key === "name") {
+          if (!newName || newName.length < 3) {
+            throw new Error("Crew name must be at least 3 characters.");
+          }
+          await tx.crew.update({
+            where: { id: crewId },
+            data: { name: newName },
+          });
+        } else if (key.startsWith("unit-") && key.endsWith("-name")) {
+          const unitId = key.split("-")[1];
+
+          if (!unitIdsInCrew.has(unitId)) {
+            throw new Error(`Unauthorized attempt to update unit ${unitId}.`);
+          }
+
+          if (!newName || newName.length < 3) {
+            throw new Error(
+              `Unit name for ${unitId} must be at least 3 characters.`
+            );
+          }
+          await tx.unit.update({
+            where: { id: unitId },
+            data: { name: newName },
+          });
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Failed to update crew:", error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to update crew. Please try again.";
+    return { success: false, message };
+  }
+
+  revalidatePath(`/organizations/${organizationId}/crews`);
+  revalidatePath(`/organizations/${organizationId}/crews/${crewId}/edit`);
+
+  return { success: true, message: "Crew updated successfully." };
 }

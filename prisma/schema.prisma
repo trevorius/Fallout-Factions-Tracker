@@ -109,7 +109,7 @@ model Crew {
   reach          Int             @default(0)
   xp             Int             @default(0)
   tier           Int             @default(0)
-  power          Int             @default(0)
+  reputation     Int             @default(0)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   user           User            @relation(fields: [userId], references: [id])
