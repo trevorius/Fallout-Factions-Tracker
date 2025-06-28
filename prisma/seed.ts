@@ -6,6 +6,9 @@ import { seedCriticalEffects } from "./seeds/critical-effects";
 import { seedOfficialWeapons } from "./seeds/official-weapons";
 import { seedWeaponTypes } from "./seeds/weapon-types";
 import { seedRaiders } from "./seeds/raiders";
+import { seedSuperMutants } from "./seeds/super-mutants";
+import { seedSurvivors } from "./seeds/survivors";
+import { seedBrotherhoodOfSteel } from "./seeds/brotherhood-of-steel";
 
 const prisma = new PrismaClient();
 
@@ -18,6 +21,9 @@ async function main() {
   await seedWeaponTypes(prisma);
   await seedOfficialWeapons(prisma);
   await seedRaiders();
+  await seedSuperMutants();
+  await seedSurvivors();
+  await seedBrotherhoodOfSteel();
   console.log("Seeding finished.");
 }
 
