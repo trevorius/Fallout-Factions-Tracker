@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { deleteCrew } from "@/lib/actions/crews";
 
 async function getCrewsForUser(organizationId: string, userId: string) {
   const crews = await prisma.crew.findMany({
@@ -22,11 +23,11 @@ async function getCrewsForUser(organizationId: string, userId: string) {
       faction: {
         select: { name: true },
       },
-      _count: {
-        select: {
-          gamesAsCrewOne: true,
-          gamesAsCrewTwo: true,
-        },
+      gamesAsCrewOne: {
+        select: { id: true },
+      },
+      gamesAsCrewTwo: {
+        select: { id: true },
       },
     },
     orderBy: {
@@ -36,7 +37,7 @@ async function getCrewsForUser(organizationId: string, userId: string) {
 
   return crews.map((crew) => ({
     ...crew,
-    gamesPlayed: crew._count.gamesAsCrewOne + crew._count.gamesAsCrewTwo,
+    gamesPlayed: crew.gamesAsCrewOne.length + crew.gamesAsCrewTwo.length,
   }));
 }
 
@@ -76,14 +77,26 @@ function CrewsListTable({ crews, organizationId }: CrewsListTableProps) {
                 <TableCell>{crew.gamesPlayed}</TableCell>
                 <TableCell>{crew.tier}</TableCell>
                 <TableCell>{crew.power}</TableCell>
-                <TableCell className="text-right">
-                  <Button asChild variant="outline" size="sm">
-                    <Link
-                      href={`/organizations/${organizationId}/crews/${crew.id}/edit`}
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link
+                        href={`/organizations/${organizationId}/crews/${crew.id}/edit`}
+                      >
+                        Edit
+                      </Link>
+                    </Button>
+                    <form
+                      action={async () => {
+                        "use server";
+                        await deleteCrew(crew.id, organizationId);
+                      }}
                     >
-                      Edit
-                    </Link>
-                  </Button>
+                      <Button variant="destructive" size="sm" type="submit">
+                        Delete
+                      </Button>
+                    </form>
+                  </div>
                 </TableCell>
               </TableRow>
             ))

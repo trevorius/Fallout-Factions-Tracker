@@ -89,6 +89,8 @@ export async function createCrew(
     return { message: "You must add at least one unit to the crew." };
   }
 
+  const initialPower = roster.reduce((acc, item) => acc + item.cost, 0);
+
   try {
     await prisma.$transaction(async (tx) => {
       const newCrew = await tx.crew.create({
@@ -97,6 +99,8 @@ export async function createCrew(
           factionId,
           organizationId,
           userId: session.user.id,
+          power: initialPower,
+          tier: 1,
         },
       });
 
@@ -116,7 +120,7 @@ export async function createCrew(
             a: unitTemplate.a,
             l: unitTemplate.l,
             hp: unitTemplate.hp,
-            rating: 0,
+            rating: rosterItem.cost,
             crewId: newCrew.id,
             unitClassId: unitTemplate.unitClassId,
             organizationId,
@@ -156,4 +160,56 @@ export async function createCrew(
 
   revalidatePath(`/organizations/${organizationId}/crews`);
   redirect(`/organizations/${organizationId}/crews`);
+}
+
+export async function deleteCrew(crewId: string, organizationId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      message: "You must be logged in to delete a crew.",
+    };
+  }
+
+  const crew = await prisma.crew.findUnique({
+    where: { id: crewId },
+    select: {
+      userId: true,
+      gamesAsCrewOne: { select: { id: true } },
+      gamesAsCrewTwo: { select: { id: true } },
+    },
+  });
+
+  if (!crew) {
+    return { success: false, message: "Crew not found." };
+  }
+
+  if (crew.userId !== session.user.id) {
+    return {
+      success: false,
+      message: "You are not authorized to delete this crew.",
+    };
+  }
+
+  if (crew.gamesAsCrewOne.length > 0 || crew.gamesAsCrewTwo.length > 0) {
+    return {
+      success: false,
+      message: "Cannot delete a crew that has participated in games.",
+    };
+  }
+
+  try {
+    await prisma.crew.delete({
+      where: { id: crewId },
+    });
+  } catch (error) {
+    console.error("Failed to delete crew:", error);
+    return {
+      success: false,
+      message: "Failed to delete crew. Please try again.",
+    };
+  }
+
+  revalidatePath(`/organizations/${organizationId}/crews`);
+  return { success: true, message: "Crew deleted successfully." };
 }

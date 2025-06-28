@@ -157,11 +157,11 @@ model Unit {
   rating         Int
   hp             Int
   status         UnitStatus       @default(ACTIVE)
-  crew           Crew?            @relation(fields: [crewId], references: [id])
+  crew           Crew?            @relation(fields: [crewId], references: [id], onDelete: Cascade)
   crewId         String?
   unitClass      UnitClass        @relation(fields: [unitClassId], references: [id])
   unitClassId    String
-  captorCrew     Crew?            @relation("CaptorCrew", fields: [captorCrewId], references: [id])
+  captorCrew     Crew?            @relation("CaptorCrew", fields: [captorCrewId], references: [id], onDelete: SetNull)
   captorCrewId   String?
   organization   Organization     @relation(fields: [organizationId], references: [id])
   organizationId String
@@ -212,7 +212,7 @@ model OrganizationInjury {
 }
 
 model UnitInjury {
-  unit     Unit   @relation(fields: [unitId], references: [id])
+  unit     Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId   String
   injury   Injury @relation(fields: [injuryId], references: [id])
   injuryId String
@@ -240,7 +240,7 @@ model OrganizationPerk {
 }
 
 model UnitPerk {
-  unit   Unit   @relation(fields: [unitId], references: [id])
+  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId String
   perk   Perk   @relation(fields: [perkId], references: [id])
   perkId String
@@ -275,7 +275,7 @@ model OrganizationChem {
 }
 
 model CrewChem {
-  crew     Crew   @relation(fields: [crewId], references: [id])
+  crew     Crew   @relation(fields: [crewId], references: [id], onDelete: Cascade)
   crewId   String
   chem     Chem   @relation(fields: [chemId], references: [id])
   chemId   String
@@ -304,9 +304,9 @@ model OrganizationQuest {
 
 model CrewQuest {
   id       String @id @default(cuid())
-  crew     Crew   @relation(fields: [crewId], references: [id])
+  crew     Crew    @relation(fields: [crewId], references: [id], onDelete: Cascade)
   crewId   String
-  quest    Quest  @relation(fields: [questId], references: [id])
+  quest    Quest   @relation(fields: [questId], references: [id])
   questId  String
   progress Int    @default(0)
   target   Int
@@ -347,7 +347,7 @@ model WeaponType {
 
 model UnitWeapon {
   id               String                     @id @default(cuid())
-  unit             Unit                       @relation(fields: [unitId], references: [id])
+  unit             Unit                       @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId           String
   standardWeapon   StandardWeapon?            @relation(fields: [standardWeaponId], references: [id])
   standardWeaponId String?
@@ -407,7 +407,7 @@ model StandardWeaponAvailableUpgrade {
 }
 
 model UnitWeaponAppliedUpgrade {
-  unitWeapon      UnitWeapon    @relation(fields: [unitWeaponId], references: [id])
+  unitWeapon      UnitWeapon    @relation(fields: [unitWeaponId], references: [id], onDelete: Cascade)
   unitWeaponId    String
   weaponUpgrade   WeaponUpgrade @relation(fields: [weaponUpgradeId], references: [id])
   weaponUpgradeId String
@@ -477,7 +477,7 @@ model WeaponCriticalEffect {
 model Model {
   id          String  @id @default(cuid())
   description String?
-  unit        Unit    @relation(fields: [unitId], references: [id])
+  unit        Unit    @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId      String  @unique
 }
 
@@ -511,7 +511,7 @@ model Message {
 model WastelandLegend {
   id             String       @id @default(cuid())
   isStandard     Boolean      @default(false)
-  unit           Unit         @relation(fields: [unitId], references: [id])
+  unit           Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId         String       @unique
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
@@ -533,9 +533,9 @@ model TemporaryHire {
   id           String @id @default(cuid())
   game         Game   @relation(fields: [gameId], references: [id])
   gameId       String
-  hiringCrew   Crew   @relation(fields: [hiringCrewId], references: [id])
+  hiringCrew   Crew   @relation(fields: [hiringCrewId], references: [id], onDelete: Cascade)
   hiringCrewId String
-  legendUnit   Unit   @relation(fields: [legendUnitId], references: [id])
+  legendUnit   Unit   @relation(fields: [legendUnitId], references: [id], onDelete: Cascade)
   legendUnitId String
 }
 
