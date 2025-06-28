@@ -55,6 +55,7 @@ model Organization {
   wastelandLegends WastelandLegend[]
   games            Game[]
   units            Unit[]
+  weaponTemplates  OrganizationWeaponTemplate[]
 }
 
 model OrganizationMember {
@@ -574,6 +575,16 @@ model WeaponTemplate {
   cost            Int
   unitTemplates   UnitTemplateWeaponTemplate[]
   standardWeapons WeaponTemplateStandardWeapon[]
+  organizations   OrganizationWeaponTemplate[]
+}
+
+model OrganizationWeaponTemplate {
+  organization     Organization   @relation(fields: [organizationId], references: [id])
+  organizationId   String
+  weaponTemplate   WeaponTemplate @relation(fields: [weaponTemplateId], references: [id])
+  weaponTemplateId String
+
+  @@id([organizationId, weaponTemplateId])
 }
 
 model UnitTemplateWeaponTemplate {

@@ -10,7 +10,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Perk, UnitClass, UnitTemplate } from "@prisma/client";
+import {
+  Perk,
+  StandardWeapon,
+  UnitClass,
+  UnitTemplate,
+  WeaponTemplate,
+} from "@prisma/client";
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
@@ -20,17 +26,34 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { FormState } from "../types";
-import { Heart } from "lucide-react";
+import { Heart, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MultiSelect, OptionType } from "@/components/ui-custom/multi-select";
+
+type WeaponTemplateDefinition = {
+  id?: string;
+  name: string;
+  cost: number;
+  standardWeaponIds: string[];
+};
+
+type FullUnitTemplate = UnitTemplate & {
+  perks: { perkId: string }[];
+  weaponTemplates: {
+    weaponTemplate: WeaponTemplate & {
+      standardWeapons: { standardWeaponId: string }[];
+    };
+  }[];
+};
 
 interface UnitTemplateFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  unitTemplate?: UnitTemplate & { perks: { perkId: string }[] };
+  unitTemplate?: FullUnitTemplate;
   unitClass: UnitClass;
   factionId: string;
   perks: Perk[];
+  standardWeapons: StandardWeapon[];
 }
 
 function SubmitButton({ isEditing }: { isEditing: boolean }) {
@@ -55,6 +78,7 @@ export function UnitTemplateFormDialog({
   unitClass,
   factionId,
   perks,
+  standardWeapons,
 }: UnitTemplateFormDialogProps) {
   const action = unitTemplate
     ? updateUnitTemplate.bind(null, unitTemplate.id)
@@ -69,9 +93,27 @@ export function UnitTemplateFormDialog({
     unitTemplate?.perks.map((p) => p.perkId) || []
   );
 
+  const [weaponTemplateDefs, setWeaponTemplateDefs] = useState<
+    WeaponTemplateDefinition[]
+  >(
+    unitTemplate?.weaponTemplates.map(({ weaponTemplate }) => ({
+      id: weaponTemplate.id,
+      name: weaponTemplate.name,
+      cost: weaponTemplate.cost,
+      standardWeaponIds: weaponTemplate.standardWeapons.map(
+        (sw) => sw.standardWeaponId
+      ),
+    })) || []
+  );
+
   const perkOptions: OptionType[] = perks.map((perk) => ({
     value: perk.id,
     label: perk.name,
+  }));
+
+  const standardWeaponOptions: OptionType[] = standardWeapons.map((sw) => ({
+    value: sw.id,
+    label: sw.name,
   }));
 
   useEffect(() => {
@@ -87,9 +129,30 @@ export function UnitTemplateFormDialog({
     }
   }, [state, onOpenChange, toast, router]);
 
+  const addWeaponTemplateDef = () => {
+    setWeaponTemplateDefs([
+      ...weaponTemplateDefs,
+      { name: "", cost: 0, standardWeaponIds: [] },
+    ]);
+  };
+
+  const removeWeaponTemplateDef = (index: number) => {
+    setWeaponTemplateDefs(weaponTemplateDefs.filter((_, i) => i !== index));
+  };
+
+  const updateWeaponTemplateDef = (
+    index: number,
+    field: keyof WeaponTemplateDefinition,
+    value: string | number | string[]
+  ) => {
+    const newDefs = [...weaponTemplateDefs];
+    newDefs[index] = { ...newDefs[index], [field]: value };
+    setWeaponTemplateDefs(newDefs);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
             {unitTemplate ? "Edit Unit" : `Create ${unitClass.name} Unit`}
@@ -101,12 +164,16 @@ export function UnitTemplateFormDialog({
         <form
           action={(formData) => {
             formData.append("perks", JSON.stringify(selectedPerks));
+            formData.append(
+              "weaponTemplateDefs",
+              JSON.stringify(weaponTemplateDefs)
+            );
             formAction(formData);
           }}
         >
           <input type="hidden" name="factionId" value={factionId} />
           <input type="hidden" name="unitClassId" value={unitClass.id} />
-          <div className="grid grid-cols-2 gap-4 py-4">
+          <div className="grid grid-cols-2 gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
             <div className="col-span-2">
               <Label htmlFor="name">Name</Label>
               <Input
@@ -206,6 +273,68 @@ export function UnitTemplateFormDialog({
                 onChange={setSelectedPerks}
                 placeholder="Select perks..."
               />
+            </div>
+            <div className="col-span-2 space-y-4">
+              <Label>Weapon Templates</Label>
+              {weaponTemplateDefs.map((def, index) => (
+                <div key={index} className="p-4 border rounded-md space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label>Weapon Package {index + 1}</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeWeaponTemplateDef(index)}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <Label htmlFor={`wt-name-${index}`}>Name</Label>
+                  <Input
+                    id={`wt-name-${index}`}
+                    value={def.name}
+                    onChange={(e) =>
+                      updateWeaponTemplateDef(index, "name", e.target.value)
+                    }
+                    placeholder="e.g. Standard Issue Gear"
+                    required
+                  />
+                  <Label htmlFor={`wt-cost-${index}`}>Cost</Label>
+                  <Input
+                    id={`wt-cost-${index}`}
+                    type="number"
+                    value={def.cost}
+                    onChange={(e) =>
+                      updateWeaponTemplateDef(
+                        index,
+                        "cost",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
+                    required
+                  />
+                  <Label htmlFor={`wt-weapons-${index}`}>Weapons</Label>
+                  <MultiSelect
+                    options={standardWeaponOptions}
+                    selected={def.standardWeaponIds}
+                    onChange={(selected) =>
+                      updateWeaponTemplateDef(
+                        index,
+                        "standardWeaponIds",
+                        selected
+                      )
+                    }
+                    placeholder="Select weapons..."
+                  />
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addWeaponTemplateDef}
+              >
+                Add Weapon Package
+              </Button>
             </div>
           </div>
           <DialogFooter>

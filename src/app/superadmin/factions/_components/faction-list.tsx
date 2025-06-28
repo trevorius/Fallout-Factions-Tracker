@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Perk, UnitClass } from "@prisma/client";
+import { Perk, UnitClass, StandardWeapon } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { FactionFormDialog } from "./faction-form-dialog";
@@ -27,19 +27,40 @@ import {
 import { Prisma } from "@prisma/client";
 
 type FactionWithTemplates = Prisma.FactionGetPayload<{
-  include: { unitTemplates: { include: { perks: true } } };
+  include: {
+    unitTemplates: {
+      include: {
+        perks: true;
+        weaponTemplates: {
+          include: {
+            weaponTemplate: {
+              include: {
+                standardWeapons: {
+                  include: {
+                    standardWeapon: true;
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
 }>;
 
 interface FactionListProps {
   factions: FactionWithTemplates[];
   unitClasses: UnitClass[];
   perks: Perk[];
+  standardWeapons: StandardWeapon[];
 }
 
 export function FactionList({
   factions,
   unitClasses,
   perks,
+  standardWeapons,
 }: FactionListProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedFactionId, setSelectedFactionId] = useState<string | null>(
@@ -132,6 +153,7 @@ export function FactionList({
         faction={selectedFaction || undefined}
         unitClasses={unitClasses}
         perks={perks}
+        standardWeapons={standardWeapons}
       />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
