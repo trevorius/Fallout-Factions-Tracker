@@ -128,7 +128,7 @@ model Crew {
 
 model Faction {
   id            String                @id @default(cuid())
-  name          String
+  name          String                @unique
   crews         Crew[]
   organizations OrganizationFaction[]
   unitTemplates UnitTemplate[]
@@ -174,7 +174,7 @@ model Unit {
 
 model UnitClass {
   id            String                  @id @default(cuid())
-  name          String
+  name          String                  @unique
   units         Unit[]
   organizations OrganizationUnitClass[]
   unitTemplates UnitTemplate[]
@@ -313,7 +313,7 @@ model CrewQuest {
 
 model StandardWeapon {
   id                String                           @id @default(cuid())
-  name              String
+  name              String                         @unique
   range             String
   testAttribute     SPECIAL
   testValue         Int
@@ -540,7 +540,7 @@ model TemporaryHire {
 
 model UnitTemplate {
   id   String @id @default(cuid())
-  name String
+  name String @unique
   s    Int
   p    Int
   e    Int
@@ -571,7 +571,7 @@ model UnitTemplatePerk {
 
 model WeaponTemplate {
   id              String                         @id @default(cuid())
-  name            String
+  name            String                         @unique
   cost            Int
   unitTemplates   UnitTemplateWeaponTemplate[]
   standardWeapons WeaponTemplateStandardWeapon[]

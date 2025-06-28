@@ -18,7 +18,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "cypress run",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "prisma:studio": "prisma studio",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:generate": "prisma generate",
+    "prisma:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -52,7 +56,8 @@
     "server-only": "^0.0.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.25.67"
+    "zod": "^3.25.67",
+    "@auth/prisma-adapter": "^2.4.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

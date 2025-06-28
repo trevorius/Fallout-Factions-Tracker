@@ -5,6 +5,7 @@ import { seedWeaponTraits } from "./seeds/weapon-traits";
 import { seedCriticalEffects } from "./seeds/critical-effects";
 import { seedOfficialWeapons } from "./seeds/official-weapons";
 import { seedWeaponTypes } from "./seeds/weapon-types";
+import { seedRaiders } from "./seeds/raiders";
 
 const prisma = new PrismaClient();
 
@@ -16,6 +17,7 @@ async function main() {
   await seedCriticalEffects(prisma);
   await seedWeaponTypes(prisma);
   await seedOfficialWeapons(prisma);
+  await seedRaiders();
   console.log("Seeding finished.");
 }
 
