@@ -1,7 +1,7 @@
 import type { PrismaClient, SPECIAL } from "@prisma/client";
 import { perksData, specialMap } from "./perk-data";
 
-export async function seedOfficialData(prisma: PrismaClient) {
+export async function seedPerks(prisma: PrismaClient) {
   console.log("Seeding official perk data...");
 
   for (const perkData of perksData) {

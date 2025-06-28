@@ -14,11 +14,11 @@ function generateSalt(): string {
 
 export async function seedSuperAdmin(prisma: PrismaClient) {
   console.log("Seeding super admin...");
-  const email = process.env.SUPER_ADMIN_EMAIL || "superadmin@fallout.com";
+  const email = process.env.SUPER_ADMIN_EMAIL || "peter.parker@avengers.com";
   try {
     const salt = generateSalt();
     const hashedPassword = hashPassword(
-      process.env.SUPER_ADMIN_PASSWORD || "password",
+      process.env.SUPER_ADMIN_PASSWORD || "Blue-House-Red-Car",
       salt
     );
 

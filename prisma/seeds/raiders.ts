@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-const db = new PrismaClient();
-
 const raidersFactionData = [
   {
     unitClassName: "Boss",
@@ -178,50 +176,44 @@ const allWeapons = [
 ];
 const allUnitClassNames = ["CHAMPION", "LEADER", "GRUNT"];
 
-async function getUniqueWeaponTemplateName(baseName: string): Promise<string> {
+async function getUniqueWeaponTemplateName(
+  prisma: PrismaClient,
+  baseName: string
+): Promise<string> {
   let newName = baseName;
   let counter = 2;
-  while (await db.weaponTemplate.findUnique({ where: { name: newName } })) {
+  while (await prisma.weaponTemplate.findUnique({ where: { name: newName } })) {
     newName = `${baseName}-${counter}`;
     counter++;
   }
   return newName;
 }
 
-export async function seedRaiders() {
+export async function seedRaiders(prisma: PrismaClient) {
   console.log("Seeding Wasteland Raiders faction...");
 
-  const faction = await db.faction.upsert({
+  const faction = await prisma.faction.upsert({
     where: { name: "Wasteland Raiders" },
     update: {},
     create: { name: "Wasteland Raiders" },
   });
 
   for (const name of allUnitClassNames) {
-    await db.unitClass.upsert({
+    await prisma.unitClass.upsert({
       where: { name },
       update: {},
       create: { name },
     });
   }
 
-  for (const name of allPerks) {
-    await db.perk.upsert({
-      where: { name },
-      update: {},
-      create: { name },
-    });
-  }
-
-  // This is needed to get around a shortcoming of upsert with relations
-  const placeholderWeaponType = await db.weaponType.upsert({
+  const placeholderWeaponType = await prisma.weaponType.upsert({
     where: { name: "placeholder" },
     update: {},
     create: { name: "placeholder" },
   });
 
   for (const name of allWeapons) {
-    await db.standardWeapon.upsert({
+    await prisma.standardWeapon.upsert({
       where: { name },
       update: {},
       create: {
@@ -231,132 +223,99 @@ export async function seedRaiders() {
         testValue: 0,
         rating: 0,
         weaponTypeId: placeholderWeaponType.id,
-      }, // Placeholder data
+      },
     });
   }
 
   for (const unitData of raidersFactionData) {
     console.log(`- Processing Unit: ${unitData.unitClassName}`);
     try {
-      // Prioritize 'LEADER' if available, otherwise take the first class type.
       const typeName = unitData.unitClassTypes.includes("LEADER")
         ? "LEADER"
         : unitData.unitClassTypes[0];
 
-      const unitClass = await db.unitClass.findFirst({
+      const unitClass = await prisma.unitClass.findFirst({
         where: { name: { equals: typeName, mode: "insensitive" } },
       });
       if (!unitClass) {
         console.error(
-          `  - Skipping: UnitClass '${typeName}' not found for unit '${unitData.unitClassName}'.`
+          `Could not find unit class for type: ${typeName}. Skipping unit.`
         );
         continue;
       }
 
-      const unitTemplate = await db.unitTemplate.upsert({
-        where: { name: unitData.unitClassName },
-        update: {
-          s: unitData.s,
-          p: unitData.p,
-          e: unitData.e,
-          c: unitData.c,
-          i: unitData.i,
-          a: unitData.a,
-          l: unitData.l,
-          hp: unitData.hp,
-          unitClassId: unitClass.id,
-        },
-        create: {
-          name: unitData.unitClassName,
-          s: unitData.s,
-          p: unitData.p,
-          e: unitData.e,
-          c: unitData.c,
-          i: unitData.i,
-          a: unitData.a,
-          l: unitData.l,
-          hp: unitData.hp,
-          factionId: faction.id,
-          unitClassId: unitClass.id,
-        },
-      });
-
-      // Link perks
-      const perkIds = (
-        await Promise.all(
-          unitData.perks.map((p) =>
-            db.perk.findFirst({
-              where: { name: { equals: p, mode: "insensitive" } },
-            })
-          )
-        )
-      )
-        .filter((p) => p)
-        .map((p) => p!.id);
-      await db.unitTemplatePerk.deleteMany({
-        where: { unitTemplateId: unitTemplate.id },
-      });
-      if (perkIds.length > 0) {
-        await db.unitTemplatePerk.createMany({
-          data: perkIds.map((perkId) => ({
-            unitTemplateId: unitTemplate.id,
-            perkId,
-          })),
+      for (const weaponSet of unitData.weaponSets) {
+        const templateName = await getUniqueWeaponTemplateName(
+          prisma,
+          `${unitData.unitClassName} - ${weaponSet.name}`
+        );
+        const weaponTemplate = await prisma.weaponTemplate.upsert({
+          where: { name: templateName },
+          update: {},
+          create: {
+            name: templateName,
+            cost: weaponSet.cost,
+          },
         });
-        console.log(`  - Linked ${perkIds.length} perks.`);
-      }
 
-      // Create and link weapon templates
-      for (const ws of unitData.weaponSets) {
-        console.log(`    - Processing Weapon Set: ${ws.name}`);
-        const weaponIds = (
-          await Promise.all(
-            ws.weapons.map((w) =>
-              db.standardWeapon.findFirst({
-                where: { name: { equals: w, mode: "insensitive" } },
-              })
-            )
-          )
-        )
-          .filter((w) => w)
-          .map((w) => w!.id);
-
-        if (weaponIds.length !== ws.weapons.length) {
-          console.error(
-            `      - ERROR: Not all standard weapons found for Weapon Set '${ws.name}'. Skipping.`
-          );
-          continue;
+        for (const weaponName of weaponSet.weapons) {
+          const weapon = await prisma.standardWeapon.findFirst({
+            where: { name: { equals: weaponName, mode: "insensitive" } },
+          });
+          if (weapon) {
+            await prisma.weaponTemplateStandardWeapon.create({
+              data: {
+                weaponTemplateId: weaponTemplate.id,
+                standardWeaponId: weapon.id,
+              },
+            });
+          } else {
+            console.warn(`Weapon not found for template: ${weaponName}`);
+          }
         }
 
-        const uniqueWsName = await getUniqueWeaponTemplateName(ws.name);
-
-        const weaponTemplate = await db.weaponTemplate.create({
-          data: { name: uniqueWsName, cost: ws.cost },
+        const unitName = `${unitData.unitClassName} (${weaponSet.name})`;
+        const unitTemplate = await prisma.unitTemplate.upsert({
+          where: { name: unitName },
+          update: {},
+          create: {
+            name: unitName,
+            s: unitData.s,
+            p: unitData.p,
+            e: unitData.e,
+            c: unitData.c,
+            i: unitData.i,
+            a: unitData.a,
+            l: unitData.l,
+            hp: unitData.hp,
+            factionId: faction.id,
+            unitClassId: unitClass.id,
+          },
         });
 
-        await db.weaponTemplateStandardWeapon.createMany({
-          data: weaponIds.map((weaponId) => ({
-            weaponTemplateId: weaponTemplate.id,
-            standardWeaponId: weaponId,
-          })),
-        });
-
-        await db.unitTemplateWeaponTemplate.create({
+        await prisma.unitTemplateWeaponTemplate.create({
           data: {
             unitTemplateId: unitTemplate.id,
             weaponTemplateId: weaponTemplate.id,
           },
         });
-        console.log(
-          `      - Created and linked Weapon Template: ${uniqueWsName}`
-        );
+
+        for (const perkName of unitData.perks) {
+          const perk = await prisma.perk.findFirst({
+            where: { name: { equals: perkName, mode: "insensitive" } },
+          });
+          if (perk) {
+            await prisma.unitTemplatePerk.create({
+              data: {
+                unitTemplateId: unitTemplate.id,
+                perkId: perk.id,
+              },
+            });
+          }
+        }
       }
     } catch (error) {
-      console.error(
-        `  - ERROR processing unit ${unitData.unitClassName}:`,
-        error
-      );
+      console.error(`Failed to process unit ${unitData.unitClassName}:`, error);
     }
   }
-  console.log("Wasteland Raiders faction seeded successfully.");
 }

@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-const db = new PrismaClient();
-
 const brotherhoodOfSteelFactionData = [
   {
     unitClassName: "Paladin",
@@ -112,24 +110,68 @@ const brotherhoodOfSteelFactionData = [
   },
 ];
 
-async function getUniqueWeaponTemplateName(baseName: string): Promise<string> {
+const allPerks = [
+  ...new Set(brotherhoodOfSteelFactionData.flatMap((u) => u.perks)),
+];
+const allWeapons = [
+  ...new Set(
+    brotherhoodOfSteelFactionData
+      .flatMap((u) => u.weaponSets)
+      .flatMap((ws) => ws.weapons)
+  ),
+];
+const allUnitClassNames = ["CHAMPION", "LEADER", "GRUNT"];
+
+async function getUniqueWeaponTemplateName(
+  prisma: PrismaClient,
+  baseName: string
+): Promise<string> {
   let newName = baseName;
   let counter = 2;
-  while (await db.weaponTemplate.findUnique({ where: { name: newName } })) {
+  while (await prisma.weaponTemplate.findUnique({ where: { name: newName } })) {
     newName = `${baseName}-${counter}`;
     counter++;
   }
   return newName;
 }
 
-export async function seedBrotherhoodOfSteel() {
+export async function seedBrotherhoodOfSteel(prisma: PrismaClient) {
   console.log("Seeding Brotherhood of Steel faction...");
 
-  const faction = await db.faction.upsert({
+  const faction = await prisma.faction.upsert({
     where: { name: "Brotherhood of Steel" },
     update: {},
     create: { name: "Brotherhood of Steel" },
   });
+
+  for (const name of allUnitClassNames) {
+    await prisma.unitClass.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+
+  const placeholderWeaponType = await prisma.weaponType.upsert({
+    where: { name: "placeholder" },
+    update: {},
+    create: { name: "placeholder" },
+  });
+
+  for (const name of allWeapons) {
+    await prisma.standardWeapon.upsert({
+      where: { name },
+      update: {},
+      create: {
+        name,
+        range: "0-0",
+        testAttribute: "S",
+        testValue: 0,
+        rating: 0,
+        weaponTypeId: placeholderWeaponType.id,
+      },
+    });
+  }
 
   for (const unitData of brotherhoodOfSteelFactionData) {
     console.log(`- Processing Unit: ${unitData.unitClassName}`);
@@ -138,120 +180,88 @@ export async function seedBrotherhoodOfSteel() {
         ? "LEADER"
         : unitData.unitClassTypes[0];
 
-      const unitClass = await db.unitClass.findFirst({
+      const unitClass = await prisma.unitClass.findFirst({
         where: { name: { equals: typeName, mode: "insensitive" } },
       });
       if (!unitClass) {
         console.error(
-          `  - Skipping: UnitClass '${typeName}' not found for unit '${unitData.unitClassName}'.`
+          `Could not find unit class for type: ${typeName}. Skipping unit.`
         );
         continue;
       }
 
-      const unitTemplate = await db.unitTemplate.upsert({
-        where: { name: unitData.unitClassName },
-        update: {
-          s: unitData.s,
-          p: unitData.p,
-          e: unitData.e,
-          c: unitData.c,
-          i: unitData.i,
-          a: unitData.a,
-          l: unitData.l,
-          hp: unitData.hp,
-          unitClassId: unitClass.id,
-        },
-        create: {
-          name: unitData.unitClassName,
-          s: unitData.s,
-          p: unitData.p,
-          e: unitData.e,
-          c: unitData.c,
-          i: unitData.i,
-          a: unitData.a,
-          l: unitData.l,
-          hp: unitData.hp,
-          factionId: faction.id,
-          unitClassId: unitClass.id,
-        },
-      });
-
-      const perkIds = (
-        await Promise.all(
-          unitData.perks.map((p) =>
-            db.perk.findFirst({
-              where: { name: { equals: p, mode: "insensitive" } },
-            })
-          )
-        )
-      )
-        .filter((p) => p)
-        .map((p) => p!.id);
-      await db.unitTemplatePerk.deleteMany({
-        where: { unitTemplateId: unitTemplate.id },
-      });
-      if (perkIds.length > 0) {
-        await db.unitTemplatePerk.createMany({
-          data: perkIds.map((perkId) => ({
-            unitTemplateId: unitTemplate.id,
-            perkId,
-          })),
+      for (const weaponSet of unitData.weaponSets) {
+        const templateName = await getUniqueWeaponTemplateName(
+          prisma,
+          `${unitData.unitClassName} - ${weaponSet.name}`
+        );
+        const weaponTemplate = await prisma.weaponTemplate.upsert({
+          where: { name: templateName },
+          update: {},
+          create: {
+            name: templateName,
+            cost: weaponSet.cost,
+          },
         });
-        console.log(`  - Linked ${perkIds.length} perks.`);
-      }
 
-      for (const ws of unitData.weaponSets) {
-        console.log(`    - Processing Weapon Set: ${ws.name}`);
-        const weaponIds = (
-          await Promise.all(
-            ws.weapons.map((w) =>
-              db.standardWeapon.findFirst({
-                where: { name: { equals: w, mode: "insensitive" } },
-              })
-            )
-          )
-        )
-          .filter((w) => w)
-          .map((w) => w!.id);
-
-        if (weaponIds.length !== ws.weapons.length) {
-          const notFound = ws.weapons.filter((w) => !weaponIds.includes(w));
-          console.error(
-            `      - ERROR: Standard weapon(s) not found for Weapon Set '${
-              ws.name
-            }': ${notFound.join(", ")}. Skipping.`
-          );
-          continue;
+        for (const weaponName of weaponSet.weapons) {
+          const weapon = await prisma.standardWeapon.findFirst({
+            where: { name: { equals: weaponName, mode: "insensitive" } },
+          });
+          if (weapon) {
+            await prisma.weaponTemplateStandardWeapon.create({
+              data: {
+                weaponTemplateId: weaponTemplate.id,
+                standardWeaponId: weapon.id,
+              },
+            });
+          } else {
+            console.warn(`Weapon not found for template: ${weaponName}`);
+          }
         }
 
-        const uniqueWsName = await getUniqueWeaponTemplateName(ws.name);
-
-        const weaponTemplate = await db.weaponTemplate.create({
-          data: { name: uniqueWsName, cost: ws.cost },
+        const unitName = `${unitData.unitClassName} (${weaponSet.name})`;
+        const unitTemplate = await prisma.unitTemplate.upsert({
+          where: { name: unitName },
+          update: {},
+          create: {
+            name: unitName,
+            s: unitData.s,
+            p: unitData.p,
+            e: unitData.e,
+            c: unitData.c,
+            i: unitData.i,
+            a: unitData.a,
+            l: unitData.l,
+            hp: unitData.hp,
+            factionId: faction.id,
+            unitClassId: unitClass.id,
+          },
         });
 
-        await db.weaponTemplateStandardWeapon.createMany({
-          data: weaponIds.map((weaponId) => ({
-            weaponTemplateId: weaponTemplate.id,
-            standardWeaponId: weaponId,
-          })),
-        });
-
-        await db.unitTemplateWeaponTemplate.create({
+        await prisma.unitTemplateWeaponTemplate.create({
           data: {
             unitTemplateId: unitTemplate.id,
             weaponTemplateId: weaponTemplate.id,
           },
         });
-        console.log(
-          `      - Created and linked Weapon Template: ${uniqueWsName}`
-        );
+
+        for (const perkName of unitData.perks) {
+          const perk = await prisma.perk.findFirst({
+            where: { name: { equals: perkName, mode: "insensitive" } },
+          });
+          if (perk) {
+            await prisma.unitTemplatePerk.create({
+              data: {
+                unitTemplateId: unitTemplate.id,
+                perkId: perk.id,
+              },
+            });
+          }
+        }
       }
     } catch (error) {
-      console.error(
-        `  - ERROR processing unit ${unitData.unitClassName}:`,
-        error
-      );
+      console.error(`Failed to process unit ${unitData.unitClassName}:`, error);
     }
   }
   console.log("Brotherhood of Steel faction seeded successfully.");

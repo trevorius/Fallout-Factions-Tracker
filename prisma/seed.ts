@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { seedOfficialData } from "./seeds/official-data";
+import { seedPerks } from "./seeds/official-data";
 import { seedSuperAdmin } from "./seeds/super-admin";
 import { seedWeaponTraits } from "./seeds/weapon-traits";
 import { seedCriticalEffects } from "./seeds/critical-effects";
@@ -15,15 +15,15 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Start seeding ...");
   await seedSuperAdmin(prisma);
-  await seedOfficialData(prisma);
+  await seedPerks(prisma);
   await seedWeaponTraits(prisma);
   await seedCriticalEffects(prisma);
   await seedWeaponTypes(prisma);
   await seedOfficialWeapons(prisma);
-  await seedRaiders();
-  await seedSuperMutants();
-  await seedSurvivors();
-  await seedBrotherhoodOfSteel();
+  await seedRaiders(prisma);
+  await seedSuperMutants(prisma);
+  await seedSurvivors(prisma);
+  await seedBrotherhoodOfSteel(prisma);
   console.log("Seeding finished.");
 }
 
