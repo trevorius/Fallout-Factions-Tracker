@@ -286,3 +286,58 @@ export async function updateCrew(
 
   return { success: true, message: "Crew updated successfully." };
 }
+
+export async function deleteUnitFromCrew(
+  unitId: string,
+  organizationId: string
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, message: "You must be logged in." };
+  }
+
+  try {
+    const unitToDelete = await prisma.unit.findFirst({
+      where: {
+        id: unitId,
+        crew: {
+          userId: session.user.id,
+        },
+      },
+      select: {
+        id: true,
+        rating: true,
+        crewId: true,
+      },
+    });
+
+    if (!unitToDelete || !unitToDelete.crewId) {
+      return {
+        success: false,
+        message: "Unit not found or you are not authorized.",
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.unit.delete({
+        where: { id: unitToDelete.id },
+      });
+
+      await tx.crew.update({
+        where: { id: unitToDelete.crewId! },
+        data: {
+          reputation: {
+            decrement: unitToDelete.rating,
+          },
+        },
+      });
+    });
+    revalidatePath(
+      `/organizations/${organizationId}/crews/${unitToDelete.crewId}/edit`
+    );
+    return { success: true, message: "Unit deleted." };
+  } catch (error) {
+    console.error("Failed to delete unit:", error);
+    return { success: false, message: "Failed to delete unit." };
+  }
+}

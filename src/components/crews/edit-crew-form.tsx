@@ -2,9 +2,9 @@
 
 import { useToast } from "../../hooks/use-toast";
 import { useMediaQuery } from "../../hooks/use-media-query";
-import { updateCrew } from "@/lib/actions/crews";
+import { updateCrew, deleteUnitFromCrew } from "@/lib/actions/crews";
 import { Prisma } from "@prisma/client";
-import { useEffect, useActionState } from "react";
+import { useEffect, useActionState, useTransition } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -30,6 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { Wrench, Trash2, UserCog } from "lucide-react";
+import { Separator } from "../ui/separator";
 
 type CrewForEdit = Prisma.CrewGetPayload<{
   include: {
@@ -83,48 +85,89 @@ function formatWithCount(items: string[]): string {
     .join(", ");
 }
 
+function DeleteUnitButton({
+  unitId,
+  organizationId,
+  className,
+}: {
+  unitId: string;
+  organizationId: string;
+  className?: string;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      const result = await deleteUnitFromCrew(unitId, organizationId);
+      toast({
+        title: result.success ? "Success" : "Error",
+        description: result.message,
+        variant: result.success ? "default" : "destructive",
+      });
+    });
+  };
+
+  return (
+    <Button
+      size="icon"
+      variant="destructive"
+      type="button"
+      disabled={isPending}
+      onClick={handleDelete}
+      className={className}
+    >
+      <Trash2 className="h-4 w-4" />
+    </Button>
+  );
+}
+
 function CrewDetailsSection({ crew }: { crew: CrewForEdit }) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
+    <div className="flex flex-col gap-4 lg:flex-row">
+      <Card className="lg:w-[30%]">
         <CardHeader>
           <CardTitle>Crew Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Crew Name</Label>
-            <Input id="name" name="name" defaultValue={crew.name} />
+          <div className="flex items-center justify-between">
+            <Label htmlFor="name" className="text-muted-foreground">
+              Crew Name
+            </Label>
+            <Input
+              id="name"
+              name="name"
+              defaultValue={crew.name}
+              className="w-[60%]"
+            />
           </div>
-          <div className="space-y-2">
-            <Label>Faction</Label>
-            <p className="text-sm text-muted-foreground">{crew.faction.name}</p>
+          <div className="flex items-center justify-between">
+            <Label className="text-muted-foreground">Faction</Label>
+            <p className="text-sm">{crew.faction.name}</p>
           </div>
-          <div className="space-y-2">
-            <Label>Player Name</Label>
-            <p className="text-sm text-muted-foreground">
-              {crew.user?.name || "N/A"}
-            </p>
+          <div className="flex items-center justify-between">
+            <Label className="text-muted-foreground">Player Name</Label>
+            <p className="text-sm">{crew.user?.name || "N/A"}</p>
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="flex-grow">
         <CardHeader>
-          <CardTitle>Crew Stats</CardTitle>
+          <CardTitle className="text-center">POWER</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Tier</Label>
-              <p className="text-lg font-bold">{crew.tier}</p>
-            </div>
-            <div className="space-y-2">
-              <Label>Reputation</Label>
-              <p className="text-lg font-bold">{crew.reputation}</p>
-            </div>
+        <CardContent className="flex items-center justify-around">
+          <div className="text-center">
+            <p className="text-lg font-bold">{crew.tier}</p>
+            <Label className="text-muted-foreground">Tier</Label>
+          </div>
+          <Separator orientation="vertical" className="h-10" />
+          <div className="text-center">
+            <p className="text-lg font-bold">{crew.reputation}</p>
+            <Label className="text-muted-foreground">Reputation</Label>
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="lg:w-[50%]">
         <CardHeader>
           <CardTitle>Chems</CardTitle>
         </CardHeader>
@@ -136,7 +179,13 @@ function CrewDetailsSection({ crew }: { crew: CrewForEdit }) {
   );
 }
 
-function UnitRoster({ units }: { units: CrewForEdit["units"] }) {
+function UnitRoster({
+  units,
+  organizationId,
+}: {
+  units: CrewForEdit["units"];
+  organizationId: string;
+}) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   if (isDesktop) {
@@ -177,19 +226,14 @@ function UnitRoster({ units }: { units: CrewForEdit["units"] }) {
                             rowSpan={unit.weapons.length}
                             className="align-top"
                           >
-                            <div className="flex flex-col gap-2">
-                              <Input
-                                name={`unit-${unit.id}-name`}
-                                defaultValue={unit.name}
-                                className="font-semibold"
-                              />
-                              <span className="text-sm text-muted-foreground">
-                                ({unit.unitClass.name})
-                              </span>
-                              <Button disabled size="sm" variant="outline">
-                                Upgrade Unit
-                              </Button>
-                            </div>
+                            <Input
+                              name={`unit-${unit.id}-name`}
+                              defaultValue={unit.name}
+                              className="font-semibold"
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              ({unit.unitClass.name})
+                            </span>
                           </TableCell>
                           <TableCell rowSpan={unit.weapons.length}>
                             {unit.s}
@@ -217,36 +261,58 @@ function UnitRoster({ units }: { units: CrewForEdit["units"] }) {
                           </TableCell>
                         </>
                       )}
-                      <TableCell>{weapon.name}</TableCell>
-                      <TableCell>
+                      <TableCell className="py-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span>{weapon.name}</span>
+                          <Button
+                            disabled
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                          >
+                            <Wrench className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-1 text-sm">
                         {weapon.standardWeapon?.testValue}{" "}
                         {weapon.standardWeapon?.testAttribute}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1 text-sm">
                         {formatWithCount(
                           weapon.standardWeapon?.traits.map(
                             (t) => t.trait.name
                           ) || []
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1 text-sm">
                         {formatWithCount(
                           weapon.standardWeapon?.criticalEffects.map(
                             (c) => c.criticalEffect.name
                           ) || []
                         )}
                       </TableCell>
-                      <TableCell>{unit.rating}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-2">
-                          <Button disabled size="sm" variant="outline">
-                            Upgrade Weapon
-                          </Button>
-                          <Button disabled size="sm" variant="destructive">
-                            Delete Weapon
-                          </Button>
-                        </div>
-                      </TableCell>
+                      {weaponIndex === 0 && (
+                        <>
+                          <TableCell rowSpan={unit.weapons.length}>
+                            {unit.rating}
+                          </TableCell>
+                          <TableCell
+                            rowSpan={unit.weapons.length}
+                            className="align-top"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Button disabled size="icon" variant="outline">
+                                <UserCog className="h-4 w-4" />
+                              </Button>
+                              <DeleteUnitButton
+                                unitId={unit.id}
+                                organizationId={organizationId}
+                              />
+                            </div>
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   ))}
                 </React.Fragment>
@@ -265,16 +331,27 @@ function UnitRoster({ units }: { units: CrewForEdit["units"] }) {
       {units.map((unit) => (
         <Card key={unit.id}>
           <CardHeader>
-            <CardTitle>
-              <Input
-                name={`unit-${unit.id}-name`}
-                defaultValue={unit.name}
-                className="text-2xl font-bold"
-              />
-              <span className="text-lg text-muted-foreground">
-                ({unit.unitClass.name})
-              </span>
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>
+                <Input
+                  name={`unit-${unit.id}-name`}
+                  defaultValue={unit.name}
+                  className="text-2xl font-bold"
+                />
+                <span className="text-lg text-muted-foreground">
+                  ({unit.unitClass.name})
+                </span>
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Button disabled size="icon" variant="outline">
+                  <UserCog className="h-5 w-5" />
+                </Button>
+                <DeleteUnitButton
+                  unitId={unit.id}
+                  organizationId={organizationId}
+                />
+              </div>
+            </div>
             <CardDescription>Rating: {unit.rating}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -302,13 +379,25 @@ function UnitRoster({ units }: { units: CrewForEdit["units"] }) {
                       key={weapon.id}
                       className="space-y-2 rounded-md border p-2"
                     >
-                      <h4 className="font-semibold">{weapon.name}</h4>
-                      <p>
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold">{weapon.name}</h4>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            disabled
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                          >
+                            <Wrench className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm">
                         <strong>Test:</strong>{" "}
                         {weapon.standardWeapon?.testValue}{" "}
                         {weapon.standardWeapon?.testAttribute}
                       </p>
-                      <p>
+                      <p className="text-sm">
                         <strong>Traits:</strong>{" "}
                         {formatWithCount(
                           weapon.standardWeapon?.traits.map(
@@ -316,7 +405,7 @@ function UnitRoster({ units }: { units: CrewForEdit["units"] }) {
                           ) || []
                         )}
                       </p>
-                      <p>
+                      <p className="text-sm">
                         <strong>Critical:</strong>{" "}
                         {formatWithCount(
                           weapon.standardWeapon?.criticalEffects.map(
@@ -324,14 +413,6 @@ function UnitRoster({ units }: { units: CrewForEdit["units"] }) {
                           ) || []
                         )}
                       </p>
-                      <div className="flex gap-2 pt-2">
-                        <Button disabled size="sm" variant="outline">
-                          Upgrade Weapon
-                        </Button>
-                        <Button disabled size="sm" variant="destructive">
-                          Delete Weapon
-                        </Button>
-                      </div>
                     </div>
                   ))}
                 </AccordionContent>
@@ -361,10 +442,16 @@ export function EditCrewForm({
   crew: CrewForEdit;
   organizationId: string;
 }) {
-  const [state, formAction] = useActionState(updateCrew, {
-    message: "",
-    success: false,
-  });
+  const [state, formAction] = useActionState(
+    (
+      prevState: { message: string; success: boolean },
+      payload: { crewId: string; organizationId: string; formData: FormData }
+    ) => updateCrew(prevState, payload),
+    {
+      message: "",
+      success: false,
+    }
+  );
   const { toast } = useToast();
 
   useEffect(() => {
@@ -384,7 +471,7 @@ export function EditCrewForm({
   return (
     <form action={actionWithIds} className="space-y-8">
       <CrewDetailsSection crew={crew} />
-      <UnitRoster units={crew.units} />
+      <UnitRoster units={crew.units} organizationId={organizationId} />
       <Button type="submit">Save Changes</Button>
     </form>
   );

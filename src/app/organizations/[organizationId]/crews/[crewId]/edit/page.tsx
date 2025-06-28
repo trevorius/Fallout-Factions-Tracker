@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { EditCrewForm } from "@/components/crews/edit-crew-form";
 import { prisma } from "@/lib/prisma";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 async function getCrewForEdit(crewId: string, userId: string) {
   const crew = await prisma.crew.findUnique({
@@ -79,14 +79,16 @@ async function getCrewForEdit(crewId: string, userId: string) {
 export default async function EditCrewPage({
   params,
 }: {
-  params: { organizationId: string; crewId: string };
+  params: Promise<{ organizationId: string; crewId: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.id) {
-    redirect("/auth/signin");
+    notFound();
   }
 
-  const crew = await getCrewForEdit(params.crewId, session.user.id);
+  const { organizationId, crewId } = await params;
 
-  return <EditCrewForm crew={crew} organizationId={params.organizationId} />;
+  const crew = await getCrewForEdit(crewId, session.user.id);
+
+  return <EditCrewForm crew={crew} organizationId={organizationId} />;
 }
