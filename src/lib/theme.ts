@@ -6,61 +6,61 @@
 // Theme configuration that matches your CSS custom properties
 export const themeConfig = {
   light: {
-    // Colors (HSL values from your CSS custom properties)
-    background: '0 0% 100%',
-    foreground: '0 0% 3.9%',
-    card: '0 0% 100%',
-    cardForeground: '0 0% 3.9%',
-    popover: '0 0% 100%',
-    popoverForeground: '0 0% 3.9%',
-    primary: '0 0% 9%',
-    primaryForeground: '0 0% 98%',
-    secondary: '0 0% 96.1%',
-    secondaryForeground: '0 0% 9%',
-    muted: '0 0% 96.1%',
-    mutedForeground: '0 0% 45.1%',
-    accent: '0 0% 96.1%',
-    accentForeground: '0 0% 9%',
-    destructive: '0 84.2% 60.2%',
+    // Game-like Blue & Gold Theme
+    background: '220 85% 12%',      // Deep blue background
+    foreground: '45 100% 70%',      // Gold text
+    card: '220 80% 15%',            // Slightly lighter blue for cards
+    cardForeground: '45 100% 75%',  // Bright gold for card text
+    popover: '220 80% 15%',         // Same as card
+    popoverForeground: '45 100% 75%',
+    primary: '45 100% 60%',         // Rich gold for primary elements
+    primaryForeground: '220 85% 12%', // Dark blue text on gold
+    secondary: '220 60% 20%',       // Muted blue for secondary
+    secondaryForeground: '45 90% 80%', // Light gold
+    muted: '220 70% 18%',           // Muted blue
+    mutedForeground: '45 60% 60%',  // Muted gold
+    accent: '45 95% 65%',           // Bright gold accent
+    accentForeground: '220 85% 12%', // Dark blue on accent
+    destructive: '0 84.2% 60.2%',   // Keep red for destructive
     destructiveForeground: '0 0% 98%',
-    border: '0 0% 89.8%',
-    input: '0 0% 89.8%',
-    ring: '0 0% 3.9%',
+    border: '220 50% 25%',          // Blue-gray borders
+    input: '220 60% 20%',           // Dark blue inputs
+    ring: '45 100% 70%',            // Gold focus ring
     
-    // Sidebar colors
-    sidebarBackground: '0 0% 98%',
-    sidebarForeground: '240 5.3% 26.1%',
-    sidebarPrimary: '240 5.9% 10%',
-    sidebarBorder: '220 13% 91%',
+    // Sidebar colors - Blue & Gold theme
+    sidebarBackground: '220 75% 10%',   // Dark blue sidebar
+    sidebarForeground: '45 100% 75%',   // Gold sidebar text
+    sidebarPrimary: '45 100% 65%',      // Gold primary
+    sidebarBorder: '220 50% 20%',       // Blue border
     
-    // Charts
-    chart1: '12 76% 61%',
-    chart2: '173 58% 39%',
-    chart3: '197 37% 24%',
-    chart4: '43 74% 66%',
-    chart5: '27 87% 67%',
+    // Charts - Blue & Gold variations
+    chart1: '45 100% 65%',    // Gold
+    chart2: '200 80% 55%',    // Light blue
+    chart3: '220 70% 40%',    // Medium blue
+    chart4: '50 90% 60%',     // Yellow-gold
+    chart5: '240 60% 50%',    // Purple-blue
   },
   dark: {
-    // Colors (HSL values from your CSS custom properties)
-    background: '0 0% 3.9%',
-    foreground: '0 0% 98%',
-    card: '0 0% 3.9%',
-    cardForeground: '0 0% 98%',
-    popover: '0 0% 3.9%',
-    popoverForeground: '0 0% 98%',
-    primary: '0 0% 98%',
-    primaryForeground: '0 0% 9%',
-    secondary: '0 0% 14.9%',
-    secondaryForeground: '0 0% 98%',
-    muted: '0 0% 14.9%',
-    mutedForeground: '0 0% 63.9%',
-    accent: '0 0% 14.9%',
-    accentForeground: '0 0% 98%',
-    destructive: '0 62.8% 30.6%',
+    // Dark Blue & Gold Theme (darker variant)
+    background: '220 90% 8%',       // Even darker blue
+    foreground: '45 100% 85%',      // Brighter gold text
+    card: '220 85% 10%',            // Dark blue cards
+    cardForeground: '45 100% 80%',  // Bright gold card text
+    popover: '220 85% 10%',         // Same as card
+    popoverForeground: '45 100% 80%',
+    primary: '45 100% 70%',         // Brighter gold primary
+    primaryForeground: '220 90% 8%', // Very dark blue text on gold
+    secondary: '220 70% 15%',       // Darker muted blue
+    secondaryForeground: '45 95% 85%', // Bright light gold
+    muted: '220 80% 12%',           // Dark muted blue
+    mutedForeground: '45 70% 70%',  // Muted bright gold
+    accent: '45 100% 75%',          // Very bright gold accent
+    accentForeground: '220 90% 8%', // Very dark blue on accent
+    destructive: '0 62.8% 30.6%',   // Keep red for destructive
     destructiveForeground: '0 0% 98%',
-    border: '0 0% 14.9%',
-    input: '0 0% 14.9%',
-    ring: '0 0% 83.1%',
+    border: '220 60% 20%',          // Lighter blue borders for dark mode
+    input: '220 70% 15%',           // Dark blue inputs
+    ring: '45 100% 80%',            // Bright gold focus ring
     
     // Sidebar colors
     sidebarBackground: '240 5.9% 10%',
