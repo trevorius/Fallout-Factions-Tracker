@@ -30,8 +30,11 @@ function generateThemeCSS() {
   // Generate light theme as default (root)
   const lightTheme = themeConfig.light;
   Object.entries(lightTheme).forEach(([key, value]) => {
-    const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-    css += `  ${cssVar}: ${value};\n`;
+    // Only include string values (skip objects like typography, spacing)
+    if (typeof value === 'string') {
+      const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+      css += `  ${cssVar}: ${value};\n`;
+    }
   });
   
   css += `  --radius: 0.5rem;\n`;
@@ -43,8 +46,11 @@ function generateThemeCSS() {
     
     css += `.${themeName} {\n`;
     Object.entries(themeColors).forEach(([key, value]) => {
-      const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-      css += `  ${cssVar}: ${value};\n`;
+      // Only include string values (skip objects like typography, spacing)
+      if (typeof value === 'string') {
+        const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+        css += `  ${cssVar}: ${value};\n`;
+      }
     });
     css += `}\n\n`;
   });

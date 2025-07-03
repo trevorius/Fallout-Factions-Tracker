@@ -5,15 +5,18 @@ import { themeConfig } from './theme';
  * This ensures we have a single source of truth for theme values
  */
 export function generateThemeCSS() {
-  const themes = Object.entries(themeConfig) as [keyof typeof themeConfig, typeof themeConfig[keyof typeof themeConfig]][];
+  const themes = Object.entries(themeConfig) as Array<[string, Record<string, string>]>;
   
   let css = `:root {\n`;
   
   // Generate light theme as default (root)
   const lightTheme = themeConfig.light;
   Object.entries(lightTheme).forEach(([key, value]) => {
-    const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-    css += `  ${cssVar}: ${value};\n`;
+    // Only include string values (skip objects like typography, spacing)
+    if (typeof value === 'string') {
+      const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+      css += `  ${cssVar}: ${value};\n`;
+    }
   });
   
   css += `  --radius: 0.5rem;\n`;
@@ -25,8 +28,11 @@ export function generateThemeCSS() {
     
     css += `.${themeName} {\n`;
     Object.entries(themeColors).forEach(([key, value]) => {
-      const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-      css += `  ${cssVar}: ${value};\n`;
+      // Only include string values (skip objects like typography, spacing)
+      if (typeof value === 'string') {
+        const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+        css += `  ${cssVar}: ${value};\n`;
+      }
     });
     css += `}\n\n`;
   });
@@ -63,22 +69,26 @@ export function injectThemeCSS() {
 /**
  * Save theme CSS to a file (for build-time generation)
  */
-export async function saveThemeCSSToFile(filePath: string) {
+export async function saveThemeCSSToFile(filePath: string): Promise<void> {
   if (typeof process === 'undefined') return;
   
-  // Dynamic imports to avoid ESLint issues
-  const fs = await import('fs');
-  const path = await import('path');
-  
-  const css = generateThemeCSS();
-  const dir = path.dirname(filePath);
-  
-  // Ensure directory exists
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    // Dynamic imports to avoid ESLint issues
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    const css = generateThemeCSS();
+    const dir = path.dirname(filePath);
+    
+    // Ensure directory exists
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    fs.writeFileSync(filePath, css, 'utf8');
+    // Using process.stdout instead of console to avoid ESLint error
+    process.stdout.write(`✅ Generated theme CSS: ${filePath}\n`);
+  } catch (error) {
+    process.stderr.write(`❌ Error generating theme CSS: ${error}\n`);
   }
-  
-  fs.writeFileSync(filePath, css, 'utf8');
-  // Using process.stdout instead of console to avoid ESLint error
-  process.stdout.write(`✅ Generated theme CSS: ${filePath}\n`);
 }
