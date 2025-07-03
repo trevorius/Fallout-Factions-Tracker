@@ -1,12 +1,8 @@
-name: Preview Deployment
+name: Preview Database Branch
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, closed]
-
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
   setup:
@@ -19,7 +15,7 @@ jobs:
         id: branch_name
         uses: tj-actions/branch-names@v8
 
-  create-preview:
+  create-preview-db:
     needs: setup
     if: |
       github.event_name == 'pull_request' && (
@@ -39,47 +35,23 @@ jobs:
           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Set Preview Database URL
-        run: vercel env add DATABASE_URL ${{ steps.create_neon_branch.outputs.db_url_with_pooler }} preview --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy to Vercel
-        run: |
-          vercel deploy --token=${{ secrets.VERCEL_TOKEN }} \
-            --env DATABASE_URL=${{ steps.create_neon_branch.outputs.db_url_with_pooler }} \
-            > deployment-url.txt
-
-      - name: Run Database Migrations
-        run: |
-          npm ci
-          npx prisma migrate deploy
-
-      - name: Get Deployment URL
-        id: get-url
-        run: echo "::set-output name=url::$(cat deployment-url.txt)"
-
-      - name: Comment on PR
+      - name: Comment PR with Database URL
         uses: actions/github-script@v7
         with:
           script: |
-            const deploymentUrl = process.env.DEPLOYMENT_URL;
+            const dbUrl = process.env.DB_URL;
             const dbBranch = 'preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}';
             
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `🚀 Preview deployment is ready!\n\n- Deployment URL: ${deploymentUrl}\n- Database Branch: \`${dbBranch}\``
+              body: `� Preview database is ready!\n\n- Database Branch: \`${dbBranch}\`\n\nTo use this database in your Vercel preview deployment, add this environment variable:\n\`\`\`\nDATABASE_URL=${dbUrl}\n\`\`\``
             });
         env:
-          DEPLOYMENT_URL: ${{ steps.get-url.outputs.url }}
+          DB_URL: ${{ steps.create_neon_branch.outputs.db_url_with_pooler }}
 
-  cleanup-preview:
+  cleanup-preview-db:
     needs: setup
     if: |
       github.event_name == 'pull_request' && 
@@ -92,10 +64,3 @@ jobs:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
           branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Delete Vercel Deployment
-        run: |
-          vercel remove preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }} --token=${{ secrets.VERCEL_TOKEN }} --yes
