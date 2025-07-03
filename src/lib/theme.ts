@@ -38,11 +38,11 @@ export const themeConfig = {
     sidebarRing: '217.2 91.2% 59.8%',
     
     // Charts
-    chart1: '12 76% 61%',
-    chart2: '173 58% 39%',
-    chart3: '197 37% 24%',
-    chart4: '43 74% 66%',
-    chart5: '27 87% 67%',
+    'chart-1': '12 76% 61%',
+    'chart-2': '173 58% 39%',
+    'chart-3': '197 37% 24%',
+    'chart-4': '43 74% 66%',
+    'chart-5': '27 87% 67%',
   },
   dark: {
     // Original Dark Theme
@@ -77,15 +77,15 @@ export const themeConfig = {
     sidebarRing: '217.2 91.2% 59.8%',
     
     // Charts
-    chart1: '220 70% 50%',
-    chart2: '160 60% 45%',
-    chart3: '30 80% 55%',
-    chart4: '280 65% 60%',
-    chart5: '340 75% 55%',
+    'chart-1': '220 70% 50%',
+    'chart-2': '160 60% 45%',
+    'chart-3': '30 80% 55%',
+    'chart-4': '280 65% 60%',
+    'chart-5': '340 75% 55%',
   },
   blue: {
     // Game-like Blue & Gold Theme
-    background: '110 85% 12%',      // Deep blue background
+    background: '220 85% 12%',      // Deep blue background
     foreground: '45 100% 70%',      // Gold text
     card: '220 80% 15%',            // Slightly lighter blue for cards
     cardForeground: '45 100% 75%',  // Bright gold for card text
@@ -116,11 +116,11 @@ export const themeConfig = {
     sidebarRing: '45 100% 70%',         // Gold focus ring
     
     // Charts - Blue & Gold variations
-    chart1: '45 100% 65%',    // Gold
-    chart2: '200 80% 55%',    // Light blue
-    chart3: '220 70% 40%',    // Medium blue
-    chart4: '50 90% 60%',     // Yellow-gold
-    chart5: '240 60% 50%',    // Purple-blue
+    'chart-1': '45 100% 65%',    // Gold
+    'chart-2': '200 80% 55%',    // Light blue
+    'chart-3': '220 70% 40%',    // Medium blue
+    'chart-4': '50 90% 60%',     // Yellow-gold
+    'chart-5': '240 60% 50%',    // Purple-blue
   },
   
   // Typography
@@ -210,9 +210,11 @@ function hslToHex(hsl: string): string {
 export function getPdfTheme(theme: 'light' | 'dark' | 'blue' = 'light') {
   const colorTheme = themeConfig[theme];
   
-  // Convert all HSL colors to hex
+  // Convert all HSL colors to hex (only process string values)
   const colors = Object.entries(colorTheme).reduce((acc, [key, hslValue]) => {
-    acc[key] = hslToHex(hslValue);
+    if (typeof hslValue === 'string') {
+      acc[key] = hslToHex(hslValue);
+    }
     return acc;
   }, {} as Record<string, string>);
   

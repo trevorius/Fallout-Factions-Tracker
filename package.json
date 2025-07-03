@@ -9,8 +9,10 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "next dev --turbopack",
+    "prebuild": "node scripts/generate-theme-css.cjs",
     "build": "next build",
-    "build:prod": "prisma migrate deploy && next build",
+    "build:prod": "prisma migrate deploy && node scripts/generate-theme-css.cjs && next build",
+    "theme:generate": "node scripts/generate-theme-css.cjs",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
