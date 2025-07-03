@@ -85,7 +85,7 @@ export const themeConfig = {
   },
   blue: {
     // Game-like Blue & Gold Theme
-    background: '220 85% 12%',      // Deep blue background
+    background: '110 85% 12%',      // Deep blue background
     foreground: '45 100% 70%',      // Gold text
     card: '220 80% 15%',            // Slightly lighter blue for cards
     cardForeground: '45 100% 75%',  // Bright gold for card text
