@@ -1,25 +1,23 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-type Theme = 'light' | 'dark' | 'blue';
+import { Theme, ThemeName, getValidTheme } from "@/lib/types/theme";
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  theme: ThemeName;
+  setTheme: (theme: ThemeName) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<ThemeName>(Theme.LIGHT);
 
   useEffect(() => {
-    // Check for saved theme preference or default to 'light'
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme && ['light', 'dark', 'blue'].includes(savedTheme)) {
-      setTheme(savedTheme);
-    }
+    // Check for saved theme preference or default to light
+    const savedTheme = localStorage.getItem('theme');
+    const validTheme = getValidTheme(savedTheme);
+    setTheme(validTheme);
   }, []);
 
   useEffect(() => {

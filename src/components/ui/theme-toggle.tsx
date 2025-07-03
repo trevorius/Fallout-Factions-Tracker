@@ -9,33 +9,43 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/providers/theme-provider";
 import { Moon, Sun, Gamepad2 } from "lucide-react";
+import { Theme, THEME_OPTIONS } from "@/lib/types/theme";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+
+  // Helper to get icon component by name
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'Sun': return Sun;
+      case 'Moon': return Moon;
+      case 'Gamepad2': return Gamepad2;
+      default: return Sun;
+    }
+  };
+
+  // Find current theme option
+  const currentThemeOption = THEME_OPTIONS.find(option => option.value === theme) || THEME_OPTIONS[0];
+  const CurrentIcon = getIconComponent(currentThemeOption.icon);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon">
-          {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
-          {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}
-          {theme === 'blue' && <Gamepad2 className="h-[1.2rem] w-[1.2rem]" />}
+          <CurrentIcon className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>
-          <Sun className="mr-2 h-4 w-4" />
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
-          <Moon className="mr-2 h-4 w-4" />
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('blue')}>
-          <Gamepad2 className="mr-2 h-4 w-4" />
-          Game Mode
-        </DropdownMenuItem>
+        {THEME_OPTIONS.map((option) => {
+          const IconComponent = getIconComponent(option.icon);
+          return (
+            <DropdownMenuItem key={option.value} onClick={() => setTheme(option.value)}>
+              <IconComponent className="mr-2 h-4 w-4" />
+              {option.label}
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

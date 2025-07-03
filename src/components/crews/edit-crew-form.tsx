@@ -32,6 +32,8 @@ import {
 } from "../ui/table";
 import { Wrench, Trash2, UserCog, FileDown } from "lucide-react";
 import { Separator } from "../ui/separator";
+import { Theme } from "@/lib/types/theme";
+import { detectThemeFromDOM } from "@/lib/actions/pdf-actions";
 
 type CrewForEdit = Prisma.CrewGetPayload<{
   include: {
@@ -470,14 +472,8 @@ export function EditCrewForm({
 
   const handleGeneratePDF = async () => {
     try {
-      // Detect current theme
-      const htmlElement = document.documentElement;
-      let theme = 'light';
-      if (htmlElement.classList.contains('dark')) {
-        theme = 'dark';
-      } else if (htmlElement.classList.contains('blue')) {
-        theme = 'blue';
-      }
+      // Detect current theme using enum
+      const theme = detectThemeFromDOM();
       
       const response = await fetch(
         `/api/crews/${crew.id}/pdf?organizationId=${organizationId}&theme=${theme}`
@@ -512,21 +508,27 @@ export function EditCrewForm({
   };
 
   return (
-    <form action={actionWithIds} className="space-y-8">
-      <CrewDetailsSection crew={crew} />
-      <UnitRoster units={crew.units} organizationId={organizationId} />
-      <div className="flex gap-4">
-        <Button type="submit">Save Changes</Button>
+    <div className="relative">
+      {/* PDF Button - Positioned at top right */}
+      <div className="absolute top-0 right-0 z-10">
         <Button 
           type="button" 
           variant="outline" 
           onClick={handleGeneratePDF}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-background border shadow-md hover:shadow-lg"
         >
           <FileDown className="h-4 w-4" />
           Generate PDF
         </Button>
       </div>
-    </form>
+
+      <form action={actionWithIds} className="space-y-8">
+        <CrewDetailsSection crew={crew} />
+        <UnitRoster units={crew.units} organizationId={organizationId} />
+        <div className="flex gap-4">
+          <Button type="submit">Save Changes</Button>
+        </div>
+      </form>
+    </div>
   );
 }

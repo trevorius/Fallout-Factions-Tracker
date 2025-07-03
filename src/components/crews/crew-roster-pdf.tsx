@@ -8,6 +8,7 @@ import {
 } from "@react-pdf/renderer";
 import { Prisma } from "@prisma/client";
 import { getPdfTheme } from "@/lib/theme";
+import { Theme, ThemeName } from "@/lib/types/theme";
 
 type CrewForPDF = Prisma.CrewGetPayload<{
   include: {
@@ -66,7 +67,7 @@ function formatWithCount(items: string[]): string {
  * Generate PDF styles from theme configuration
  * This ensures the PDF automatically matches your app's theme
  */
-function createPdfStyles(themeName: 'light' | 'dark' | 'blue' = 'light') {
+function createPdfStyles(themeName: ThemeName) {
   const theme = getPdfTheme(themeName);
   
   return StyleSheet.create({
@@ -211,10 +212,10 @@ function createPdfStyles(themeName: 'light' | 'dark' | 'blue' = 'light') {
 
 interface CrewRosterPDFProps {
   crew: CrewForPDF;
-  theme?: 'light' | 'dark' | 'blue'; // Theme preference for PDF styling
+  theme?: ThemeName; // Theme preference for PDF styling
 }
 
-export function CrewRosterPDF({ crew, theme = 'light' }: CrewRosterPDFProps) {
+export function CrewRosterPDF({ crew, theme = Theme.LIGHT }: CrewRosterPDFProps) {
   // Generate styles from theme - this makes PDF automatically match your app theme
   const styles = createPdfStyles(theme);
   
