@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, closed]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   setup:
     name: Setup
@@ -27,12 +31,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v5
         with:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Database Migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ steps.create_neon_branch.outputs.db_url_with_pooler }}
+
+      - name: Post Schema Diff Comment to PR
+        uses: neondatabase/schema-diff-action@v1
+        with:
+          project_id: ${{ secrets.NEON_PROJECT_ID }}
+          compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
       - name: Comment PR with Database URL
@@ -46,7 +71,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `� Preview database is ready!\n\n- Database Branch: \`${dbBranch}\`\n\nTo use this database in your Vercel preview deployment, add this environment variable:\n\`\`\`\nDATABASE_URL=${dbUrl}\n\`\`\``
+              body: `🔌 Preview database is ready!\n\n- Database Branch: \`${dbBranch}\`\n\nTo use this database in your Vercel preview deployment, add this environment variable:\n\`\`\`\nDATABASE_URL=${dbUrl}\n\`\`\``
             });
         env:
           DB_URL: ${{ steps.create_neon_branch.outputs.db_url_with_pooler }}
