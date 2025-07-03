@@ -7,31 +7,29 @@ import { themeConfig } from './theme';
 export function generateThemeCSS() {
   const themes = Object.entries(themeConfig) as [keyof typeof themeConfig, any][];
   
-  let css = `@layer base {\n  :root {\n`;
+  let css = `:root {\n`;
   
   // Generate light theme as default (root)
   const lightTheme = themeConfig.light;
   Object.entries(lightTheme).forEach(([key, value]) => {
     const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-    css += `    ${cssVar}: ${value};\n`;
+    css += `  ${cssVar}: ${value};\n`;
   });
   
-  css += `    --radius: 0.5rem;\n`;
-  css += `  }\n\n`;
+  css += `  --radius: 0.5rem;\n`;
+  css += `}\n\n`;
   
   // Generate other themes as classes
   themes.forEach(([themeName, themeColors]) => {
     if (themeName === 'light') return; // Skip light as it's already in :root
     
-    css += `  .${themeName} {\n`;
+    css += `.${themeName} {\n`;
     Object.entries(themeColors).forEach(([key, value]) => {
       const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-      css += `    ${cssVar}: ${value};\n`;
+      css += `  ${cssVar}: ${value};\n`;
     });
-    css += `  }\n\n`;
+    css += `}\n\n`;
   });
-  
-  css += `}\n`;
   
   return css;
 }
