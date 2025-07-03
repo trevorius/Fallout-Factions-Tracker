@@ -89,12 +89,14 @@ const styles = StyleSheet.create({
   },
   crewDetails: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-between", 
     marginBottom: 20,
+    gap: 15,
   },
   crewDetailsColumn: {
-    flex: 1,
-    marginRight: 20,
+    padding: 10,
+    border: "1px solid #cccccc",
+    borderRadius: 5,
   },
   crewDetailsRow: {
     flexDirection: "row",
@@ -105,12 +107,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   powerSection: {
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f5f5f5",
     padding: 10,
-    marginBottom: 20,
+    border: "1px solid #cccccc",
+    borderRadius: 5,
   },
   powerTitle: {
     fontSize: 16,
@@ -190,9 +193,11 @@ export function CrewRosterPDF({ crew }: CrewRosterPDFProps) {
         {/* Title */}
         <Text style={styles.title}>{crew.name} - Crew Roster</Text>
 
-        {/* Crew Details */}
+        {/* Crew Details Row - Matching HTML: 30% + flex-grow + 50% */}
         <View style={styles.crewDetails}>
-          <View style={styles.crewDetailsColumn}>
+          {/* Crew Details Card - 30% */}
+          <View style={[styles.crewDetailsColumn, { flex: 0.3 }]}>
+            <Text style={styles.sectionTitle}>Crew Details</Text>
             <View style={styles.crewDetailsRow}>
               <Text style={styles.label}>Crew Name:</Text>
               <Text>{crew.name}</Text>
@@ -206,21 +211,32 @@ export function CrewRosterPDF({ crew }: CrewRosterPDFProps) {
               <Text>{crew.user?.name || "N/A"}</Text>
             </View>
           </View>
+
+          {/* Power Section - flex-grow */}
+          <View style={[styles.powerSection, { flex: 1, marginHorizontal: 20 }]}>
+            <Text style={styles.powerTitle}>POWER</Text>
+            <View style={{ flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
+              <View style={styles.powerItem}>
+                <Text style={styles.powerValue}>{crew.tier}</Text>
+                <Text style={styles.powerLabel}>Tier</Text>
+              </View>
+              <View style={styles.powerItem}>
+                <Text style={styles.powerValue}>{crew.reputation}</Text>
+                <Text style={styles.powerLabel}>Reputation</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Chems Card - 50% (Including even if "Coming soon...") */}
+          <View style={[styles.crewDetailsColumn, { flex: 0.5 }]}>
+            <Text style={styles.sectionTitle}>Chems</Text>
+            <Text style={[styles.tableCell, { fontStyle: "italic", color: "#666666" }]}>
+              Coming soon...
+            </Text>
+          </View>
         </View>
 
-        {/* Power Section */}
-        <View style={styles.powerSection}>
-          <View style={styles.powerItem}>
-            <Text style={styles.powerValue}>{crew.tier}</Text>
-            <Text style={styles.powerLabel}>Tier</Text>
-          </View>
-          <View style={styles.powerItem}>
-            <Text style={styles.powerValue}>{crew.reputation}</Text>
-            <Text style={styles.powerLabel}>Reputation</Text>
-          </View>
-        </View>
-
-        {/* Unit Roster Table */}
+        {/* Unit Roster Table - Exact HTML Structure */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Unit Roster</Text>
           
@@ -243,10 +259,11 @@ export function CrewRosterPDF({ crew }: CrewRosterPDFProps) {
               <Text style={[styles.tableCellHeader, styles.narrow]}>Rating</Text>
             </View>
 
-            {/* Table Body */}
+            {/* Table Body - Exact HTML rowSpan Logic */}
             {crew.units.map((unit) => 
               unit.weapons.map((weapon, weaponIndex) => (
                 <View key={`${unit.id}-${weapon.id}`} style={styles.tableRow}>
+                  {/* Unit data only appears on first weapon row (like HTML rowSpan) */}
                   {weaponIndex === 0 && (
                     <>
                       <View style={[styles.tableCell, styles.wide]}>
@@ -263,6 +280,7 @@ export function CrewRosterPDF({ crew }: CrewRosterPDFProps) {
                       <Text style={[styles.tableCell, styles.narrow]}>{unit.hp}</Text>
                     </>
                   )}
+                  {/* Empty cells for subsequent weapon rows (simulating rowSpan) */}
                   {weaponIndex > 0 && (
                     <>
                       <Text style={[styles.tableCell, styles.wide]}></Text>
@@ -277,6 +295,7 @@ export function CrewRosterPDF({ crew }: CrewRosterPDFProps) {
                     </>
                   )}
                   
+                  {/* Weapon data appears on every row */}
                   <Text style={[styles.tableCell, styles.wide]}>{weapon.name}</Text>
                   <Text style={[styles.tableCell, styles.wide]}>
                     {weapon.standardWeapon?.testValue} {weapon.standardWeapon?.testAttribute}
@@ -294,6 +313,7 @@ export function CrewRosterPDF({ crew }: CrewRosterPDFProps) {
                     )}
                   </Text>
                   
+                  {/* Rating only appears on first weapon row (like HTML rowSpan) */}
                   {weaponIndex === 0 && (
                     <Text style={[styles.tableCell, styles.narrow]}>{unit.rating}</Text>
                   )}
@@ -305,6 +325,35 @@ export function CrewRosterPDF({ crew }: CrewRosterPDFProps) {
             )}
           </View>
         </View>
+
+        {/* Future sections will automatically appear here as they're added to the HTML */}
+        {/* Perks & Injuries sections */}
+        {crew.units.some(unit => unit.perks.length > 0 || unit.injuries.length > 0) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Additional Unit Details</Text>
+            {crew.units.map((unit) => (
+              <View key={`details-${unit.id}`} style={{ marginBottom: 10 }}>
+                <Text style={styles.unitName}>{unit.name}</Text>
+                {unit.perks.length > 0 && (
+                  <View>
+                    <Text style={[styles.label, { fontSize: 9 }]}>Perks:</Text>
+                    <Text style={{ fontSize: 8 }}>
+                      {unit.perks.map(p => p.perk.name).join(", ")}
+                    </Text>
+                  </View>
+                )}
+                {unit.injuries.length > 0 && (
+                  <View>
+                    <Text style={[styles.label, { fontSize: 9 }]}>Injuries:</Text>
+                    <Text style={{ fontSize: 8 }}>
+                      {unit.injuries.map(i => i.injury.name).join(", ")}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
       </Page>
     </Document>
   );
