@@ -105,10 +105,12 @@ export async function GET(
     }
 
     // Generate PDF with theme support
-    const isDark = theme === 'dark';
+    const selectedTheme = (theme === 'light' || theme === 'dark' || theme === 'blue') 
+      ? theme 
+      : 'light';
     const pdfDocument = React.createElement(CrewRosterPDF, { 
       crew: crewData, 
-      isDark 
+      theme: selectedTheme 
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const buffer = await renderToBuffer(pdfDocument as any);

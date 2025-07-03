@@ -3,9 +3,79 @@
  * Automatically syncs between HTML (Tailwind) and PDF styling
  */
 
-// Theme configuration that matches your CSS custom properties
+// Theme configuration with three themes: Light, Dark, and Blue & Gold
 export const themeConfig = {
   light: {
+    // Original Light Theme
+    background: '0 0% 100%',
+    foreground: '0 0% 3.9%',
+    card: '0 0% 100%',
+    cardForeground: '0 0% 3.9%',
+    popover: '0 0% 100%',
+    popoverForeground: '0 0% 3.9%',
+    primary: '0 0% 9%',
+    primaryForeground: '0 0% 98%',
+    secondary: '0 0% 96.1%',
+    secondaryForeground: '0 0% 9%',
+    muted: '0 0% 96.1%',
+    mutedForeground: '0 0% 45.1%',
+    accent: '0 0% 96.1%',
+    accentForeground: '0 0% 9%',
+    destructive: '0 84.2% 60.2%',
+    destructiveForeground: '0 0% 98%',
+    border: '0 0% 89.8%',
+    input: '0 0% 89.8%',
+    ring: '0 0% 3.9%',
+    
+    // Sidebar colors
+    sidebarBackground: '0 0% 98%',
+    sidebarForeground: '240 5.3% 26.1%',
+    sidebarPrimary: '240 5.9% 10%',
+    sidebarBorder: '220 13% 91%',
+    
+    // Charts
+    chart1: '12 76% 61%',
+    chart2: '173 58% 39%',
+    chart3: '197 37% 24%',
+    chart4: '43 74% 66%',
+    chart5: '27 87% 67%',
+  },
+  dark: {
+    // Original Dark Theme
+    background: '0 0% 3.9%',
+    foreground: '0 0% 98%',
+    card: '0 0% 3.9%',
+    cardForeground: '0 0% 98%',
+    popover: '0 0% 3.9%',
+    popoverForeground: '0 0% 98%',
+    primary: '0 0% 98%',
+    primaryForeground: '0 0% 9%',
+    secondary: '0 0% 14.9%',
+    secondaryForeground: '0 0% 98%',
+    muted: '0 0% 14.9%',
+    mutedForeground: '0 0% 63.9%',
+    accent: '0 0% 14.9%',
+    accentForeground: '0 0% 98%',
+    destructive: '0 62.8% 30.6%',
+    destructiveForeground: '0 0% 98%',
+    border: '0 0% 14.9%',
+    input: '0 0% 14.9%',
+    ring: '0 0% 83.1%',
+    
+    // Sidebar colors
+    sidebarBackground: '240 5.9% 10%',
+    sidebarForeground: '240 4.8% 95.9%',
+    sidebarPrimary: '224.3 76.3% 48%',
+    sidebarBorder: '240 3.7% 15.9%',
+    
+    // Charts
+    chart1: '220 70% 50%',
+    chart2: '160 60% 45%',
+    chart3: '30 80% 55%',
+    chart4: '280 65% 60%',
+    chart5: '340 75% 55%',
+  },
+  blue: {
     // Game-like Blue & Gold Theme
     background: '220 85% 12%',      // Deep blue background
     foreground: '45 100% 70%',      // Gold text
@@ -39,41 +109,6 @@ export const themeConfig = {
     chart3: '220 70% 40%',    // Medium blue
     chart4: '50 90% 60%',     // Yellow-gold
     chart5: '240 60% 50%',    // Purple-blue
-  },
-  dark: {
-    // Dark Blue & Gold Theme (darker variant)
-    background: '220 90% 8%',       // Even darker blue
-    foreground: '45 100% 85%',      // Brighter gold text
-    card: '220 85% 10%',            // Dark blue cards
-    cardForeground: '45 100% 80%',  // Bright gold card text
-    popover: '220 85% 10%',         // Same as card
-    popoverForeground: '45 100% 80%',
-    primary: '45 100% 70%',         // Brighter gold primary
-    primaryForeground: '220 90% 8%', // Very dark blue text on gold
-    secondary: '220 70% 15%',       // Darker muted blue
-    secondaryForeground: '45 95% 85%', // Bright light gold
-    muted: '220 80% 12%',           // Dark muted blue
-    mutedForeground: '45 70% 70%',  // Muted bright gold
-    accent: '45 100% 75%',          // Very bright gold accent
-    accentForeground: '220 90% 8%', // Very dark blue on accent
-    destructive: '0 62.8% 30.6%',   // Keep red for destructive
-    destructiveForeground: '0 0% 98%',
-    border: '220 60% 20%',          // Lighter blue borders for dark mode
-    input: '220 70% 15%',           // Dark blue inputs
-    ring: '45 100% 80%',            // Bright gold focus ring
-    
-    // Sidebar colors
-    sidebarBackground: '240 5.9% 10%',
-    sidebarForeground: '240 4.8% 95.9%',
-    sidebarPrimary: '224.3 76.3% 48%',
-    sidebarBorder: '240 3.7% 15.9%',
-    
-    // Charts
-    chart1: '220 70% 50%',
-    chart2: '160 60% 45%',
-    chart3: '30 80% 55%',
-    chart4: '280 65% 60%',
-    chart5: '340 75% 55%',
   },
   
   // Typography
@@ -157,11 +192,11 @@ function hslToHex(hsl: string): string {
 
 /**
  * Get theme colors converted to hex for PDF use
- * @param isDark Whether to use dark theme
+ * @param theme Theme name: 'light', 'dark', or 'blue'
  * @returns Object with hex color values
  */
-export function getPdfTheme(isDark = false) {
-  const colorTheme = isDark ? themeConfig.dark : themeConfig.light;
+export function getPdfTheme(theme: 'light' | 'dark' | 'blue' = 'light') {
+  const colorTheme = themeConfig[theme];
   
   // Convert all HSL colors to hex
   const colors = Object.entries(colorTheme).reduce((acc, [key, hslValue]) => {
@@ -178,10 +213,9 @@ export function getPdfTheme(isDark = false) {
 }
 
 /**
- * Detect if user prefers dark mode (for PDF generation)
- * In a real implementation, you might pass this from the client
+ * Get default theme preference
  */
-export function getPreferredTheme(): 'light' | 'dark' {
+export function getPreferredTheme(): 'light' | 'dark' | 'blue' {
   // For server-side PDF generation, default to light
   // You can enhance this to accept theme preference as a parameter
   return 'light';
@@ -210,7 +244,13 @@ export function getLiveTheme() {
     return getPdfTheme();
   }
   
-  // Example of reading live theme values (could be enhanced)
-  const isDark = document.documentElement.classList.contains('dark');
-  return getPdfTheme(isDark);
+  // Detect theme from HTML classes
+  const htmlElement = document.documentElement;
+  if (htmlElement.classList.contains('dark')) {
+    return getPdfTheme('dark');
+  } else if (htmlElement.classList.contains('blue')) {
+    return getPdfTheme('blue');
+  } else {
+    return getPdfTheme('light');
+  }
 }

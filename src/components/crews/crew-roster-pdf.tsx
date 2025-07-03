@@ -66,8 +66,8 @@ function formatWithCount(items: string[]): string {
  * Generate PDF styles from theme configuration
  * This ensures the PDF automatically matches your app's theme
  */
-function createPdfStyles(isDark = false) {
-  const theme = getPdfTheme(isDark);
+function createPdfStyles(themeName: 'light' | 'dark' | 'blue' = 'light') {
+  const theme = getPdfTheme(themeName);
   
   return StyleSheet.create({
     page: {
@@ -207,12 +207,12 @@ function createPdfStyles(isDark = false) {
 
 interface CrewRosterPDFProps {
   crew: CrewForPDF;
-  isDark?: boolean; // Theme preference for PDF styling
+  theme?: 'light' | 'dark' | 'blue'; // Theme preference for PDF styling
 }
 
-export function CrewRosterPDF({ crew, isDark = false }: CrewRosterPDFProps) {
+export function CrewRosterPDF({ crew, theme = 'light' }: CrewRosterPDFProps) {
   // Generate styles from theme - this makes PDF automatically match your app theme
-  const styles = createPdfStyles(isDark);
+  const styles = createPdfStyles(theme);
   
   return (
     <Document>

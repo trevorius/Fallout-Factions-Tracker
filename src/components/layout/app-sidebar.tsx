@@ -44,6 +44,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import { ThemeToggle } from "../ui/theme-toggle";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -337,6 +338,11 @@ export function AppSidebar() {
           className="border-t p-4 group-data-[collapsible=icon]:p-2"
           data-testid="sidebar-footer"
         >
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex-1">
+              <ThemeToggle />
+            </div>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-3 px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center hover:cursor-pointer">
