@@ -185,8 +185,9 @@ function createPdfStyles(themeName: 'light' | 'dark' | 'blue' = 'light') {
     },
     unitName: {
       fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: theme.typography.fontSize.sm, // Increased from xs to sm for longer names
       color: theme.colors.foreground,
+      lineHeight: 1.2, // Better line spacing for longer names
     },
     unitClass: {
       fontSize: theme.typography.fontSize.xs - 1,
@@ -201,6 +202,9 @@ function createPdfStyles(themeName: 'light' | 'dark' | 'blue' = 'light') {
     },
     extraWide: {
       flex: 2,
+    },
+    unitNameColumn: {
+      flex: 2, // Larger width for unit names to accommodate longer names
     },
   });
 }
@@ -220,10 +224,10 @@ export function CrewRosterPDF({ crew, theme = 'light' }: CrewRosterPDFProps) {
         {/* Title */}
         <Text style={styles.title}>{crew.name} - Crew Roster</Text>
 
-        {/* Crew Details Row - Matching HTML: 30% + flex-grow + 50% */}
+        {/* Crew Details Row - Fixed proportions: 25% + 25% + 50% */}
         <View style={styles.crewDetails}>
-          {/* Crew Details Card - 30% */}
-          <View style={[styles.crewDetailsColumn, { flex: 0.3 }]}>
+          {/* Crew Details Card - 25% */}
+          <View style={[styles.crewDetailsColumn, { flex: 0.25 }]}>
             <Text style={styles.sectionTitle}>Crew Details</Text>
             <View style={styles.crewDetailsRow}>
               <Text style={styles.label}>Crew Name:</Text>
@@ -239,8 +243,8 @@ export function CrewRosterPDF({ crew, theme = 'light' }: CrewRosterPDFProps) {
             </View>
           </View>
 
-          {/* Power Section - flex-grow */}
-          <View style={[styles.powerSection, { flex: 1, marginHorizontal: 20 }]}>
+          {/* Power Section - 25% */}
+          <View style={[styles.powerSection, { flex: 0.25, marginHorizontal: 20 }]}>
             <Text style={styles.powerTitle}>POWER</Text>
             <View style={{ flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
               <View style={styles.powerItem}>
@@ -270,7 +274,7 @@ export function CrewRosterPDF({ crew, theme = 'light' }: CrewRosterPDFProps) {
           <View style={styles.table}>
             {/* Table Header */}
             <View style={styles.tableHeader}>
-              <Text style={[styles.tableCellHeader, styles.wide]}>Name (Class)</Text>
+              <Text style={[styles.tableCellHeader, styles.unitNameColumn]}>Name (Class)</Text>
               <Text style={[styles.tableCellHeader, styles.narrow]}>S</Text>
               <Text style={[styles.tableCellHeader, styles.narrow]}>P</Text>
               <Text style={[styles.tableCellHeader, styles.narrow]}>E</Text>
@@ -293,7 +297,7 @@ export function CrewRosterPDF({ crew, theme = 'light' }: CrewRosterPDFProps) {
                   {/* Unit data only appears on first weapon row (like HTML rowSpan) */}
                   {weaponIndex === 0 && (
                     <>
-                      <View style={[styles.tableCell, styles.wide]}>
+                      <View style={[styles.tableCell, styles.unitNameColumn]}>
                         <Text style={styles.unitName}>{unit.name}</Text>
                         <Text style={styles.unitClass}>({unit.unitClass.name})</Text>
                       </View>
@@ -310,7 +314,7 @@ export function CrewRosterPDF({ crew, theme = 'light' }: CrewRosterPDFProps) {
                   {/* Empty cells for subsequent weapon rows (simulating rowSpan) */}
                   {weaponIndex > 0 && (
                     <>
-                      <Text style={[styles.tableCell, styles.wide]}></Text>
+                      <Text style={[styles.tableCell, styles.unitNameColumn]}></Text>
                       <Text style={[styles.tableCell, styles.narrow]}></Text>
                       <Text style={[styles.tableCell, styles.narrow]}></Text>
                       <Text style={[styles.tableCell, styles.narrow]}></Text>
