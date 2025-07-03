@@ -13,6 +13,7 @@ export async function GET(
     const { crewId } = await params;
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get("organizationId");
+    const theme = searchParams.get("theme"); // 'light' or 'dark'
 
     if (!organizationId) {
       return NextResponse.json(
@@ -103,8 +104,12 @@ export async function GET(
       );
     }
 
-    // Generate PDF
-    const pdfDocument = React.createElement(CrewRosterPDF, { crew: crewData });
+    // Generate PDF with theme support
+    const isDark = theme === 'dark';
+    const pdfDocument = React.createElement(CrewRosterPDF, { 
+      crew: crewData, 
+      isDark 
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const buffer = await renderToBuffer(pdfDocument as any);
 

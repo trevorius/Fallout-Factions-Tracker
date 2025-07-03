@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import { Prisma } from "@prisma/client";
+import { getPdfTheme } from "@/lib/theme";
 
 type CrewForPDF = Prisma.CrewGetPayload<{
   include: {
@@ -61,132 +62,158 @@ function formatWithCount(items: string[]): string {
     .join(", ");
 }
 
-// PDF Styles
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    backgroundColor: "#ffffff",
-    padding: 30,
-    fontSize: 10,
-    fontFamily: "Helvetica",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#cccccc",
-    paddingBottom: 5,
-  },
-  crewDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between", 
-    marginBottom: 20,
-    gap: 15,
-  },
-  crewDetailsColumn: {
-    padding: 10,
-    border: "1px solid #cccccc",
-    borderRadius: 5,
-  },
-  crewDetailsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 5,
-  },
-  label: {
-    fontWeight: "bold",
-  },
-  powerSection: {
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    padding: 10,
-    border: "1px solid #cccccc",
-    borderRadius: 5,
-  },
-  powerTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  powerItem: {
-    textAlign: "center",
-    marginHorizontal: 20,
-  },
-  powerValue: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  powerLabel: {
-    fontSize: 8,
-    marginTop: 2,
-  },
-  table: {
-    width: "100%",
-    marginTop: 10,
-  },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#f0f0f0",
-    borderBottomWidth: 1,
-    borderBottomColor: "#cccccc",
-    paddingVertical: 5,
-  },
-  tableRow: {
-    flexDirection: "row",
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#eeeeee",
-    paddingVertical: 3,
-    minHeight: 20,
-  },
-  tableCell: {
-    flex: 1,
-    paddingHorizontal: 3,
-    paddingVertical: 2,
-    fontSize: 8,
-  },
-  tableCellHeader: {
-    flex: 1,
-    paddingHorizontal: 3,
-    paddingVertical: 2,
-    fontSize: 8,
-    fontWeight: "bold",
-  },
-  unitName: {
-    fontWeight: "bold",
-    fontSize: 8,
-  },
-  unitClass: {
-    fontSize: 7,
-    color: "#666666",
-  },
-  narrow: {
-    flex: 0.5,
-  },
-  wide: {
-    flex: 1.5,
-  },
-  extraWide: {
-    flex: 2,
-  },
-});
+/**
+ * Generate PDF styles from theme configuration
+ * This ensures the PDF automatically matches your app's theme
+ */
+function createPdfStyles(isDark = false) {
+  const theme = getPdfTheme(isDark);
+  
+  return StyleSheet.create({
+    page: {
+      flexDirection: "column",
+      backgroundColor: theme.colors.background,
+      color: theme.colors.foreground,
+      padding: theme.spacing.xl,
+      fontSize: theme.typography.fontSize.xs,
+      fontFamily: "Helvetica", // PDF-compatible font
+    },
+    title: {
+      fontSize: theme.typography.fontSize['2xl'],
+      fontWeight: theme.typography.fontWeight.bold,
+      marginBottom: theme.spacing.lg,
+      textAlign: "center",
+      color: theme.colors.foreground,
+    },
+    section: {
+      marginBottom: theme.spacing.lg,
+    },
+    sectionTitle: {
+      fontSize: theme.typography.fontSize.lg,
+      fontWeight: theme.typography.fontWeight.bold,
+      marginBottom: theme.spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+      paddingBottom: theme.spacing.xs,
+      color: theme.colors.foreground,
+    },
+    crewDetails: {
+      flexDirection: "row",
+      justifyContent: "space-between", 
+      marginBottom: theme.spacing.lg,
+      gap: theme.spacing.md,
+    },
+    crewDetailsColumn: {
+      padding: theme.spacing.sm,
+      border: `1px solid ${theme.colors.border}`,
+      borderRadius: theme.borderRadius.sm,
+      backgroundColor: theme.colors.card,
+    },
+    crewDetailsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: theme.spacing.xs,
+    },
+    label: {
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.mutedForeground,
+    },
+    powerSection: {
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.colors.muted,
+      padding: theme.spacing.sm,
+      border: `1px solid ${theme.colors.border}`,
+      borderRadius: theme.borderRadius.sm,
+    },
+    powerTitle: {
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: theme.typography.fontWeight.bold,
+      marginBottom: theme.spacing.xs,
+      color: theme.colors.foreground,
+    },
+    powerItem: {
+      textAlign: "center",
+      marginHorizontal: theme.spacing.lg,
+    },
+    powerValue: {
+      fontSize: theme.typography.fontSize.lg,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.foreground,
+    },
+    powerLabel: {
+      fontSize: theme.typography.fontSize.xs,
+      marginTop: 2,
+      color: theme.colors.mutedForeground,
+    },
+    table: {
+      width: "100%",
+      marginTop: theme.spacing.sm,
+      border: `1px solid ${theme.colors.border}`,
+      borderRadius: theme.borderRadius.sm,
+    },
+    tableHeader: {
+      flexDirection: "row",
+      backgroundColor: theme.colors.muted,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+      paddingVertical: theme.spacing.xs,
+    },
+    tableRow: {
+      flexDirection: "row",
+      borderBottomWidth: 0.5,
+      borderBottomColor: theme.colors.border,
+      paddingVertical: theme.spacing.xs / 2,
+      minHeight: 20,
+      backgroundColor: theme.colors.card,
+    },
+    tableCell: {
+      flex: 1,
+      paddingHorizontal: theme.spacing.xs / 2,
+      paddingVertical: 2,
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.cardForeground,
+    },
+    tableCellHeader: {
+      flex: 1,
+      paddingHorizontal: theme.spacing.xs / 2,
+      paddingVertical: 2,
+      fontSize: theme.typography.fontSize.xs,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.foreground,
+    },
+    unitName: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.foreground,
+    },
+    unitClass: {
+      fontSize: theme.typography.fontSize.xs - 1,
+      color: theme.colors.mutedForeground,
+    },
+    // Layout helpers
+    narrow: {
+      flex: 0.5,
+    },
+    wide: {
+      flex: 1.5,
+    },
+    extraWide: {
+      flex: 2,
+    },
+  });
+}
 
 interface CrewRosterPDFProps {
   crew: CrewForPDF;
+  isDark?: boolean; // Theme preference for PDF styling
 }
 
-export function CrewRosterPDF({ crew }: CrewRosterPDFProps) {
+export function CrewRosterPDF({ crew, isDark = false }: CrewRosterPDFProps) {
+  // Generate styles from theme - this makes PDF automatically match your app theme
+  const styles = createPdfStyles(isDark);
+  
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>

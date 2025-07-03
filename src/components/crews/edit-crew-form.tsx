@@ -470,8 +470,12 @@ export function EditCrewForm({
 
   const handleGeneratePDF = async () => {
     try {
+      // Detect current theme
+      const isDark = document.documentElement.classList.contains('dark');
+      const theme = isDark ? 'dark' : 'light';
+      
       const response = await fetch(
-        `/api/crews/${crew.id}/pdf?organizationId=${organizationId}`
+        `/api/crews/${crew.id}/pdf?organizationId=${organizationId}&theme=${theme}`
       );
       
       if (!response.ok) {
