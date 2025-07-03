@@ -30,7 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { Wrench, Trash2, UserCog } from "lucide-react";
+import { Wrench, Trash2, UserCog, FileDown } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 type CrewForEdit = Prisma.CrewGetPayload<{
@@ -468,11 +468,56 @@ export function EditCrewForm({
     formAction({ crewId: crew.id, organizationId, formData });
   };
 
+  const handleGeneratePDF = async () => {
+    try {
+      const response = await fetch(
+        `/api/crews/${crew.id}/pdf?organizationId=${organizationId}`
+      );
+      
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${crew.name.replace(/[^a-zA-Z0-9]/g, "_")}_roster.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "PDF generated successfully!",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <form action={actionWithIds} className="space-y-8">
       <CrewDetailsSection crew={crew} />
       <UnitRoster units={crew.units} organizationId={organizationId} />
-      <Button type="submit">Save Changes</Button>
+      <div className="flex gap-4">
+        <Button type="submit">Save Changes</Button>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleGeneratePDF}
+          className="flex items-center gap-2"
+        >
+          <FileDown className="h-4 w-4" />
+          Generate PDF
+        </Button>
+      </div>
     </form>
   );
 }
