@@ -63,7 +63,8 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch_name: preview-pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
-          database_name: fallout-factions-tracker
+          database: fallout-factions-tracker
+          prisma: true
 
       - name: Install Dependencies
         run: npm ci
@@ -73,7 +74,7 @@ jobs:
 
       - name: Wait for branch to be ready
         run: |
-          sleep 10  # Give the branch a moment to initialize
+          sleep 15  # Give the branch a moment to initialize
 
       - name: Run Database Migrations
         run: npx prisma migrate deploy
