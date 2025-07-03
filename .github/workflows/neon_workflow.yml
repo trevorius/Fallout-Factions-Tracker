@@ -47,16 +47,28 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      # Try to delete existing branch if it exists
+      - name: Delete existing branch if present
+        continue-on-error: true
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: preview-pr-${{ github.event.number }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v5
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch_name: preview-pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
       - name: Install Dependencies
         run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
 
       - name: Run Database Migrations
         run: npx prisma migrate deploy
@@ -67,7 +79,7 @@ jobs:
         uses: neondatabase/schema-diff-action@v1
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          compare_branch: preview-pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
       - name: Comment PR with Database URL
@@ -75,7 +87,7 @@ jobs:
         with:
           script: |
             const dbUrl = process.env.DB_URL;
-            const dbBranch = 'preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}';
+            const dbBranch = 'preview-pr-${{ github.event.number }}';
             
             github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -96,5 +108,5 @@ jobs:
         uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch: preview-pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
