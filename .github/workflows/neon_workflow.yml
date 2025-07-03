@@ -53,7 +53,7 @@ jobs:
         uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview-pr-${{ github.event.number }}
+          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
       - name: Wait after deletion
@@ -64,7 +64,7 @@ jobs:
         uses: neondatabase/create-branch-action@v5
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: preview-pr-${{ github.event.number }}
+          branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
           database: fallout-factions-tracker
 
@@ -92,7 +92,7 @@ jobs:
         uses: neondatabase/schema-diff-action@v1
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          compare_branch: preview-pr-${{ github.event.number }}
+          compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
       - name: Comment PR with Database URL
@@ -100,7 +100,7 @@ jobs:
         with:
           script: |
             const dbUrl = process.env.DB_URL;
-            const dbBranch = 'preview-pr-${{ github.event.number }}';
+            const dbBranch = 'preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}';
             
             github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -121,5 +121,5 @@ jobs:
         uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview-pr-${{ github.event.number }}
+          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
