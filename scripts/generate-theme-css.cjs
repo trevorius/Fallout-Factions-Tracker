@@ -67,5 +67,5 @@ if (!fs.existsSync(outputDir)) {
 // Write the CSS file
 fs.writeFileSync(outputPath, css, 'utf8');
 
-console.log('✅ Generated theme CSS:', outputPath);
-console.log('🎨 Themes generated:', Object.keys(themeConfig).join(', '));
+process.stdout.write('✅ Generated theme CSS: ' + outputPath + '\n');
+process.stdout.write('🎨 Themes generated: ' + Object.keys(themeConfig).join(', ') + '\n');

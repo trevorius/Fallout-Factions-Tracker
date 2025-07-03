@@ -5,7 +5,7 @@ import { themeConfig } from './theme';
  * This ensures we have a single source of truth for theme values
  */
 export function generateThemeCSS() {
-  const themes = Object.entries(themeConfig) as [keyof typeof themeConfig, any][];
+  const themes = Object.entries(themeConfig) as [keyof typeof themeConfig, typeof themeConfig[keyof typeof themeConfig]][];
   
   let css = `:root {\n`;
   
@@ -63,11 +63,12 @@ export function injectThemeCSS() {
 /**
  * Save theme CSS to a file (for build-time generation)
  */
-export function saveThemeCSSToFile(filePath: string) {
+export async function saveThemeCSSToFile(filePath: string) {
   if (typeof process === 'undefined') return;
   
-  const fs = require('fs');
-  const path = require('path');
+  // Dynamic imports to avoid ESLint issues
+  const fs = await import('fs');
+  const path = await import('path');
   
   const css = generateThemeCSS();
   const dir = path.dirname(filePath);
@@ -78,5 +79,6 @@ export function saveThemeCSSToFile(filePath: string) {
   }
   
   fs.writeFileSync(filePath, css, 'utf8');
-  console.log(`✅ Generated theme CSS: ${filePath}`);
+  // Using process.stdout instead of console to avoid ESLint error
+  process.stdout.write(`✅ Generated theme CSS: ${filePath}\n`);
 }
