@@ -1,9 +1,9 @@
+/* Import generated themes - MUST be first */
+@import '../styles/generated-theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import generated themes - must be at the top */
-@import '../styles/generated-theme.css';
 
 html,
 body {
