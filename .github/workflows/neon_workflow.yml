@@ -74,15 +74,19 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      - name: Install Neon CLI
+        run: npm install -g neonctl@latest
+
       - name: Wait for branch to be ready
         run: |
           echo "Waiting for branch to be ready..."
           for i in {1..30}; do
-            if curl -s "${{ steps.create_neon_branch.outputs.db_url_with_pooler }}" >/dev/null 2>&1; then
+            status=$(neonctl branches get preview-pr-${{ github.event.number }} --project-id ${{ vars.NEON_PROJECT_ID }} --api-key ${{ secrets.NEON_API_KEY }} | jq -r '.current_state')
+            if [ "$status" = "ready" ]; then
               echo "Branch is ready!"
               exit 0
             fi
-            echo "Attempt $i: Branch not ready yet, waiting..."
+            echo "Attempt $i: Branch status is $status, waiting..."
             sleep 5
           done
           echo "Branch did not become ready in time"
