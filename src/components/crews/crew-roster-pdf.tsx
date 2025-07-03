@@ -290,70 +290,83 @@ export function CrewRosterPDF({ crew, theme = 'light' }: CrewRosterPDFProps) {
               <Text style={[styles.tableCellHeader, styles.narrow]}>Rating</Text>
             </View>
 
-            {/* Table Body - Exact HTML rowSpan Logic */}
-            {crew.units.map((unit) => 
-              unit.weapons.map((weapon, weaponIndex) => (
-                <View key={`${unit.id}-${weapon.id}`} style={styles.tableRow}>
-                  {/* Unit data only appears on first weapon row (like HTML rowSpan) */}
-                  {weaponIndex === 0 && (
-                    <>
-                      <View style={[styles.tableCell, styles.unitNameColumn]}>
-                        <Text style={styles.unitName}>{unit.name}</Text>
-                        <Text style={styles.unitClass}>({unit.unitClass.name})</Text>
-                      </View>
-                      <Text style={[styles.tableCell, styles.narrow]}>{unit.s}</Text>
-                      <Text style={[styles.tableCell, styles.narrow]}>{unit.p}</Text>
-                      <Text style={[styles.tableCell, styles.narrow]}>{unit.e}</Text>
-                      <Text style={[styles.tableCell, styles.narrow]}>{unit.c}</Text>
-                      <Text style={[styles.tableCell, styles.narrow]}>{unit.i}</Text>
-                      <Text style={[styles.tableCell, styles.narrow]}>{unit.a}</Text>
-                      <Text style={[styles.tableCell, styles.narrow]}>{unit.l}</Text>
-                      <Text style={[styles.tableCell, styles.narrow]}>{unit.hp}</Text>
-                    </>
-                  )}
-                  {/* Empty cells for subsequent weapon rows (simulating rowSpan) */}
-                  {weaponIndex > 0 && (
-                    <>
-                      <Text style={[styles.tableCell, styles.unitNameColumn]}></Text>
-                      <Text style={[styles.tableCell, styles.narrow]}></Text>
-                      <Text style={[styles.tableCell, styles.narrow]}></Text>
-                      <Text style={[styles.tableCell, styles.narrow]}></Text>
-                      <Text style={[styles.tableCell, styles.narrow]}></Text>
-                      <Text style={[styles.tableCell, styles.narrow]}></Text>
-                      <Text style={[styles.tableCell, styles.narrow]}></Text>
-                      <Text style={[styles.tableCell, styles.narrow]}></Text>
-                      <Text style={[styles.tableCell, styles.narrow]}></Text>
-                    </>
-                  )}
+            {/* Table Body - Create rows unit by unit with proper weapon splitting */}
+            {(() => {
+              const tableRows: React.ReactElement[] = [];
+              
+              crew.units.forEach((unit) => {
+                // Ensure unit has at least one weapon, or create a row with empty weapon data
+                const weapons = unit.weapons.length > 0 ? unit.weapons : [null];
+                
+                weapons.forEach((weapon, weaponIndex) => {
+                  const isFirstWeaponOfUnit = weaponIndex === 0;
                   
-                  {/* Weapon data appears on every row */}
-                  <Text style={[styles.tableCell, styles.wide]}>{weapon.name}</Text>
-                  <Text style={[styles.tableCell, styles.wide]}>
-                    {weapon.standardWeapon?.testValue} {weapon.standardWeapon?.testAttribute}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.extraWide]}>
-                    {formatWithCount(
-                      weapon.standardWeapon?.traits.map((t) => t.trait.name) || []
-                    )}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.wide]}>
-                    {formatWithCount(
-                      weapon.standardWeapon?.criticalEffects.map(
-                        (c) => c.criticalEffect.name
-                      ) || []
-                    )}
-                  </Text>
-                  
-                  {/* Rating only appears on first weapon row (like HTML rowSpan) */}
-                  {weaponIndex === 0 && (
-                    <Text style={[styles.tableCell, styles.narrow]}>{unit.rating}</Text>
-                  )}
-                  {weaponIndex > 0 && (
-                    <Text style={[styles.tableCell, styles.narrow]}></Text>
-                  )}
-                </View>
-              ))
-            )}
+                  tableRows.push(
+                    <View key={`${unit.id}-weapon-${weaponIndex}`} style={styles.tableRow}>
+                      {/* Unit data - only show on first weapon row of this unit */}
+                      {isFirstWeaponOfUnit ? (
+                        <>
+                          <View style={[styles.tableCell, styles.unitNameColumn]}>
+                            <Text style={styles.unitName}>{unit.name}</Text>
+                            <Text style={styles.unitClass}>({unit.unitClass.name})</Text>
+                          </View>
+                          <Text style={[styles.tableCell, styles.narrow]}>{unit.s}</Text>
+                          <Text style={[styles.tableCell, styles.narrow]}>{unit.p}</Text>
+                          <Text style={[styles.tableCell, styles.narrow]}>{unit.e}</Text>
+                          <Text style={[styles.tableCell, styles.narrow]}>{unit.c}</Text>
+                          <Text style={[styles.tableCell, styles.narrow]}>{unit.i}</Text>
+                          <Text style={[styles.tableCell, styles.narrow]}>{unit.a}</Text>
+                          <Text style={[styles.tableCell, styles.narrow]}>{unit.l}</Text>
+                          <Text style={[styles.tableCell, styles.narrow]}>{unit.hp}</Text>
+                        </>
+                      ) : (
+                        <>
+                          {/* Empty cells for subsequent weapon rows of this unit */}
+                          <Text style={[styles.tableCell, styles.unitNameColumn]}></Text>
+                          <Text style={[styles.tableCell, styles.narrow]}></Text>
+                          <Text style={[styles.tableCell, styles.narrow]}></Text>
+                          <Text style={[styles.tableCell, styles.narrow]}></Text>
+                          <Text style={[styles.tableCell, styles.narrow]}></Text>
+                          <Text style={[styles.tableCell, styles.narrow]}></Text>
+                          <Text style={[styles.tableCell, styles.narrow]}></Text>
+                          <Text style={[styles.tableCell, styles.narrow]}></Text>
+                          <Text style={[styles.tableCell, styles.narrow]}></Text>
+                        </>
+                      )}
+                      
+                      {/* Weapon data - appears on every row */}
+                      <Text style={[styles.tableCell, styles.wide]}>
+                        {weapon?.name || "No weapon"}
+                      </Text>
+                      <Text style={[styles.tableCell, styles.wide]}>
+                        {weapon?.standardWeapon?.testValue} {weapon?.standardWeapon?.testAttribute}
+                      </Text>
+                      <Text style={[styles.tableCell, styles.extraWide]}>
+                        {weapon ? formatWithCount(
+                          weapon.standardWeapon?.traits.map((t) => t.trait.name) || []
+                        ) : ""}
+                      </Text>
+                      <Text style={[styles.tableCell, styles.wide]}>
+                        {weapon ? formatWithCount(
+                          weapon.standardWeapon?.criticalEffects.map(
+                            (c) => c.criticalEffect.name
+                          ) || []
+                        ) : ""}
+                      </Text>
+                      
+                      {/* Rating - only show on first weapon row of this unit */}
+                      {isFirstWeaponOfUnit ? (
+                        <Text style={[styles.tableCell, styles.narrow]}>{unit.rating}</Text>
+                      ) : (
+                        <Text style={[styles.tableCell, styles.narrow]}></Text>
+                      )}
+                    </View>
+                  );
+                });
+              });
+              
+              return tableRows;
+            })()}
           </View>
         </View>
 
