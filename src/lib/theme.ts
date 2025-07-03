@@ -31,7 +31,11 @@ export const themeConfig = {
     sidebarBackground: '0 0% 98%',
     sidebarForeground: '240 5.3% 26.1%',
     sidebarPrimary: '240 5.9% 10%',
+    sidebarPrimaryForeground: '0 0% 98%',
+    sidebarAccent: '240 4.8% 95.9%',
+    sidebarAccentForeground: '240 5.9% 10%',
     sidebarBorder: '220 13% 91%',
+    sidebarRing: '217.2 91.2% 59.8%',
     
     // Charts
     chart1: '12 76% 61%',
@@ -66,7 +70,11 @@ export const themeConfig = {
     sidebarBackground: '240 5.9% 10%',
     sidebarForeground: '240 4.8% 95.9%',
     sidebarPrimary: '224.3 76.3% 48%',
+    sidebarPrimaryForeground: '0 0% 100%',
+    sidebarAccent: '240 3.7% 15.9%',
+    sidebarAccentForeground: '240 4.8% 95.9%',
     sidebarBorder: '240 3.7% 15.9%',
+    sidebarRing: '217.2 91.2% 59.8%',
     
     // Charts
     chart1: '220 70% 50%',
@@ -101,7 +109,11 @@ export const themeConfig = {
     sidebarBackground: '220 75% 10%',   // Dark blue sidebar
     sidebarForeground: '45 100% 75%',   // Gold sidebar text
     sidebarPrimary: '45 100% 65%',      // Gold primary
+    sidebarPrimaryForeground: '220 85% 12%', // Dark blue text on gold
+    sidebarAccent: '220 60% 18%',       // Blue accent
+    sidebarAccentForeground: '45 100% 75%', // Gold accent text
     sidebarBorder: '220 50% 20%',       // Blue border
+    sidebarRing: '45 100% 70%',         // Gold focus ring
     
     // Charts - Blue & Gold variations
     chart1: '45 100% 65%',    // Gold

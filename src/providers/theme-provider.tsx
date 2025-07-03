@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { injectThemeCSS } from "@/lib/generate-theme-css";
 
 type Theme = 'light' | 'dark' | 'blue';
 
@@ -15,6 +16,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
+    // Inject the generated theme CSS on mount
+    injectThemeCSS();
+    
     // Check for saved theme preference or default to 'light'
     const savedTheme = localStorage.getItem('theme') as Theme;
     if (savedTheme && ['light', 'dark', 'blue'].includes(savedTheme)) {
