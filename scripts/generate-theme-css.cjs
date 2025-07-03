@@ -27,8 +27,8 @@ function generateThemeCSS() {
   
   let css = `:root {\n`;
   
-  // Generate light theme as default (root)
-  const lightTheme = themeConfig.light;
+  // Generate light theme as default (root) 
+  const lightTheme = themeConfig['light'];
   Object.entries(lightTheme).forEach(([key, value]) => {
     // Only include string values (skip objects like typography, spacing)
     if (typeof value === 'string') {

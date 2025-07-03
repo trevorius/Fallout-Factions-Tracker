@@ -3,9 +3,11 @@
  * Automatically syncs between HTML (Tailwind) and PDF styling
  */
 
+import { ThemeName, Theme } from "@/lib/types/theme";
+
 // Theme configuration with three themes: Light, Dark, and Blue & Gold
 export const themeConfig = {
-  light: {
+  [Theme.LIGHT]: {
     // Original Light Theme
     background: '0 0% 100%',
     foreground: '0 0% 3.9%',
@@ -44,7 +46,7 @@ export const themeConfig = {
     'chart-4': '43 74% 66%',
     'chart-5': '27 87% 67%',
   },
-  dark: {
+  [Theme.DARK]: {
     // Original Dark Theme
     background: '0 0% 3.9%',
     foreground: '0 0% 98%',
@@ -83,7 +85,7 @@ export const themeConfig = {
     'chart-4': '280 65% 60%',
     'chart-5': '340 75% 55%',
   },
-  blue: {
+  [Theme.BLUE]: {
     // Game-like Blue & Gold Theme
     background: '220 85% 12%',      // Deep blue background
     foreground: '45 100% 70%',      // Gold text
@@ -207,7 +209,7 @@ function hslToHex(hsl: string): string {
  * @param theme Theme name: 'light', 'dark', or 'blue'
  * @returns Object with hex color values
  */
-export function getPdfTheme(theme: 'light' | 'dark' | 'blue' = 'light') {
+export function getPdfTheme(theme: ThemeName) {
   const colorTheme = themeConfig[theme];
   
   // Convert all HSL colors to hex (only process string values)
@@ -229,10 +231,10 @@ export function getPdfTheme(theme: 'light' | 'dark' | 'blue' = 'light') {
 /**
  * Get default theme preference
  */
-export function getPreferredTheme(): 'light' | 'dark' | 'blue' {
+export function getPreferredTheme(): ThemeName {
   // For server-side PDF generation, default to light
   // You can enhance this to accept theme preference as a parameter
-  return 'light';
+  return Theme.LIGHT;
 }
 
 /**
@@ -255,16 +257,16 @@ export function getCSSCustomProperty(property: string): string {
  */
 export function getLiveTheme() {
   if (typeof window === 'undefined') {
-    return getPdfTheme();
+    return getPdfTheme(Theme.LIGHT);
   }
   
   // Detect theme from HTML classes
   const htmlElement = document.documentElement;
-  if (htmlElement.classList.contains('dark')) {
-    return getPdfTheme('dark');
-  } else if (htmlElement.classList.contains('blue')) {
-    return getPdfTheme('blue');
+  if (htmlElement.classList.contains(Theme.DARK)) {
+    return getPdfTheme(Theme.DARK);
+  } else if (htmlElement.classList.contains(Theme.BLUE)) {
+    return getPdfTheme(Theme.BLUE);
   } else {
-    return getPdfTheme('light');
+    return getPdfTheme(Theme.LIGHT);
   }
 }

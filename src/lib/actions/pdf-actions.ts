@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { CrewRosterPDF } from "@/components/crews/crew-roster-pdf";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
-import { Theme, ThemeName, getValidTheme } from "@/lib/types/theme";
+import { ThemeName, getValidTheme } from "@/lib/types/theme";
 
 type PDFGenerationResult = {
   success: true;
@@ -117,21 +117,3 @@ export async function generateCrewRosterPDF(
   }
 }
 
-/**
- * Get current theme from client-side detection
- * This is a helper for when theme needs to be detected on the client
- */
-export function detectThemeFromDOM(): ThemeName {
-  if (typeof window === 'undefined') {
-    return Theme.LIGHT;
-  }
-  
-  const htmlElement = document.documentElement;
-  if (htmlElement.classList.contains(Theme.DARK)) {
-    return Theme.DARK;
-  } else if (htmlElement.classList.contains(Theme.BLUE)) {
-    return Theme.BLUE;
-  } else {
-    return Theme.LIGHT;
-  }
-}

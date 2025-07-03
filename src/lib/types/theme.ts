@@ -35,3 +35,22 @@ export function isValidTheme(theme: string): theme is ThemeName {
 export function getValidTheme(theme: string | null | undefined): ThemeName {
   return theme && isValidTheme(theme) ? theme : Theme.LIGHT;
 }
+
+/**
+ * Get current theme from client-side DOM detection
+ * This is a helper for when theme needs to be detected on the client
+ */
+export function detectThemeFromDOM(): ThemeName {
+  if (typeof window === 'undefined') {
+    return Theme.LIGHT;
+  }
+  
+  const htmlElement = document.documentElement;
+  if (htmlElement.classList.contains(Theme.DARK)) {
+    return Theme.DARK;
+  } else if (htmlElement.classList.contains(Theme.BLUE)) {
+    return Theme.BLUE;
+  } else {
+    return Theme.LIGHT;
+  }
+}

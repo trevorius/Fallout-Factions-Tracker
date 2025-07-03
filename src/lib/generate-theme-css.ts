@@ -1,4 +1,5 @@
 import { themeConfig } from './theme';
+import { Theme } from './types/theme';
 
 /**
  * Generate CSS custom properties from theme configuration
@@ -10,7 +11,7 @@ export function generateThemeCSS() {
   let css = `:root {\n`;
   
   // Generate light theme as default (root)
-  const lightTheme = themeConfig.light;
+  const lightTheme = themeConfig[Theme.LIGHT];
   Object.entries(lightTheme).forEach(([key, value]) => {
     // Only include string values (skip objects like typography, spacing)
     if (typeof value === 'string') {
@@ -24,7 +25,7 @@ export function generateThemeCSS() {
   
   // Generate other themes as classes
   themes.forEach(([themeName, themeColors]) => {
-    if (themeName === 'light') return; // Skip light as it's already in :root
+    if (themeName === Theme.LIGHT) return; // Skip light as it's already in :root
     
     css += `.${themeName} {\n`;
     Object.entries(themeColors).forEach(([key, value]) => {

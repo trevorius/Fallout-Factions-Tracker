@@ -32,8 +32,7 @@ import {
 } from "../ui/table";
 import { Wrench, Trash2, UserCog, FileDown } from "lucide-react";
 import { Separator } from "../ui/separator";
-import { Theme } from "@/lib/types/theme";
-import { detectThemeFromDOM } from "@/lib/actions/pdf-actions";
+import { Theme, detectThemeFromDOM } from "@/lib/types/theme";
 
 type CrewForEdit = Prisma.CrewGetPayload<{
   include: {
