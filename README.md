@@ -26,6 +26,11 @@ You can start editing the page by modifying `app/page.js`. The page auto-updates
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Documentation
+
+### [📚 Complete Documentation Index](./docs/README.md)
+**Start here!** Comprehensive index of all documentation with quick reference guides and essential commands.
+
 ## Project Architecture
 
 This project's architecture and data models are documented to ensure clarity and consistency.
@@ -33,6 +38,18 @@ This project's architecture and data models are documented to ensure clarity and
 - **[Database Schema](./docs/schema.md)**: View the detailed database schema, including an entity-relationship diagram and model explanations.
 - **[Super Admin Documentation](./docs/superadmin/README.md)**: Find guides for managing global game assets like factions, weapons, and unit templates.
 - **[Organization Template Management](./docs/organization-template-management.md)**: Learn how admins can manage game assets for their organization.
+
+## Advanced Features
+
+### Theming System
+This project includes a sophisticated multi-theme system with automatic synchronization between web interface and PDF exports.
+
+- **[Theming Documentation](./docs/theming.md)**: Complete guide to the theming system including how to update theme variables, add new themes, and maintain the single source of truth architecture.
+
+### PDF Generation
+The application features automatic PDF generation for crew rosters that mirrors the desktop layout and updates automatically as new features are added.
+
+- **[PDF Generation Documentation](./docs/pdf-generation.md)**: Comprehensive guide covering PDF system architecture, usage, technical implementation, troubleshooting, and how to extend the system with new features.
 
 ## Learn More
 
