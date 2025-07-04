@@ -104,13 +104,3 @@
   --chart-5: 240 60% 50%;
 }
 
-.typography {
-  --font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
-}
-
-.spacing {
-}
-
-.borderRadius {
-}
-

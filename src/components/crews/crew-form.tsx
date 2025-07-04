@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Button } from "../ui/button";
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { createCrew, getUnitTemplatesForFaction } from "@/lib/actions/crews";
 import { useEffect, useState, useTransition } from "react";
 import {
@@ -95,7 +95,7 @@ const groupAndSortTemplates = (
 };
 
 export function CrewForm({ factions, organizationId }: CrewFormProps) {
-  const [state, formAction] = useFormState(createCrew, initialState);
+  const [state, formAction] = useActionState(createCrew, initialState);
   const [selectedFaction, setSelectedFaction] = useState<string | null>(null);
   const [groupedUnitTemplates, setGroupedUnitTemplates] = useState<
     UnitTemplateGroup[]

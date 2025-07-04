@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-} from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { Prisma } from "@prisma/client";
 import { getPdfTheme } from "@/lib/theme";
 import { Theme, ThemeName } from "@/lib/types/theme";
@@ -52,7 +46,7 @@ type CrewForPDF = Prisma.CrewGetPayload<{
 // Helper function to format arrays with counts
 function formatWithCount(items: string[]): string {
   if (!items || items.length === 0) return "";
-  
+
   const counts = items.reduce((acc, item) => {
     acc[item] = (acc[item] || 0) + 1;
     return acc;
@@ -69,51 +63,55 @@ function formatWithCount(items: string[]): string {
  */
 function createPdfStyles(themeName: ThemeName) {
   const theme = getPdfTheme(themeName);
-  
+  const baseFontSize = 9; // Base font size for all calculations (like rem)
+
+  // --- Relative Sizing ---
+  const rem = (multiplier: number) => baseFontSize * multiplier;
+
   return StyleSheet.create({
     page: {
       flexDirection: "column",
       backgroundColor: theme.colors.background,
       color: theme.colors.foreground,
-      padding: theme.spacing.xl,
-      fontSize: theme.typography.fontSize.xs,
+      padding: rem(2.2),
+      fontSize: baseFontSize,
       fontFamily: "Helvetica", // PDF-compatible font
     },
     title: {
-      fontSize: theme.typography.fontSize['2xl'],
+      fontSize: rem(2.6),
       fontWeight: theme.typography.fontWeight.bold,
-      marginBottom: theme.spacing.lg,
+      marginBottom: rem(1.8),
       textAlign: "center",
       color: theme.colors.foreground,
     },
     section: {
-      marginBottom: theme.spacing.lg,
+      marginBottom: rem(1.8),
     },
     sectionTitle: {
-      fontSize: theme.typography.fontSize.lg,
+      fontSize: rem(2),
       fontWeight: theme.typography.fontWeight.bold,
-      marginBottom: theme.spacing.sm,
+      marginBottom: rem(0.9),
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
-      paddingBottom: theme.spacing.xs,
+      paddingBottom: rem(0.4),
       color: theme.colors.foreground,
     },
     crewDetails: {
       flexDirection: "row",
-      justifyContent: "space-between", 
-      marginBottom: theme.spacing.lg,
-      gap: theme.spacing.md,
+      justifyContent: "space-between",
+      marginBottom: rem(1.8),
+      gap: rem(1.3),
     },
     crewDetailsColumn: {
-      padding: theme.spacing.sm,
+      padding: rem(0.9),
       border: `1px solid ${theme.colors.border}`,
-      borderRadius: theme.borderRadius.sm,
+      borderRadius: rem(0.5),
       backgroundColor: theme.colors.card,
     },
     crewDetailsRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginBottom: theme.spacing.xs,
+      marginBottom: rem(0.4),
     },
     label: {
       fontWeight: theme.typography.fontWeight.bold,
@@ -124,75 +122,42 @@ function createPdfStyles(themeName: ThemeName) {
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: theme.colors.muted,
-      padding: theme.spacing.sm,
+      padding: rem(0.9),
       border: `1px solid ${theme.colors.border}`,
-      borderRadius: theme.borderRadius.sm,
+      borderRadius: rem(0.5),
     },
     powerTitle: {
-      fontSize: theme.typography.fontSize.xl,
+      fontSize: rem(2.2),
       fontWeight: theme.typography.fontWeight.bold,
-      marginBottom: theme.spacing.xs,
+      marginBottom: rem(0.4),
       color: theme.colors.foreground,
     },
     powerItem: {
       textAlign: "center",
-      marginHorizontal: theme.spacing.lg,
+      marginHorizontal: rem(1.8),
     },
     powerValue: {
-      fontSize: theme.typography.fontSize.lg,
+      fontSize: rem(2),
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.foreground,
     },
     powerLabel: {
-      fontSize: theme.typography.fontSize.xs,
-      marginTop: 2,
+      fontSize: baseFontSize,
+      marginTop: rem(0.2),
       color: theme.colors.mutedForeground,
-    },
-    table: {
-      width: "100%",
-      marginTop: theme.spacing.sm,
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: theme.borderRadius.sm,
-    },
-    tableHeader: {
-      flexDirection: "row",
-      backgroundColor: theme.colors.muted,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-      paddingVertical: theme.spacing.xs,
-    },
-    tableRow: {
-      flexDirection: "row",
-      borderBottomWidth: 0.5,
-      borderBottomColor: theme.colors.border,
-      paddingVertical: theme.spacing.xs / 2,
-      minHeight: 20,
-      backgroundColor: theme.colors.card,
-    },
-    tableCell: {
-      flex: 1,
-      paddingHorizontal: theme.spacing.xs / 2,
-      paddingVertical: 2,
-      fontSize: theme.typography.fontSize.xs,
-      color: theme.colors.cardForeground,
-    },
-    tableCellHeader: {
-      flex: 1,
-      paddingHorizontal: theme.spacing.xs / 2,
-      paddingVertical: 2,
-      fontSize: theme.typography.fontSize.xs,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.foreground,
     },
     unitName: {
       fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.fontSize.sm, // Increased from xs to sm for longer names
+      fontSize: rem(1.5),
       color: theme.colors.foreground,
-      lineHeight: 1.2, // Better line spacing for longer names
+      lineHeight: 1.2,
+      textAlign: "center",
     },
     unitClass: {
-      fontSize: theme.typography.fontSize.xs - 1,
+      fontSize: baseFontSize * 0.9,
       color: theme.colors.mutedForeground,
+      textAlign: "center",
+      marginBottom: rem(0.4),
     },
     // Layout helpers
     narrow: {
@@ -207,6 +172,125 @@ function createPdfStyles(themeName: ThemeName) {
     unitNameColumn: {
       flex: 2, // Larger width for unit names to accommodate longer names
     },
+    // NEW Roster Styles
+    unitRosterContainer: {
+      border: `1px solid ${theme.colors.border}`,
+      borderRadius: rem(0.5),
+      marginTop: rem(0.9),
+    },
+    rosterHeader: {
+      flexDirection: "row",
+      backgroundColor: theme.colors.muted,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+      padding: rem(0.4),
+    },
+    rosterHeaderCell: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: rem(1.3),
+      textAlign: "center",
+      color: theme.colors.foreground,
+    },
+    unitRow: {
+      flexDirection: "row",
+      borderBottomWidth: 0.5,
+      borderBottomColor: theme.colors.border,
+      paddingVertical: rem(0.9),
+      backgroundColor: theme.colors.card,
+    },
+    healthTrackerSection: {
+      flex: 0.5,
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: rem(0.2),
+    },
+    healthCheckbox: {
+      width: rem(1.3),
+      height: rem(1.3),
+      border: `0.5px solid ${theme.colors.mutedForeground}`,
+      marginBottom: rem(0.2),
+    },
+    unitSection: {
+      paddingHorizontal: rem(0.9),
+      flexDirection: "column",
+    },
+    unitStatsSection: {
+      flex: 3.5,
+      justifyContent: "center", // Vertical centering
+      alignItems: "center",
+      borderLeftWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    unitWeaponsSection: {
+      flex: 5,
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    unitHistorySection: {
+      flex: 1.5,
+    },
+    specialRow: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+      width: "100%",
+      marginVertical: rem(0.4),
+    },
+    specialItem: {
+      alignItems: "center",
+    },
+    specialValue: {
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    hpValue: {
+      marginTop: rem(0.4),
+      fontSize: rem(1),
+    },
+    weaponItem: {
+      marginBottom: rem(0.9),
+      paddingBottom: rem(0.9),
+      borderBottomWidth: 0.5,
+      borderBottomColor: theme.colors.muted,
+    },
+    weaponName: {
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.foreground,
+      fontSize: rem(0.8),
+    },
+    detailRow: {
+      flexDirection: "row",
+      marginTop: rem(0.2),
+    },
+    detailLabel: {
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.mutedForeground,
+      width: "20%",
+      fontSize: rem(0.8),
+    },
+    detailValue: {
+      flex: 1,
+      color: theme.colors.cardForeground,
+    },
+    weaponDetailValue: {
+      fontSize: rem(0.8),
+    },
+    traitText: {
+      fontStyle: "italic",
+    },
+    criticalEffectText: {
+      fontStyle: "italic",
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    historyItem: {
+      marginBottom: rem(0.4),
+    },
+    historyLabel: {
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.mutedForeground,
+      marginBottom: rem(0.2),
+    },
   });
 }
 
@@ -215,10 +299,16 @@ interface CrewRosterPDFProps {
   theme?: ThemeName; // Theme preference for PDF styling
 }
 
-export function CrewRosterPDF({ crew, theme = Theme.LIGHT }: CrewRosterPDFProps) {
+const baseFontSize = 9; // Base font size for all calculations (like rem)
+const rem = (multiplier: number) => baseFontSize * multiplier;
+
+export function CrewRosterPDF({
+  crew,
+  theme = Theme.LIGHT,
+}: CrewRosterPDFProps) {
   // Generate styles from theme - this makes PDF automatically match your app theme
   const styles = createPdfStyles(theme);
-  
+
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
@@ -245,9 +335,20 @@ export function CrewRosterPDF({ crew, theme = Theme.LIGHT }: CrewRosterPDFProps)
           </View>
 
           {/* Power Section - 25% */}
-          <View style={[styles.powerSection, { flex: 0.25, marginHorizontal: 20 }]}>
+          <View
+            style={[
+              styles.powerSection,
+              { flex: 0.25, marginHorizontal: rem(2.2) },
+            ]}
+          >
             <Text style={styles.powerTitle}>POWER</Text>
-            <View style={{ flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-around",
+                alignItems: "center",
+              }}
+            >
               <View style={styles.powerItem}>
                 <Text style={styles.powerValue}>{crew.tier}</Text>
                 <Text style={styles.powerLabel}>Tier</Text>
@@ -262,143 +363,188 @@ export function CrewRosterPDF({ crew, theme = Theme.LIGHT }: CrewRosterPDFProps)
           {/* Chems Card - 50% (Including even if "Coming soon...") */}
           <View style={[styles.crewDetailsColumn, { flex: 0.5 }]}>
             <Text style={styles.sectionTitle}>Chems</Text>
-            <Text style={[styles.tableCell, { fontStyle: "italic", color: "#666666" }]}>
+            <Text
+              style={[
+                {
+                  fontSize: baseFontSize,
+                  fontStyle: "italic",
+                  color: "#666666",
+                },
+              ]}
+            >
               Coming soon...
             </Text>
           </View>
         </View>
 
-        {/* Unit Roster Table - Exact HTML Structure */}
+        {/* Unit Roster Table - NEW 3-COLUMN STRUCTURE */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Unit Roster</Text>
-          
-          <View style={styles.table}>
-            {/* Table Header */}
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableCellHeader, styles.unitNameColumn]}>Name (Class)</Text>
-              <Text style={[styles.tableCellHeader, styles.narrow]}>S</Text>
-              <Text style={[styles.tableCellHeader, styles.narrow]}>P</Text>
-              <Text style={[styles.tableCellHeader, styles.narrow]}>E</Text>
-              <Text style={[styles.tableCellHeader, styles.narrow]}>C</Text>
-              <Text style={[styles.tableCellHeader, styles.narrow]}>I</Text>
-              <Text style={[styles.tableCellHeader, styles.narrow]}>A</Text>
-              <Text style={[styles.tableCellHeader, styles.narrow]}>L</Text>
-              <Text style={[styles.tableCellHeader, styles.narrow]}>HP</Text>
-              <Text style={[styles.tableCellHeader, styles.wide]}>Weapon</Text>
-              <Text style={[styles.tableCellHeader, styles.wide]}>Test</Text>
-              <Text style={[styles.tableCellHeader, styles.extraWide]}>Traits</Text>
-              <Text style={[styles.tableCellHeader, styles.wide]}>Critical</Text>
-              <Text style={[styles.tableCellHeader, styles.narrow]}>Rating</Text>
+          <View style={styles.unitRosterContainer}>
+            {/* Roster Header */}
+            <View style={styles.rosterHeader}>
+              <Text style={[styles.rosterHeaderCell, { flex: 0.5 }]}></Text>
+              <Text style={[styles.rosterHeaderCell, { flex: 3.5 }]}>
+                Unit Stats
+              </Text>
+              <Text style={[styles.rosterHeaderCell, { flex: 5 }]}>
+                Weapons
+              </Text>
+              <Text style={[styles.rosterHeaderCell, { flex: 1.5 }]}>
+                Unit History
+              </Text>
             </View>
 
-            {/* Table Body - Create rows unit by unit with proper weapon splitting */}
-            {(() => {
-              const tableRows: React.ReactElement[] = [];
-              
-              crew.units.forEach((unit) => {
-                // Ensure unit has at least one weapon, or create a row with empty weapon data
-                const weapons = unit.weapons.length > 0 ? unit.weapons : [null];
-                
-                weapons.forEach((weapon, weaponIndex) => {
-                  const isFirstWeaponOfUnit = weaponIndex === 0;
-                  
-                  tableRows.push(
-                    <View key={`${unit.id}-weapon-${weaponIndex}`} style={styles.tableRow}>
-                      {/* Unit data - only show on first weapon row of this unit */}
-                      {isFirstWeaponOfUnit ? (
-                        <>
-                          <View style={[styles.tableCell, styles.unitNameColumn]}>
-                            <Text style={styles.unitName}>{unit.name}</Text>
-                            <Text style={styles.unitClass}>({unit.unitClass.name})</Text>
-                          </View>
-                          <Text style={[styles.tableCell, styles.narrow]}>{unit.s}</Text>
-                          <Text style={[styles.tableCell, styles.narrow]}>{unit.p}</Text>
-                          <Text style={[styles.tableCell, styles.narrow]}>{unit.e}</Text>
-                          <Text style={[styles.tableCell, styles.narrow]}>{unit.c}</Text>
-                          <Text style={[styles.tableCell, styles.narrow]}>{unit.i}</Text>
-                          <Text style={[styles.tableCell, styles.narrow]}>{unit.a}</Text>
-                          <Text style={[styles.tableCell, styles.narrow]}>{unit.l}</Text>
-                          <Text style={[styles.tableCell, styles.narrow]}>{unit.hp}</Text>
-                        </>
-                      ) : (
-                        <>
-                          {/* Empty cells for subsequent weapon rows of this unit */}
-                          <Text style={[styles.tableCell, styles.unitNameColumn]}></Text>
-                          <Text style={[styles.tableCell, styles.narrow]}></Text>
-                          <Text style={[styles.tableCell, styles.narrow]}></Text>
-                          <Text style={[styles.tableCell, styles.narrow]}></Text>
-                          <Text style={[styles.tableCell, styles.narrow]}></Text>
-                          <Text style={[styles.tableCell, styles.narrow]}></Text>
-                          <Text style={[styles.tableCell, styles.narrow]}></Text>
-                          <Text style={[styles.tableCell, styles.narrow]}></Text>
-                          <Text style={[styles.tableCell, styles.narrow]}></Text>
-                        </>
-                      )}
-                      
-                      {/* Weapon data - appears on every row */}
-                      <Text style={[styles.tableCell, styles.wide]}>
-                        {weapon?.name || "No weapon"}
-                      </Text>
-                      <Text style={[styles.tableCell, styles.wide]}>
-                        {weapon?.standardWeapon?.testValue} {weapon?.standardWeapon?.testAttribute}
-                      </Text>
-                      <Text style={[styles.tableCell, styles.extraWide]}>
-                        {weapon ? formatWithCount(
-                          weapon.standardWeapon?.traits.map((t) => t.trait.name) || []
-                        ) : ""}
-                      </Text>
-                      <Text style={[styles.tableCell, styles.wide]}>
-                        {weapon ? formatWithCount(
-                          weapon.standardWeapon?.criticalEffects.map(
-                            (c) => c.criticalEffect.name
-                          ) || []
-                        ) : ""}
-                      </Text>
-                      
-                      {/* Rating - only show on first weapon row of this unit */}
-                      {isFirstWeaponOfUnit ? (
-                        <Text style={[styles.tableCell, styles.narrow]}>{unit.rating}</Text>
-                      ) : (
-                        <Text style={[styles.tableCell, styles.narrow]}></Text>
-                      )}
+            {/* Roster Body */}
+            {crew.units.map((unit) => {
+              const allUpgrades =
+                unit.weapons.flatMap(
+                  (w) =>
+                    w.appliedUpgrades?.map((u) => u.weaponUpgrade.name) || []
+                ) || [];
+              const formattedUpgrades = formatWithCount(allUpgrades);
+
+              return (
+                <View key={unit.id} style={styles.unitRow} wrap={false}>
+                  <View style={styles.healthTrackerSection}>
+                    {Array.from({ length: unit.hp }, (_, i) => (
+                      <View key={`hp-box-${i}`} style={styles.healthCheckbox} />
+                    ))}
+                  </View>
+                  {/* Column 1: Unit Stats */}
+                  <View style={[styles.unitSection, styles.unitStatsSection]}>
+                    <Text style={styles.unitName}>{unit.name}</Text>
+                    <Text style={styles.unitClass}>
+                      ({unit.unitClass.name})
+                    </Text>
+                    <View style={styles.specialRow}>
+                      {["s", "p", "e", "c", "i", "a", "l"].map((stat) => (
+                        <View key={stat} style={styles.specialItem}>
+                          <Text style={styles.label}>{stat.toUpperCase()}</Text>
+                          <Text style={styles.specialValue}>
+                            {String(unit[stat as keyof typeof unit])}
+                          </Text>
+                        </View>
+                      ))}
+                      <View style={styles.specialItem}>
+                        <Text style={styles.label}>HP</Text>
+                        <Text style={styles.specialValue}>{unit.hp}</Text>
+                      </View>
                     </View>
-                  );
-                });
-              });
-              
-              return tableRows;
-            })()}
+                  </View>
+
+                  {/* Column 2: Weapons */}
+                  <View style={[styles.unitSection, styles.unitWeaponsSection]}>
+                    {unit.weapons.length > 0 ? (
+                      unit.weapons.map((weapon, index) => (
+                        <View
+                          key={weapon.id}
+                          style={[
+                            styles.weaponItem,
+                            {
+                              borderBottomWidth:
+                                index === unit.weapons.length - 1 ? 0 : 0.5,
+                              paddingBottom:
+                                index === unit.weapons.length - 1
+                                  ? 0
+                                  : rem(0.4),
+                              marginBottom:
+                                index === unit.weapons.length - 1
+                                  ? 0
+                                  : rem(0.4),
+                            },
+                          ]}
+                        >
+                          <Text style={styles.weaponName}>
+                            {weapon.name || "N/A"}
+                          </Text>
+                          <View style={styles.detailRow}>
+                            <Text style={styles.detailLabel}>Test:</Text>
+                            <Text
+                              style={[
+                                styles.detailValue,
+                                styles.weaponDetailValue,
+                              ]}
+                            >
+                              {weapon.standardWeapon?.testValue}{" "}
+                              {weapon.standardWeapon?.testAttribute}
+                            </Text>
+                          </View>
+                          <View style={styles.detailRow}>
+                            <Text style={styles.detailLabel}>Traits:</Text>
+                            <Text
+                              style={[
+                                styles.detailValue,
+                                styles.weaponDetailValue,
+                                styles.traitText,
+                              ]}
+                            >
+                              {formatWithCount(
+                                weapon.standardWeapon?.traits.map(
+                                  (t) => t.trait.name
+                                ) || []
+                              )}
+                            </Text>
+                          </View>
+                          <View style={styles.detailRow}>
+                            <Text style={styles.detailLabel}>Critical:</Text>
+                            <Text
+                              style={[
+                                styles.detailValue,
+                                styles.weaponDetailValue,
+                                styles.criticalEffectText,
+                              ]}
+                            >
+                              {formatWithCount(
+                                weapon.standardWeapon?.criticalEffects.map(
+                                  (c) => c.criticalEffect.name
+                                ) || []
+                              )}
+                            </Text>
+                          </View>
+                        </View>
+                      ))
+                    ) : (
+                      <Text style={{ fontStyle: "italic" }}>Unarmed</Text>
+                    )}
+                  </View>
+
+                  {/* Column 3: Unit History */}
+                  <View style={[styles.unitSection, styles.unitHistorySection]}>
+                    {formattedUpgrades && (
+                      <View style={styles.historyItem}>
+                        <Text style={styles.historyLabel}>Upgrades:</Text>
+                        <Text style={styles.detailValue}>
+                          {formattedUpgrades}
+                        </Text>
+                      </View>
+                    )}
+                    {unit.perks.length > 0 && (
+                      <View style={styles.historyItem}>
+                        <Text style={styles.historyLabel}>Perks:</Text>
+                        <Text style={styles.detailValue}>
+                          {unit.perks.map((p) => p.perk.name).join(", ")}
+                        </Text>
+                      </View>
+                    )}
+                    {unit.injuries.length > 0 && (
+                      <View style={styles.historyItem}>
+                        <Text style={styles.historyLabel}>Injuries:</Text>
+                        <Text style={styles.detailValue}>
+                          {unit.injuries.map((i) => i.injury.name).join(", ")}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={styles.historyItem}>
+                      <Text style={styles.historyLabel}>Rating:</Text>
+                      <Text style={styles.detailValue}>{unit.rating}</Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
           </View>
         </View>
-
-        {/* Future sections will automatically appear here as they're added to the HTML */}
-        {/* Perks & Injuries sections */}
-        {crew.units.some(unit => unit.perks.length > 0 || unit.injuries.length > 0) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Additional Unit Details</Text>
-            {crew.units.map((unit) => (
-              <View key={`details-${unit.id}`} style={{ marginBottom: 10 }}>
-                <Text style={styles.unitName}>{unit.name}</Text>
-                {unit.perks.length > 0 && (
-                  <View>
-                    <Text style={[styles.label, { fontSize: 9 }]}>Perks:</Text>
-                    <Text style={{ fontSize: 8 }}>
-                      {unit.perks.map(p => p.perk.name).join(", ")}
-                    </Text>
-                  </View>
-                )}
-                {unit.injuries.length > 0 && (
-                  <View>
-                    <Text style={[styles.label, { fontSize: 9 }]}>Injuries:</Text>
-                    <Text style={{ fontSize: 8 }}>
-                      {unit.injuries.map(i => i.injury.name).join(", ")}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
       </Page>
     </Document>
   );
