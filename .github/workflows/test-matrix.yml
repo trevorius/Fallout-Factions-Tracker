@@ -1,0 +1,47 @@
+name: 🔄 Cross-Platform Tests
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Allow manual trigger
+
+jobs:
+  test-matrix:
+    name: 🧪 Test on ${{ matrix.os }} with Node ${{ matrix.node-version }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18.x, 20.x, 21.x]
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run ESLint
+        run: npm run lint
+
+      - name: 🧪 Run Jest tests
+        run: npm test -- --coverage --watchAll=false --maxWorkers=2
+        env:
+          NODE_ENV: test
+          DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
+
+      - name: 📊 Generate test summary
+        if: always()
+        run: |
+          echo "## Test Results for ${{ matrix.os }} - Node ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "Tests completed on $(date)" >> $GITHUB_STEP_SUMMARY

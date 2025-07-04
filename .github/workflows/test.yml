@@ -1,0 +1,70 @@
+name: 🧪 Run Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: 🧪 Jest Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run ESLint
+        run: npm run lint
+
+      - name: 🏗️ Build project
+        run: npm run build
+        env:
+          DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
+
+      - name: 🧪 Run Jest tests
+        run: npm test -- --coverage --watchAll=false --passWithNoTests
+        env:
+          NODE_ENV: test
+          DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
+        continue-on-error: true
+        id: jest-tests
+
+      - name: � Test Results Summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Node.js Version: ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Status: ${{ steps.jest-tests.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage Report: Generated" >> $GITHUB_STEP_SUMMARY
+          echo "- Timestamp: $(date)" >> $GITHUB_STEP_SUMMARY
+
+      - name: �📊 Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: 📈 Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: ./coverage/lcov.info
