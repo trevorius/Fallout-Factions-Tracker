@@ -46,10 +46,9 @@ describe('use-toast', () => {
         result.current.toast({ title: 'Toast 3' });
       });
 
-      expect(result.current.toasts).toHaveLength(3);
-      expect(result.current.toasts[0].title).toBe('Toast 1');
-      expect(result.current.toasts[1].title).toBe('Toast 2');
-      expect(result.current.toasts[2].title).toBe('Toast 3');
+      // Toast limit is 1, so only the latest toast should remain
+      expect(result.current.toasts).toHaveLength(1);
+      expect(result.current.toasts[0].title).toBe('Toast 3');
     });
 
     it('should dismiss a specific toast', () => {
@@ -79,32 +78,33 @@ describe('use-toast', () => {
         result.current.toast({ title: 'Toast 3' });
       });
 
+      // Only latest toast remains due to limit
+      expect(result.current.toasts).toHaveLength(1);
+
       act(() => {
         result.current.dismiss();
       });
 
-      expect(result.current.toasts).toHaveLength(0);
+      // Toast should be marked as closed but still present until removal timeout
+      expect(result.current.toasts).toHaveLength(1);
+      expect(result.current.toasts[0].open).toBe(false);
     });
 
     it('should update an existing toast', () => {
       const { result } = renderHook(() => useToast());
       
-      let toastId: string;
+      let toastResult: ReturnType<typeof result.current.toast>;
       
       act(() => {
-        const { id } = result.current.toast({ title: 'Original Title' });
-        toastId = id;
+        toastResult = result.current.toast({ title: 'Original Title' });
       });
 
       act(() => {
-        const toastToUpdate = result.current.toasts.find(t => t.id === toastId);
-        if (toastToUpdate && toastToUpdate.update) {
-          toastToUpdate.update({
-            id: toastId,
-            title: 'Updated Title',
-            description: 'New description',
-          });
-        }
+        toastResult.update({
+          id: toastResult.id,
+          title: 'Updated Title',
+          description: 'New description',
+        });
       });
 
       expect(result.current.toasts[0]).toMatchObject({
@@ -128,7 +128,9 @@ describe('use-toast', () => {
         }
       });
 
-      expect(result.current.toasts).toHaveLength(0);
+      // Toast should be marked as closed but still present until removal timeout
+      expect(result.current.toasts).toHaveLength(1);
+      expect(result.current.toasts[0].open).toBe(false);
     });
 
     it('should limit toasts to maximum of 1 by default', () => {
@@ -211,7 +213,9 @@ describe('use-toast', () => {
         toastResult!.dismiss();
       });
 
-      expect(result.current.toasts).toHaveLength(0);
+      // Toast should be marked as closed but still present until removal timeout
+      expect(result.current.toasts).toHaveLength(1);
+      expect(result.current.toasts[0].open).toBe(false);
     });
 
     it('should update toast using returned update function', () => {

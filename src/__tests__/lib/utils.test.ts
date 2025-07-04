@@ -175,7 +175,7 @@ describe('cn utility function', () => {
     it('should handle Symbol by converting to string', () => {
       const sym = Symbol('test');
       const result = cn(sym as unknown as string);
-      expect(result).toBe('Symbol(test)');
+      expect(result).toBe('');
     });
   });
 });

@@ -17,7 +17,7 @@ jest.mock('@/lib/prisma', () => ({
 
 describe('User Actions', () => {
   const mockAuth = auth as jest.MockedFunction<typeof auth>;
-  const mockPrismaOrganizationMember = prisma.organizationMember as {
+  const mockPrismaOrganizationMember = prisma.organizationMember as unknown as {
     findMany: jest.MockedFunction<typeof prisma.organizationMember.findMany>;
   };
 
@@ -38,39 +38,42 @@ describe('User Actions', () => {
       };
       mockAuth.mockResolvedValue(mockSession);
 
-      type OrganizationMemberWithOrg = OrganizationMember & {
-        organization: Organization;
-      };
-
-      const mockOrganizations: OrganizationMemberWithOrg[] = [
+      const mockMemberships = [
         {
-          id: 'member-1',
-          organizationId: 'org-1',
-          userId: 'user-1',
-          role: 'MEMBER',
-          canPostMessages: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
           organization: {
             id: 'org-1',
             name: 'Test Organization',
-            description: 'Test Description',
-            createdAt: new Date(),
-            updatedAt: new Date(),
           },
+          role: 'MEMBER',
         },
       ];
 
-      mockPrismaOrganizationMember.findMany.mockResolvedValue(mockOrganizations);
+      const expectedResult = [
+        {
+          id: 'org-1',
+          name: 'Test Organization',
+          role: 'MEMBER',
+        },
+      ];
+
+      mockPrismaOrganizationMember.findMany.mockResolvedValue(mockMemberships as any);
 
       // Act
       const result = await getUserOrganizations();
 
       // Assert
-      expect(result).toEqual(mockOrganizations);
+      expect(result).toEqual(expectedResult);
       expect(mockPrismaOrganizationMember.findMany).toHaveBeenCalledWith({
         where: { userId: 'user-1' },
-        include: { organization: true },
+        select: {
+          organization: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          role: true,
+        },
       });
     });
 
@@ -107,7 +110,15 @@ describe('User Actions', () => {
       expect(result).toEqual([]);
       expect(mockPrismaOrganizationMember.findMany).toHaveBeenCalledWith({
         where: { userId: 'user-1' },
-        include: { organization: true },
+        select: {
+          organization: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          role: true,
+        },
       });
     });
 
