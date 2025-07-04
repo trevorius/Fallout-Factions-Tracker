@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x]
 
     steps:
       - name: 📦 Checkout code
@@ -41,11 +41,10 @@ jobs:
           DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
 
       - name: 🧪 Run Jest tests
-        run: npm test -- --coverage --watchAll=false --passWithNoTests
+        run: npm test -- --coverage --watchAll=false --passWithNoTests --verbose
         env:
           NODE_ENV: test
           DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
-        continue-on-error: true
         id: jest-tests
 
       - name: 📝 Test Results Summary
@@ -54,10 +53,17 @@ jobs:
           echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "- Node.js Version: ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
           echo "- Test Status: ${{ steps.jest-tests.outcome }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.jest-tests.outcome }}" = "failure" ]; then
+            echo "- ❌ **TESTS FAILED** - See logs for details" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔍 Check the Jest test step above for failing test details" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "- Coverage Report: Generated" >> $GITHUB_STEP_SUMMARY
           echo "- Timestamp: $(date)" >> $GITHUB_STEP_SUMMARY
 
       - name: 📊 Upload coverage reports to Codecov
+        if: always()
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -85,9 +91,18 @@ jobs:
             echo "Coverage summary not available - tests may have failed" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: � Create PR comment
+      - name: 📝 Create PR comment
         if: github.event_name == 'pull_request' && always()
         run: |
+          # Determine status emoji and message
+          if [ "${{ steps.jest-tests.outcome }}" = "success" ]; then
+            STATUS_EMOJI="✅"
+            STATUS_MESSAGE="All tests passed"
+          else
+            STATUS_EMOJI="❌"
+            STATUS_MESSAGE="Tests failed - check logs for details"
+          fi
+          
           if [ -f coverage/coverage-summary.json ]; then
             STATEMENTS=$(cat coverage/coverage-summary.json | jq -r '.total.statements.pct')
             BRANCHES=$(cat coverage/coverage-summary.json | jq -r '.total.branches.pct')
@@ -97,7 +112,7 @@ jobs:
             cat > pr-comment.md << EOF
           ## 🧪 Test Results - Node.js ${{ matrix.node-version }}
           
-          **Test Status:** ${{ steps.jest-tests.outcome }}
+          **Test Status:** ${STATUS_EMOJI} ${{ steps.jest-tests.outcome }} - ${STATUS_MESSAGE}
           
           ### 📊 Coverage Summary
           | Metric | Percentage |
@@ -107,16 +122,28 @@ jobs:
           | Functions | ${FUNCTIONS}% |
           | Lines | ${LINES}% |
           
+          $(if [ "${{ steps.jest-tests.outcome }}" = "failure" ]; then
+            echo "### 🔍 Next Steps"
+            echo "- Check the [workflow logs](https://github.com/trevorius/Fallout-Factions-Tracker/actions) for detailed test failure information"
+            echo "- Fix failing tests before merging"
+          fi)
+          
           *Updated: $(date)*
           EOF
           else
             cat > pr-comment.md << EOF
           ## 🧪 Test Results - Node.js ${{ matrix.node-version }}
           
-          **Test Status:** ${{ steps.jest-tests.outcome }}
+          **Test Status:** ${STATUS_EMOJI} ${{ steps.jest-tests.outcome }} - ${STATUS_MESSAGE}
           
           ### ⚠️ Coverage Summary
           Coverage data not available - tests may have failed
+          
+          $(if [ "${{ steps.jest-tests.outcome }}" = "failure" ]; then
+            echo "### 🔍 Next Steps"
+            echo "- Check the [workflow logs](https://github.com/trevorius/Fallout-Factions-Tracker/actions) for detailed test failure information"
+            echo "- Fix failing tests before merging"
+          fi)
           
           *Updated: $(date)*
           EOF

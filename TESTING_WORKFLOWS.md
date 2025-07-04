@@ -38,7 +38,18 @@ I've successfully implemented comprehensive GitHub Actions workflows for automat
 - 🚀 Fail-fast disabled for complete testing
 - 📊 Generates summaries for each combination
 
-### 3. `.github/workflows/README.md` - Documentation
+### 3. `.github/workflows/test-debug.yml` - Debug Failing Tests
+**Purpose**: Specialized workflow for debugging test failures with maximum verbosity
+
+**Key Features**:
+- 🔍 Manual trigger with optional test pattern input
+- 📊 Maximum verbosity output for detailed failure analysis
+- 🎯 Focuses on Node.js 20.x only
+- 📁 Archives test artifacts for investigation
+- 🔧 Provides debugging steps and environment information
+- 🚨 Identifies common failing test patterns
+
+### 4. `.github/workflows/README.md` - Documentation
 **Purpose**: Complete documentation for the workflows
 
 **Contents**:
@@ -48,7 +59,7 @@ I've successfully implemented comprehensive GitHub Actions workflows for automat
 - Local testing instructions
 - Customization guide
 
-### 4. `.github/workflows/status-badges.md` - Badge Templates
+### 5. `.github/workflows/status-badges.md` - Badge Templates
 **Purpose**: Ready-to-use status badges for your README
 
 **Includes**:
@@ -56,7 +67,7 @@ I've successfully implemented comprehensive GitHub Actions workflows for automat
 - Coverage badges
 - Combined examples
 
-### 5. `TESTING_WORKFLOWS.md` - This summary document
+### 6. `TESTING_WORKFLOWS.md` - This summary document
 
 ## 🔧 Configuration Details
 
@@ -164,21 +175,36 @@ Add new steps to the workflows:
 5. **Consistent Environment**: Same test environment every time
 6. **Documentation**: Clear setup and usage instructions
 
-## 🔧 Permission Issue Resolution
+## 🔧 Issue Resolutions
 
-### Problem
-The original workflow encountered a "Resource not accessible by integration" error when trying to comment on pull requests. This is a common GitHub Actions permission issue.
+### Permission Issue Resolution
 
-### Solution
-I've implemented a two-workflow approach:
+#### Problem
+The original workflow encountered a "Resource not accessible by integration" error when trying to comment on pull requests.
+
+#### Solution
+I've implemented a multi-workflow approach:
 
 1. **Main Workflow (`test.yml`)**: Includes PR commenting with proper permissions
 2. **Fallback Workflow (`test-simple.yml`)**: Same functionality without PR comments
+3. **Debug Workflow (`test-debug.yml`)**: Specialized for debugging failing tests
 
-### Recommendation
-- Use `test-simple.yml` for immediate, reliable testing
-- Use `test.yml` if you need PR comments and have proper repository permissions
-- The simple workflow archives coverage reports as artifacts for easy access
+### Test Failure Reporting Issue Resolution
+
+#### Problem
+The workflow was incorrectly reporting "pass" when tests were actually failing due to `continue-on-error: true`.
+
+#### Solution
+- ✅ **Removed `continue-on-error: true`** - Tests now properly fail when they should
+- 📊 **Enhanced failure reporting** - Clear indication of test failures in summaries and PR comments
+- 🔍 **Added verbose output** - `--verbose` flag for detailed test failure information
+- 🎯 **Single Node.js version** - Simplified to Node.js 20.x only (no multiple matrix runs)
+- 🔧 **Debug workflow** - Dedicated workflow for investigating test failures
+
+### Workflow Selection Guide
+- **Use `test.yml`**: For normal CI/CD with PR comments (requires permissions)
+- **Use `test-simple.yml`**: For reliable testing without permissions
+- **Use `test-debug.yml`**: For debugging specific test failures with maximum verbosity
 
 ## 🎯 Next Steps
 

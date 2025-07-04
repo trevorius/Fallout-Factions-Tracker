@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x]
 
     steps:
       - name: 📦 Checkout code
@@ -37,11 +37,10 @@ jobs:
           DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
 
       - name: 🧪 Run Jest tests
-        run: npm test -- --coverage --watchAll=false --passWithNoTests
+        run: npm test -- --coverage --watchAll=false --passWithNoTests --verbose
         env:
           NODE_ENV: test
           DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
-        continue-on-error: true
         id: jest-tests
 
       - name: 📊 Generate coverage summary
@@ -50,6 +49,12 @@ jobs:
           echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "- Node.js Version: ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
           echo "- Test Status: ${{ steps.jest-tests.outcome }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.jest-tests.outcome }}" = "failure" ]; then
+            echo "- ❌ **TESTS FAILED** - See logs for details" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔍 Check the Jest test step above for failing test details" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "- Timestamp: $(date)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
