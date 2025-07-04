@@ -30,7 +30,7 @@ jest.mock('@/lib/prisma', () => ({
 }));
 
 // Type the mocked functions
-const mockAuth = auth as jest.MockedFunction<() => Promise<Session | null>>;
+const mockAuth = jest.mocked(auth);
 const mockCreateOrFindAccount = createOrFindAccount as jest.MockedFunction<typeof createOrFindAccount>;
 
 // Create typed mock helpers
@@ -68,6 +68,7 @@ describe('Organization Actions', () => {
       const mockOrganization: Organization = { 
         id: 'org-1', 
         name: 'Test Org',
+        description: 'Test Organization Description',
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -88,6 +89,7 @@ describe('Organization Actions', () => {
         organizationId: 'org-1',
         userId: 'user-1',
         role: 'OWNER',
+        canPostMessages: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -181,6 +183,7 @@ describe('Organization Actions', () => {
       const mockOrganization: Organization = { 
         id: 'org-1', 
         name: 'Test Org',
+        description: 'Test Organization Description',
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -189,7 +192,7 @@ describe('Organization Actions', () => {
         id: 'user-1', 
         email: 'owner@test.com',
         name: 'Test Owner',
-        password: null,
+        password: '',
         salt: 'salt',
         isSuperAdmin: false,
         createdAt: new Date(),
@@ -201,6 +204,7 @@ describe('Organization Actions', () => {
         organizationId: 'org-1',
         userId: 'user-1',
         role: 'OWNER',
+        canPostMessages: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -247,6 +251,7 @@ describe('Organization Actions', () => {
         {
           id: 'org-1',
           name: 'Org 1',
+          description: 'Organization 1 Description',
           createdAt: new Date(),
           updatedAt: new Date(),
           members: [
@@ -255,6 +260,7 @@ describe('Organization Actions', () => {
               organizationId: 'org-1',
               userId: 'user-1',
               role: 'OWNER',
+              canPostMessages: true,
               createdAt: new Date(),
               updatedAt: new Date(),
               user: { 
@@ -327,6 +333,7 @@ describe('Organization Actions', () => {
       const mockDeletedOrg: Organization = { 
         id: 'org-1', 
         name: 'Deleted Org',
+        description: 'Deleted Organization Description',
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -392,7 +399,8 @@ describe('Organization Actions', () => {
         user: { 
           id: 'user-1',
           email: 'user@test.com',
-          name: 'User'
+          name: 'User',
+          isSuperAdmin: false
         },
         expires: new Date().toISOString()
       };
@@ -434,7 +442,8 @@ describe('Organization Actions', () => {
         user: { 
           id: 'user-1',
           email: 'user@test.com',
-          name: 'User'
+          name: 'User',
+          isSuperAdmin: false
         },
         expires: new Date().toISOString()
       };
