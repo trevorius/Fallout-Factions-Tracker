@@ -86,4 +86,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: 'jwt',
   },
   trustHost: true,
+  // Override any localhost URLs in production
+  ...(process.env.NODE_ENV === 'production' && {
+    url: undefined, // Let NextAuth auto-detect the URL
+  }),
 });
