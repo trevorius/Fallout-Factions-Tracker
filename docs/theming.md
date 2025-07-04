@@ -7,15 +7,15 @@ This project uses a sophisticated theming system that provides consistent stylin
 The theming system is built with the following key components:
 
 ### Core Files
-- **`src/lib/types/theme.ts`** - Theme enumeration and type definitions
-- **`src/lib/theme.ts`** - Main theme configuration (runtime)
-- **`src/lib/generate-theme-css.ts`** - CSS generation utilities
-- **`scripts/generate-theme-css.cjs`** - Build-time CSS generation
-- **`src/styles/generated-theme.css`** - Auto-generated CSS (do not edit manually)
+- **[`src/lib/types/theme.ts`](../src/lib/types/theme.ts)** - Theme enumeration and type definitions
+- **[`src/lib/theme.ts`](../src/lib/theme.ts)** - Main theme configuration (runtime)
+- **[`src/lib/generate-theme-css.ts`](../src/lib/generate-theme-css.ts)** - CSS generation utilities
+- **[`scripts/generate-theme-css.cjs`](../scripts/generate-theme-css.cjs)** - Build-time CSS generation
+- **[`src/styles/generated-theme.css`](../src/styles/generated-theme.css)** - Auto-generated CSS (do not edit manually)
 
 ### Components
-- **`src/providers/theme-provider.tsx`** - React context for theme management
-- **`src/components/ui/theme-toggle.tsx`** - Theme selection UI component
+- **[`src/providers/theme-provider.tsx`](../src/providers/theme-provider.tsx)** - React context for theme management
+- **[`src/components/ui/theme-toggle.tsx`](../src/components/ui/theme-toggle.tsx)** - Theme selection UI component
 
 ## 🎨 Available Themes
 
@@ -32,7 +32,7 @@ The system currently supports three themes:
 To modify existing theme colors, update **both** configuration files:
 
 #### 1. Update Runtime Configuration
-Edit `src/lib/theme.ts`:
+Edit [`src/lib/theme.ts`](../src/lib/theme.ts):
 
 ```typescript
 export const themeConfig = {
@@ -52,7 +52,7 @@ export const themeConfig = {
 ```
 
 #### 2. Update Build Configuration
-Edit `scripts/generate-theme-css.cjs`:
+Edit [`scripts/generate-theme-css.cjs`](../scripts/generate-theme-css.cjs):
 
 ```javascript
 const themeConfig = {
@@ -103,7 +103,7 @@ background: '#1a365d'
 
 ### Step 1: Update Theme Enumeration
 
-Edit `src/lib/types/theme.ts`:
+Edit [`src/lib/types/theme.ts`](../src/lib/types/theme.ts):
 
 ```typescript
 export enum Theme {
@@ -123,7 +123,7 @@ export const THEME_OPTIONS = [
 
 ### Step 2: Add Theme Configuration (Runtime)
 
-Edit `src/lib/theme.ts`:
+Edit [`src/lib/theme.ts`](../src/lib/theme.ts):
 
 ```typescript
 export const themeConfig = {
@@ -170,7 +170,7 @@ export const themeConfig = {
 
 ### Step 3: Add Theme Configuration (Build)
 
-Edit `scripts/generate-theme-css.cjs`:
+Edit [`scripts/generate-theme-css.cjs`](../scripts/generate-theme-css.cjs):
 
 ```javascript
 const themeConfig = {
@@ -218,7 +218,7 @@ npm run build            # CSS auto-generates via prebuild script
 
 When adding or modifying themes:
 
-- [ ] Update both `theme.ts` and `generate-theme-css.cjs` 
+- [ ] Update both [`theme.ts`](../src/lib/theme.ts) and [`generate-theme-css.cjs`](../scripts/generate-theme-css.cjs) 
 - [ ] Run `npm run theme:generate`
 - [ ] Test theme toggle functionality
 - [ ] Verify PDF generation works with new theme
@@ -235,9 +235,9 @@ When adding or modifying themes:
 
 ### CSS Generation Process
 1. **Development**: Run `npm run theme:generate` manually
-2. **Build**: Automatic via `prebuild` script in `package.json`
-3. **Output**: `src/styles/generated-theme.css`
-4. **Import**: Automatically imported in `src/app/globals.css`
+2. **Build**: Automatic via `prebuild` script in [`package.json`](../package.json)
+3. **Output**: [`src/styles/generated-theme.css`](../src/styles/generated-theme.css)
+4. **Import**: Automatically imported in [`src/app/globals.css`](../src/app/globals.css)
 
 ### Type Safety
 - All theme values are type-checked via TypeScript

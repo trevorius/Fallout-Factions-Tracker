@@ -87,19 +87,19 @@ Detailed list of all key files and directories with descriptions and workflows.
 ### Essential Files by Feature
 
 **Theming System:**
-- `src/lib/types/theme.ts` - Theme enumeration
-- `src/lib/theme.ts` - Runtime theme configuration  
-- `scripts/generate-theme-css.cjs` - Build-time CSS generation
-- `src/providers/theme-provider.tsx` - React theme context
+- [`src/lib/types/theme.ts`](../src/lib/types/theme.ts) - Theme enumeration
+- [`src/lib/theme.ts`](../src/lib/theme.ts) - Runtime theme configuration  
+- [`scripts/generate-theme-css.cjs`](../scripts/generate-theme-css.cjs) - Build-time CSS generation
+- [`src/providers/theme-provider.tsx`](../src/providers/theme-provider.tsx) - React theme context
 
 **PDF Generation:**
-- `src/components/crews/crew-roster-pdf.tsx` - PDF component
-- `src/lib/actions/pdf-actions.ts` - Server actions
-- `src/app/api/crews/[crewId]/pdf/route.ts` - API endpoint
+- [`src/components/crews/crew-roster-pdf.tsx`](../src/components/crews/crew-roster-pdf.tsx) - PDF component
+- [`src/lib/actions/pdf-actions.ts`](../src/lib/actions/pdf-actions.ts) - Server actions
+- [`src/app/api/crews/[crewId]/pdf/route.ts`](../src/app/api/crews/[crewId]/pdf/route.ts) - API endpoint
 
 **Database:**
-- `prisma/schema.prisma` - Database schema
-- `src/lib/prisma.ts` - Prisma client
+- [`prisma/schema.prisma`](../prisma/schema.prisma) - Database schema
+- [`src/lib/prisma.ts`](../src/lib/prisma.ts) - Prisma client
 
 ### Common Commands
 

@@ -7,14 +7,14 @@ This project includes a sophisticated PDF generation system for crew roster page
 The PDF generation system consists of several interconnected components:
 
 ### Core Files
-- **`src/components/crews/crew-roster-pdf.tsx`** - React PDF component for rendering
-- **`src/lib/actions/pdf-actions.ts`** - Server actions for PDF generation
-- **`src/app/api/crews/[crewId]/pdf/route.ts`** - API endpoint for PDF downloads
-- **`src/components/crews/edit-crew-form.tsx`** - UI integration (PDF button)
+- **[`src/components/crews/crew-roster-pdf.tsx`](../src/components/crews/crew-roster-pdf.tsx)** - React PDF component for rendering
+- **[`src/lib/actions/pdf-actions.ts`](../src/lib/actions/pdf-actions.ts)** - Server actions for PDF generation
+- **[`src/app/api/crews/[crewId]/pdf/route.ts`](../src/app/api/crews/[crewId]/pdf/route.ts)** - API endpoint for PDF downloads
+- **[`src/components/crews/edit-crew-form.tsx`](../src/components/crews/edit-crew-form.tsx)** - UI integration (PDF button)
 
 ### Dependencies
 - **`@react-pdf/renderer`** - React-based PDF generation library
-- **`src/lib/theme.ts`** - Theme system integration for consistent styling
+- **[`src/lib/theme.ts`](../src/lib/theme.ts)** - Theme system integration for consistent styling
 
 ## 🎯 Features
 
@@ -65,7 +65,7 @@ const handleGeneratePDF = async () => {
 
 ### PDF Component Structure
 
-The PDF component (`crew-roster-pdf.tsx`) uses React PDF syntax:
+The PDF component ([`crew-roster-pdf.tsx`](../src/components/crews/crew-roster-pdf.tsx)) uses React PDF syntax:
 
 ```typescript
 <Document>
@@ -142,7 +142,7 @@ Add your new feature to the main crew roster HTML component (typically in edit-c
 
 ### Step 2: Add Feature to PDF Component
 
-Update `src/components/crews/crew-roster-pdf.tsx` to include the new feature:
+Update [`src/components/crews/crew-roster-pdf.tsx`](../src/components/crews/crew-roster-pdf.tsx) to include the new feature:
 
 ```typescript
 // Example: Adding a new "Equipment" section

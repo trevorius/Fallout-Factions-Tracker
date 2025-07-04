@@ -26,10 +26,16 @@ You can start editing the page by modifying `app/page.js`. The page auto-updates
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Documentation
+## 📚 Documentation
 
-### [📚 Complete Documentation Index](./docs/README.md)
-**Start here!** Comprehensive index of all documentation with quick reference guides and essential commands.
+### [� Complete Documentation Index](./docs/README.md)
+**🎯 Start here for all documentation!** Navigate to the comprehensive documentation index with quick reference guides, essential commands, and links to all guides.
+
+**Quick Access:**
+- [🏗️ Architecture & Database](./docs/README.md#-architecture--database)
+- [🎨 Theming System](./docs/README.md#-advanced-features)
+- [📄 PDF Generation](./docs/README.md#-advanced-features)
+- [📁 File Reference](./docs/README.md#-quick-reference)
 
 ## Project Architecture
 
