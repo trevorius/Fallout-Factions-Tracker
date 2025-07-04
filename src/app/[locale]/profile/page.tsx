@@ -1,5 +1,5 @@
-import { PasswordCard } from '@/app/profile/components/password-card';
-import { ProfileCard } from '@/app/profile/components/profile-card';
+import { PasswordCard } from './components/password-card';
+import { ProfileCard } from './components/profile-card';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 

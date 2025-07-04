@@ -1,7 +1,7 @@
 const { expect, describe, it } = require('@jest/globals');
 import { getUserOrganizations } from '@/app/actions/user';
-import { getOrganizationData } from '@/app/organizations/[organizationId]/actions/organization.actions';
-import OrganizationPage from '@/app/organizations/[organizationId]/page';
+import { getOrganizationData } from '@/app/[locale]/organizations/[organizationId]/actions/organization.actions';
+import OrganizationPage from '@/app/[locale]/organizations/[organizationId]/page';
 import { auth } from '@/auth';
 import { render, screen, waitFor } from '@testing-library/react';
 import { redirect } from 'next/navigation';

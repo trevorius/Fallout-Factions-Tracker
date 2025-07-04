@@ -2,7 +2,7 @@ import { deleteOrganization } from '@/app/actions/organization';
 import {
   OrganizationList,
   OrganizationWithMembers,
-} from '@/app/superadmin/organization/organization-list';
+} from '@/app/[locale]/superadmin/organization/organization-list';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 const { expect, describe, it } = require('@jest/globals');

@@ -54,7 +54,6 @@ export function AppSidebar() {
   const [organizationRole] = organizationRoleState;
   const [organization] = organizationState;
   
-  const t = useTranslations();
   const tNav = useTranslations('navigation');
   const tSuper = useTranslations('superAdmin');
   const tAdmin = useTranslations('admin');
