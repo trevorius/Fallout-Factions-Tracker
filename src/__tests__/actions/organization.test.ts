@@ -1,5 +1,4 @@
 import { expect, describe, it, beforeEach } from '@jest/globals';
-
 import {
   createOrganization,
   deleteOrganization,
@@ -9,6 +8,8 @@ import {
 import { auth } from '@/auth';
 import { createOrFindAccount } from '@/lib/auth/createAccount';
 import { prisma } from '@/lib/prisma';
+import type { Session } from 'next-auth';
+import type { User, Organization, OrganizationMember } from '@prisma/client';
 
 // Mock dependencies
 jest.mock('@/auth');
@@ -31,7 +32,19 @@ jest.mock('@/lib/prisma', () => ({
 // Type the mocked functions
 const mockAuth = auth as jest.MockedFunction<typeof auth>;
 const mockCreateOrFindAccount = createOrFindAccount as jest.MockedFunction<typeof createOrFindAccount>;
-const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+
+// Create typed mock helpers
+const mockPrismaOrganization = {
+  create: prisma.organization.create as jest.MockedFunction<typeof prisma.organization.create>,
+  findMany: prisma.organization.findMany as jest.MockedFunction<typeof prisma.organization.findMany>,
+  delete: prisma.organization.delete as jest.MockedFunction<typeof prisma.organization.delete>,
+};
+
+const mockPrismaOrganizationMember = {
+  create: prisma.organizationMember.create as jest.MockedFunction<typeof prisma.organizationMember.create>,
+  deleteMany: prisma.organizationMember.deleteMany as jest.MockedFunction<typeof prisma.organizationMember.deleteMany>,
+  findFirst: prisma.organizationMember.findFirst as jest.MockedFunction<typeof prisma.organizationMember.findFirst>,
+};
 
 describe('Organization Actions', () => {
   beforeEach(() => {
@@ -41,7 +54,7 @@ describe('Organization Actions', () => {
   describe('createOrganization', () => {
     it('should create organization successfully when user is super admin', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: '1', 
           email: 'admin@test.com',
@@ -49,15 +62,17 @@ describe('Organization Actions', () => {
           isSuperAdmin: true 
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      const mockOrganization = { 
+      const mockOrganization: Organization = { 
         id: 'org-1', 
         name: 'Test Org',
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      const mockUser = { 
+      
+      const mockUser: User = { 
         id: 'user-1', 
         email: 'owner@test.com',
         name: 'Test Owner',
@@ -68,16 +83,18 @@ describe('Organization Actions', () => {
         updatedAt: new Date()
       };
 
-      mockPrisma.organization.create.mockResolvedValue(mockOrganization);
-      mockCreateOrFindAccount.mockResolvedValue(mockUser);
-      mockPrisma.organizationMember.create.mockResolvedValue({
+      const mockMember: OrganizationMember = {
         id: 'member-1',
         organizationId: 'org-1',
         userId: 'user-1',
         role: 'OWNER',
         createdAt: new Date(),
         updatedAt: new Date()
-      });
+      };
+
+      mockPrismaOrganization.create.mockResolvedValue(mockOrganization);
+      mockCreateOrFindAccount.mockResolvedValue(mockUser);
+      mockPrismaOrganizationMember.create.mockResolvedValue(mockMember);
 
       const data = {
         name: 'Test Org',
@@ -95,13 +112,13 @@ describe('Organization Actions', () => {
         temporaryPassword: 'temp-password',
       });
 
-      expect(mockPrisma.organization.create).toHaveBeenCalledWith({
+      expect(mockPrismaOrganization.create).toHaveBeenCalledWith({
         data: { name: 'Test Org' },
       });
 
       expect(mockCreateOrFindAccount).toHaveBeenCalledWith('owner@test.com', 'Test Owner');
 
-      expect(mockPrisma.organizationMember.create).toHaveBeenCalledWith({
+      expect(mockPrismaOrganizationMember.create).toHaveBeenCalledWith({
         data: {
           organizationId: 'org-1',
           userId: 'user-1',
@@ -112,7 +129,7 @@ describe('Organization Actions', () => {
 
     it('should throw error when user is not super admin', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: '1', 
           email: 'user@test.com',
@@ -120,7 +137,8 @@ describe('Organization Actions', () => {
           isSuperAdmin: false 
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
       const data = {
         name: 'Test Org',
@@ -130,7 +148,7 @@ describe('Organization Actions', () => {
 
       // Act & Assert
       await expect(createOrganization(data)).rejects.toThrow('Unauthorized');
-      expect(mockPrisma.organization.create).not.toHaveBeenCalled();
+      expect(mockPrismaOrganization.create).not.toHaveBeenCalled();
     });
 
     it('should throw error when no session exists', async () => {
@@ -149,7 +167,7 @@ describe('Organization Actions', () => {
 
     it('should handle empty password from createOrFindAccount', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: '1', 
           email: 'admin@test.com',
@@ -157,15 +175,17 @@ describe('Organization Actions', () => {
           isSuperAdmin: true 
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      const mockOrganization = { 
+      const mockOrganization: Organization = { 
         id: 'org-1', 
         name: 'Test Org',
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      const mockUser = { 
+      
+      const mockUser: User = { 
         id: 'user-1', 
         email: 'owner@test.com',
         name: 'Test Owner',
@@ -176,16 +196,18 @@ describe('Organization Actions', () => {
         updatedAt: new Date()
       };
 
-      mockPrisma.organization.create.mockResolvedValue(mockOrganization);
-      mockCreateOrFindAccount.mockResolvedValue(mockUser);
-      mockPrisma.organizationMember.create.mockResolvedValue({
+      const mockMember: OrganizationMember = {
         id: 'member-1',
         organizationId: 'org-1',
         userId: 'user-1',
         role: 'OWNER',
         createdAt: new Date(),
         updatedAt: new Date()
-      });
+      };
+
+      mockPrismaOrganization.create.mockResolvedValue(mockOrganization);
+      mockCreateOrFindAccount.mockResolvedValue(mockUser);
+      mockPrismaOrganizationMember.create.mockResolvedValue(mockMember);
 
       const data = {
         name: 'Test Org',
@@ -204,7 +226,7 @@ describe('Organization Actions', () => {
   describe('getOrganizations', () => {
     it('should return organizations when user is super admin', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: '1', 
           email: 'admin@test.com',
@@ -212,9 +234,16 @@ describe('Organization Actions', () => {
           isSuperAdmin: true 
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      const mockOrganizations = [
+      type OrganizationWithMembers = Organization & {
+        members: (OrganizationMember & {
+          user: Pick<User, 'id' | 'name' | 'email'>;
+        })[];
+      };
+
+      const mockOrganizations: OrganizationWithMembers[] = [
         {
           id: 'org-1',
           name: 'Org 1',
@@ -225,7 +254,7 @@ describe('Organization Actions', () => {
               id: 'member-1',
               organizationId: 'org-1',
               userId: 'user-1',
-              role: 'OWNER' as const,
+              role: 'OWNER',
               createdAt: new Date(),
               updatedAt: new Date(),
               user: { 
@@ -238,14 +267,14 @@ describe('Organization Actions', () => {
         },
       ];
 
-      mockPrisma.organization.findMany.mockResolvedValue(mockOrganizations);
+      mockPrismaOrganization.findMany.mockResolvedValue(mockOrganizations);
 
       // Act
       const result = await getOrganizations();
 
       // Assert
       expect(result).toEqual(mockOrganizations);
-      expect(mockPrisma.organization.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaOrganization.findMany).toHaveBeenCalledWith({
         include: {
           members: {
             include: {
@@ -264,7 +293,7 @@ describe('Organization Actions', () => {
 
     it('should throw error when user is not super admin', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: '1', 
           email: 'user@test.com',
@@ -272,18 +301,19 @@ describe('Organization Actions', () => {
           isSuperAdmin: false 
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
       // Act & Assert
       await expect(getOrganizations()).rejects.toThrow('Unauthorized');
-      expect(mockPrisma.organization.findMany).not.toHaveBeenCalled();
+      expect(mockPrismaOrganization.findMany).not.toHaveBeenCalled();
     });
   });
 
   describe('deleteOrganization', () => {
     it('should delete organization successfully when user is super admin', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: '1', 
           email: 'admin@test.com',
@@ -291,34 +321,35 @@ describe('Organization Actions', () => {
           isSuperAdmin: true 
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      const mockDeletedOrg = { 
+      const mockDeletedOrg: Organization = { 
         id: 'org-1', 
         name: 'Deleted Org',
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      mockPrisma.organizationMember.deleteMany.mockResolvedValue({ count: 1 });
-      mockPrisma.organization.delete.mockResolvedValue(mockDeletedOrg);
+      mockPrismaOrganizationMember.deleteMany.mockResolvedValue({ count: 1 });
+      mockPrismaOrganization.delete.mockResolvedValue(mockDeletedOrg);
 
       // Act
       const result = await deleteOrganization('org-1');
 
       // Assert
       expect(result).toEqual(mockDeletedOrg);
-      expect(mockPrisma.organizationMember.deleteMany).toHaveBeenCalledWith({
+      expect(mockPrismaOrganizationMember.deleteMany).toHaveBeenCalledWith({
         where: { organizationId: 'org-1' },
       });
-      expect(mockPrisma.organization.delete).toHaveBeenCalledWith({
+      expect(mockPrismaOrganization.delete).toHaveBeenCalledWith({
         where: { id: 'org-1' },
       });
     });
 
     it('should throw error when user is not super admin', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: '1', 
           email: 'user@test.com',
@@ -326,16 +357,17 @@ describe('Organization Actions', () => {
           isSuperAdmin: false 
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
       // Act & Assert
       await expect(deleteOrganization('org-1')).rejects.toThrow('Unauthorized');
-      expect(mockPrisma.organizationMember.deleteMany).not.toHaveBeenCalled();
+      expect(mockPrismaOrganizationMember.deleteMany).not.toHaveBeenCalled();
     });
 
     it('should throw error when organization not found', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: '1', 
           email: 'admin@test.com',
@@ -343,9 +375,10 @@ describe('Organization Actions', () => {
           isSuperAdmin: true 
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      mockPrisma.organizationMember.deleteMany.mockRejectedValue(new Error());
+      mockPrismaOrganizationMember.deleteMany.mockRejectedValue(new Error());
 
       // Act & Assert
       await expect(deleteOrganization('org-1')).rejects.toThrow('Organization not found');
@@ -355,32 +388,33 @@ describe('Organization Actions', () => {
   describe('getUserOrganizationRole', () => {
     it('should return user organization role when session exists', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: 'user-1',
           email: 'user@test.com',
           name: 'User'
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      const mockRole = { role: 'OWNER' as const };
-
-      mockPrisma.organizationMember.findFirst.mockResolvedValue({
+      const mockMember: OrganizationMember = {
         id: 'member-1',
         organizationId: 'org-1',
         userId: 'user-1',
         role: 'OWNER',
         createdAt: new Date(),
         updatedAt: new Date()
-      });
+      };
+
+      mockPrismaOrganizationMember.findFirst.mockResolvedValue({ role: 'OWNER' });
 
       // Act
       const result = await getUserOrganizationRole('org-1', 'user-1');
 
       // Assert
       expect(result).toEqual({ role: 'OWNER' });
-      expect(mockPrisma.organizationMember.findFirst).toHaveBeenCalledWith({
+      expect(mockPrismaOrganizationMember.findFirst).toHaveBeenCalledWith({
         where: {
           organizationId: 'org-1',
           userId: 'user-1',
@@ -400,22 +434,23 @@ describe('Organization Actions', () => {
 
       // Assert
       expect(result).toBeNull();
-      expect(mockPrisma.organizationMember.findFirst).not.toHaveBeenCalled();
+      expect(mockPrismaOrganizationMember.findFirst).not.toHaveBeenCalled();
     });
 
     it('should throw error when database operation fails', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
+      const mockSession: Session = {
         user: { 
           id: 'user-1',
           email: 'user@test.com',
           name: 'User'
         },
         expires: new Date().toISOString()
-      });
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockPrisma.organizationMember.findFirst.mockRejectedValue(new Error('DB Error'));
+      mockPrismaOrganizationMember.findFirst.mockRejectedValue(new Error('DB Error'));
 
       // Act & Assert
       await expect(getUserOrganizationRole('org-1', 'user-1')).rejects.toThrow('Failed to get user organisation role');

@@ -1,10 +1,36 @@
-const { expect, describe, it, beforeEach } = require('@jest/globals');
-
+import { expect, describe, it, beforeEach } from '@jest/globals';
 import { sanitizeUser, verifyPassword } from '@/lib/auth.utils';
+import type { User } from '@prisma/client';
+
+// Define minimal AuthConfig type for testing
+interface AuthConfig {
+  pages?: {
+    signIn?: string;
+  };
+  session?: {
+    strategy?: string;
+  };
+  trustHost?: boolean;
+  providers?: unknown[];
+  callbacks?: {
+    jwt?: (params: { token: unknown; user?: unknown }) => Promise<unknown>;
+    session?: (params: { session: unknown; token: unknown }) => Promise<unknown>;
+  };
+}
+
+interface MockPrismaUser {
+  findUnique: jest.MockedFunction<() => Promise<User | null>>;
+}
+
+interface MockNextAuth {
+  mock: {
+    calls: [[AuthConfig]];
+  };
+}
 
 // Mock NextAuth
 jest.mock('next-auth', () => {
-  return jest.fn((config: any) => ({
+  return jest.fn((config: AuthConfig) => ({
     handlers: {
       GET: jest.fn(),
       POST: jest.fn(),
@@ -31,15 +57,15 @@ jest.mock('@/lib/auth.utils', () => ({
 }));
 
 describe('NextAuth Configuration', () => {
-  let mockPrismaUser: any;
-  let NextAuth: any;
-  let authConfig: any;
+  let mockPrismaUser: MockPrismaUser;
+  let NextAuth: MockNextAuth;
+  let authConfig: AuthConfig;
 
   beforeEach(() => {
     jest.clearAllMocks();
     
     // Get the mocked NextAuth
-    NextAuth = require('next-auth');
+    NextAuth = require('next-auth') as MockNextAuth;
     
     // Import auth.ts to capture the config
     jest.isolateModules(() => {
@@ -52,7 +78,7 @@ describe('NextAuth Configuration', () => {
     // Get mocked prisma
     const { PrismaClient } = require('@prisma/client');
     const prismaInstance = new PrismaClient();
-    mockPrismaUser = prismaInstance.user;
+    mockPrismaUser = prismaInstance.user as MockPrismaUser;
   });
 
   describe('Pages Configuration', () => {
@@ -76,32 +102,34 @@ describe('NextAuth Configuration', () => {
   });
 
   describe('Credentials Provider', () => {
-    let credentialsProvider: any;
+    let credentialsProvider: NonNullable<AuthConfig['providers']>[0];
 
     beforeEach(() => {
-      credentialsProvider = authConfig.providers[0];
+      credentialsProvider = authConfig.providers![0];
     });
 
     it('should configure credentials provider with correct fields', () => {
-      expect(credentialsProvider.credentials).toEqual({
+      expect((credentialsProvider as { credentials?: unknown }).credentials).toEqual({
         username: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       });
     });
 
     describe('authorize function', () => {
+      const authorize = (credentialsProvider as { authorize?: (credentials: unknown) => Promise<unknown> }).authorize!;
+
       it('should throw error when credentials are missing', async () => {
-        await expect(credentialsProvider.authorize(null)).rejects.toThrow('Invalid credentials');
-        await expect(credentialsProvider.authorize({})).rejects.toThrow('Invalid credentials');
-        await expect(credentialsProvider.authorize({ username: 'test' })).rejects.toThrow('Invalid credentials');
-        await expect(credentialsProvider.authorize({ password: 'test' })).rejects.toThrow('Invalid credentials');
+        await expect(authorize(null)).rejects.toThrow('Invalid credentials');
+        await expect(authorize({})).rejects.toThrow('Invalid credentials');
+        await expect(authorize({ username: 'test' })).rejects.toThrow('Invalid credentials');
+        await expect(authorize({ password: 'test' })).rejects.toThrow('Invalid credentials');
       });
 
       it('should throw error when user is not found', async () => {
         mockPrismaUser.findUnique.mockResolvedValue(null);
 
         await expect(
-          credentialsProvider.authorize({
+          authorize({
             username: 'test@example.com',
             password: 'password123',
           })
@@ -113,18 +141,18 @@ describe('NextAuth Configuration', () => {
       });
 
       it('should throw error when password is invalid', async () => {
-        const mockUser = {
+        const mockUser: Partial<User> = {
           id: '1',
           email: 'test@example.com',
           password: 'hashedPassword',
           salt: 'salt',
         };
 
-        mockPrismaUser.findUnique.mockResolvedValue(mockUser);
+        mockPrismaUser.findUnique.mockResolvedValue(mockUser as User);
         (verifyPassword as jest.Mock).mockReturnValue(false);
 
         await expect(
-          credentialsProvider.authorize({
+          authorize({
             username: 'test@example.com',
             password: 'wrongpassword',
           })
@@ -134,7 +162,7 @@ describe('NextAuth Configuration', () => {
       });
 
       it('should return sanitized user when credentials are valid', async () => {
-        const mockUser = {
+        const mockUser: Partial<User> = {
           id: '1',
           email: 'test@example.com',
           password: 'hashedPassword',
@@ -148,11 +176,11 @@ describe('NextAuth Configuration', () => {
           isSuperAdmin: false,
         };
 
-        mockPrismaUser.findUnique.mockResolvedValue(mockUser);
+        mockPrismaUser.findUnique.mockResolvedValue(mockUser as User);
         (verifyPassword as jest.Mock).mockReturnValue(true);
         (sanitizeUser as jest.Mock).mockReturnValue(sanitizedUser);
 
-        const result = await credentialsProvider.authorize({
+        const result = await authorize({
           username: 'test@example.com',
           password: 'correctpassword',
         });
@@ -165,7 +193,7 @@ describe('NextAuth Configuration', () => {
         mockPrismaUser.findUnique.mockRejectedValue(new Error('Database error'));
 
         await expect(
-          credentialsProvider.authorize({
+          authorize({
             username: 'test@example.com',
             password: 'password',
           })
@@ -176,7 +204,7 @@ describe('NextAuth Configuration', () => {
         mockPrismaUser.findUnique.mockRejectedValue('String error');
 
         await expect(
-          credentialsProvider.authorize({
+          authorize({
             username: 'test@example.com',
             password: 'password',
           })
@@ -197,7 +225,7 @@ describe('NextAuth Configuration', () => {
 
         const token = { sub: '123' };
 
-        const result = await authConfig.callbacks.jwt({ token, user });
+        const result = await authConfig.callbacks!.jwt!({ token, user });
 
         expect(result).toEqual({
           sub: '123',
@@ -213,7 +241,7 @@ describe('NextAuth Configuration', () => {
           isSuperAdmin: false,
         };
 
-        const result = await authConfig.callbacks.jwt({ token });
+        const result = await authConfig.callbacks!.jwt!({ token });
 
         expect(result).toEqual(token);
       });
@@ -235,7 +263,7 @@ describe('NextAuth Configuration', () => {
           isSuperAdmin: true,
         };
 
-        const result = await authConfig.callbacks.session({ session, token });
+        const result = await authConfig.callbacks!.session!({ session, token });
 
         expect(result).toEqual({
           user: {
@@ -259,7 +287,7 @@ describe('NextAuth Configuration', () => {
           isSuperAdmin: true,
         };
 
-        const result = await authConfig.callbacks.session({ session, token });
+        const result = await authConfig.callbacks!.session!({ session, token });
 
         expect(result).toEqual(session);
       });

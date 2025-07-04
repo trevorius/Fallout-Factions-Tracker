@@ -92,7 +92,7 @@ describe('cn utility function', () => {
   });
 
   it('handles number values by converting to string', () => {
-    const result = cn('class', 123 as any);
+    const result = cn('class', 123);
     expect(result).toBe('class 123');
   });
 
@@ -107,5 +107,75 @@ describe('cn utility function', () => {
       ''
     );
     expect(result).toBe('string-class array-class object-class');
+  });
+
+  describe('edge cases', () => {
+    it('should handle arrays of classes', () => {
+      const result = cn(['class1', 'class2'], ['class3', 'class4']);
+      expect(result).toBe('class1 class2 class3 class4');
+    });
+
+    it('should handle nested arrays', () => {
+      const result = cn(['class1', ['class2', 'class3']], 'class4');
+      expect(result).toBe('class1 class2 class3 class4');
+    });
+
+    it('should handle objects with boolean values', () => {
+      const result = cn({
+        'active': true,
+        'disabled': false,
+        'highlighted': true,
+      });
+      expect(result).toBe('active highlighted');
+    });
+
+    it('should handle mixed types', () => {
+      const result = cn(
+        'static-class',
+        ['array-class'],
+        { 'object-class': true },
+        false,
+        null,
+        undefined,
+        ''
+      );
+      expect(result).toBe('static-class array-class object-class');
+    });
+
+    it('should handle complex nested structures', () => {
+      const condition = true;
+      const result = cn(
+        'base',
+        condition && 'conditional',
+        {
+          'object-true': true,
+          'object-false': false,
+        },
+        ['array1', condition ? 'array2' : ''],
+      );
+      expect(result).toBe('base conditional object-true array1 array2');
+    });
+
+    it('should return empty string for all falsy values', () => {
+      const result = cn(false, null, undefined, '', 0, NaN);
+      expect(result).toBe('');
+    });
+
+    it('should handle numeric values by converting to string', () => {
+      const result = cn(123, 456.789);
+      expect(result).toBe('123 456.789');
+    });
+
+    it('should handle function that returns a class value', () => {
+      const getClass = () => 'dynamic-class';
+      const result = cn(getClass());
+      expect(result).toBe('dynamic-class');
+    });
+
+    it('should handle Symbol by converting to string', () => {
+      const sym = Symbol('test');
+      const result = cn(sym as unknown as string);
+      expect(result).toBe('Symbol(test)');
+    });
   });
 });

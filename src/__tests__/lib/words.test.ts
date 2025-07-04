@@ -1,4 +1,4 @@
-const { expect, describe, it, beforeEach } = require('@jest/globals');
+import { expect, describe, it } from '@jest/globals';
 import { generatePassword, words } from '@/lib/words';
 
 describe('words utility', () => {
