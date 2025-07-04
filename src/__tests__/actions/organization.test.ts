@@ -30,7 +30,7 @@ jest.mock('@/lib/prisma', () => ({
 }));
 
 // Type the mocked functions
-const mockAuth = jest.mocked(auth);
+const mockAuth = auth as unknown as jest.MockedFunction<() => Promise<Session | null>>;
 const mockCreateOrFindAccount = createOrFindAccount as jest.MockedFunction<typeof createOrFindAccount>;
 
 // Create typed mock helpers
@@ -43,7 +43,7 @@ const mockPrismaOrganization = {
 const mockPrismaOrganizationMember = {
   create: prisma.organizationMember.create as jest.MockedFunction<typeof prisma.organizationMember.create>,
   deleteMany: prisma.organizationMember.deleteMany as jest.MockedFunction<typeof prisma.organizationMember.deleteMany>,
-  findFirst: prisma.organizationMember.findFirst as jest.MockedFunction<typeof prisma.organizationMember.findFirst>,
+  findFirst: prisma.organizationMember.findFirst as unknown as jest.MockedFunction<() => Promise<{ role: string } | null>>,
 };
 
 describe('Organization Actions', () => {
