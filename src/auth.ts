@@ -23,6 +23,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/login',
   },
+  // NEVER use localhost in non-local environments
+  ...(process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'development' && {
+    url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+  }),
   providers: [
     Credentials({
       credentials: {
@@ -86,8 +90,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: 'jwt',
   },
   trustHost: true,
-  // Override any localhost URLs in production
-  ...(process.env.NODE_ENV === 'production' && {
-    url: undefined, // Let NextAuth auto-detect the URL
-  }),
 });

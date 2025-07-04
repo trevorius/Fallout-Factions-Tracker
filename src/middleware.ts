@@ -3,29 +3,45 @@ import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
 import { locales, defaultLocale } from '@/i18n';
 
-// Create the i18n middleware
+// Create the i18n middleware with strict domain handling
 const intlMiddleware = createMiddleware({
   locales,
   defaultLocale,
   localePrefix: 'always',
   // Don't generate alternate links to prevent domain issues
-  alternateLinks: false
+  alternateLinks: false,
+  // Force proper domain handling in all environments
+  domains: undefined
 });
 
 export default auth(async (req) => {
   const { nextUrl } = req;
   const { pathname } = nextUrl;
 
+  // CRITICAL: Prevent localhost redirects in any Vercel environment
+  const isVercelEnvironment = process.env.VERCEL || process.env.VERCEL_ENV;
+  const currentHost = req.headers.get('host');
+  
   // First apply the i18n middleware to handle locale routing
   const intlResponse = intlMiddleware(req);
   
-  // If intl middleware returns a redirect, ensure it preserves the domain
+  // If intl middleware returns a redirect, ensure it NEVER uses localhost
   if (intlResponse && intlResponse.status >= 300 && intlResponse.status < 400) {
     const location = intlResponse.headers.get('location');
-    if (location && location.startsWith('/')) {
+    
+    if (location) {
+      // If it's trying to redirect to localhost, fix it immediately
+      if (location.includes('localhost:3000')) {
+        const fixedLocation = location.replace('http://localhost:3000', `https://${currentHost}`);
+        return NextResponse.redirect(fixedLocation);
+      }
+      
       // If it's a relative redirect, preserve the current domain
-      const newUrl = new URL(location, req.url);
-      return NextResponse.redirect(newUrl);
+      if (location.startsWith('/')) {
+        const protocol = isVercelEnvironment ? 'https' : (req.headers.get('x-forwarded-proto') || 'http');
+        const newUrl = new URL(location, `${protocol}://${currentHost}`);
+        return NextResponse.redirect(newUrl);
+      }
     }
     return intlResponse;
   }

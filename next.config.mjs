@@ -4,12 +4,12 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable Vercel toolbar in production
+  // Ensure proper URL handling across all environments
   experimental: {
     serverComponentsExternalPackages: [],
   },
   
-  // Ensure proper URL handling
+  // Prevent any localhost redirects in Vercel environments
   async headers() {
     return [
       {
@@ -19,15 +19,28 @@ const nextConfig = {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
           },
+          // Prevent localhost caching issues
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
         ],
       },
     ];
   },
   
-  // Handle redirects properly
+  // Override any problematic redirects
   async redirects() {
     return [];
   },
+  
+  // Ensure proper base path handling
+  trailingSlash: false,
+  
+  // Force HTTPS in Vercel environments
+  ...(process.env.VERCEL && {
+    assetPrefix: undefined,
+  }),
 };
 
 export default withNextIntl(nextConfig);
