@@ -398,15 +398,6 @@ describe('Organization Actions', () => {
       };
       mockAuth.mockResolvedValue(mockSession);
 
-      const mockMember: OrganizationMember = {
-        id: 'member-1',
-        organizationId: 'org-1',
-        userId: 'user-1',
-        role: 'OWNER',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
       mockPrismaOrganizationMember.findFirst.mockResolvedValue({ role: 'OWNER' });
 
       // Act
