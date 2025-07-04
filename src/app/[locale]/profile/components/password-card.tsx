@@ -1,6 +1,6 @@
 'use client';
 
-import { updateProfile } from '@/app/profile/profile.actions';
+import { updateProfile } from '../profile.actions';
 import { EditableField } from '@/components/ui-custom/editable-field';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';

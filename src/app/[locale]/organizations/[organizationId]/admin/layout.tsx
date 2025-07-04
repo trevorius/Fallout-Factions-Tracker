@@ -1,4 +1,4 @@
-import RoleGuardian from "@/app/organizations/[organizationId]/components/RoleGuardian";
+import RoleGuardian from "../components/RoleGuardian";
 import { OrganizationRole } from "@prisma/client";
 
 type AdminLayoutProps = {

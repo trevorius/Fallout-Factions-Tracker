@@ -1,6 +1,6 @@
 'use client';
 
-import { updateProfile } from '@/app/profile/profile.actions';
+import { updateProfile } from '../profile.actions';
 import { EditableField } from '@/components/ui-custom/editable-field';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';

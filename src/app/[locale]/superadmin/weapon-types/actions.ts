@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { WeaponTypeState } from "./types";
-import { auth } from "../../../auth";
+import { auth } from "@/auth";
 
 const WeaponTypeSchema = z.object({
   name: z.string().min(1, "Name is required."),

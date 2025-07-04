@@ -3,7 +3,7 @@
 import { prisma as db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { FormState } from "./types";
-import { userIsSuperAdmin } from "../../../lib/auth.utils";
+import { userIsSuperAdmin } from "@/lib/auth.utils";
 
 type WeaponTemplateDefinition = {
   id?: string;

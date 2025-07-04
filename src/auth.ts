@@ -23,6 +23,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/login',
   },
+  // NEVER use localhost in non-local environments
+  ...(process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'development' && {
+    url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+  }),
   providers: [
     Credentials({
       credentials: {

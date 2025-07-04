@@ -1,7 +1,7 @@
 'use client';
 
-import { getManageableRoles } from '@/app/organizations/[organizationId]/helpers/roles.helper';
-import { createUser } from '@/app/organizations/[organizationId]/users/actions';
+import { getManageableRoles } from '../../helpers/roles.helper';
+import { createUser } from '../actions';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

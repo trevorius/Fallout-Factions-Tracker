@@ -630,10 +630,44 @@ model WeaponUpgradeCritical {
 }
 
 model OrganizationUnitTemplate {
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
-  unitTemplate   UnitTemplate @relation(fields: [unitTemplateId], references: [id])
-  unitTemplateId String
+  organization     Organization  @relation(fields: [organizationId], references: [id])
+  organizationId   String
+  unitTemplate     UnitTemplate  @relation(fields: [unitTemplateId], references: [id])
+  unitTemplateId   String
 
   @@id([organizationId, unitTemplateId])
+}
+
+// ---------------------------------------------
+// -------------- I18n Models ------------------
+// ---------------------------------------------
+
+enum TranslatableEntity {
+  ORGANIZATION
+  FACTION
+  UNIT_CLASS
+  INJURY
+  PERK
+  CHEM
+  QUEST
+  STANDARD_WEAPON
+  WEAPON_TYPE
+  TRAIT
+  CRITICAL_EFFECT
+  WEAPON_UPGRADE
+}
+
+model I18n {
+  id          String             @id @default(cuid())
+  entityType  TranslatableEntity
+  entityId    String
+  locale      String
+  fieldName   String
+  translation String             @db.Text
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@unique([entityType, entityId, locale, fieldName])
+  @@index([entityType, entityId])
+  @@index([locale])
 }
