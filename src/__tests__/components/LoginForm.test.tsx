@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { getCsrfToken, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -98,7 +98,7 @@ describe('LoginForm', () => {
 
   it('displays loading state during submission', async () => {
     const user = userEvent.setup();
-    let resolveSignIn: (value: any) => void;
+    let resolveSignIn: (value: { error: string | null }) => void;
     const signInPromise = new Promise((resolve) => {
       resolveSignIn = resolve;
     });

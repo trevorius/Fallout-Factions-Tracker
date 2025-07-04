@@ -1,10 +1,12 @@
-const { expect, describe, it, beforeEach } = require('@jest/globals');
+import { expect, describe, it, beforeEach } from '@jest/globals';
 
 import { updateProfile } from '@/app/profile/profile.actions';
 import { auth } from '@/auth';
 import { hashPassword } from '@/lib/auth.utils';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import type { Session } from 'next-auth';
+import type { User } from '@prisma/client';
 
 // Mock dependencies
 jest.mock('@/auth');
@@ -26,12 +28,13 @@ describe('Profile Actions', () => {
   const mockHashPassword = hashPassword as jest.MockedFunction<typeof hashPassword>;
   const mockRevalidatePath = revalidatePath as jest.MockedFunction<typeof revalidatePath>;
 
-  const mockSession = {
+  const mockSession: Session = {
     user: {
       id: 'user-123',
       email: 'user@example.com',
       name: 'Test User',
     },
+    expires: new Date().toISOString(),
   };
 
   beforeEach(() => {
@@ -53,7 +56,10 @@ describe('Profile Actions', () => {
       });
 
       it('should throw error when session has no user', async () => {
-        mockAuth.mockResolvedValue({} as any);
+        const emptySession: Session = {
+          expires: new Date().toISOString(),
+        };
+        mockAuth.mockResolvedValue(emptySession);
 
         const result = await updateProfile({ field: 'name', value: 'New Name' });
 
@@ -66,8 +72,8 @@ describe('Profile Actions', () => {
 
     describe('Name Update', () => {
       it('should successfully update name', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
-        const updatedUser = { ...mockSession.user, name: 'New Name' };
+        mockAuth.mockResolvedValue(mockSession);
+        const updatedUser: Partial<User> = { ...mockSession.user, name: 'New Name' };
         (prisma.user.update as jest.Mock).mockResolvedValue(updatedUser);
 
         const result = await updateProfile({ field: 'name', value: 'New Name' });
@@ -84,8 +90,8 @@ describe('Profile Actions', () => {
       });
 
       it('should handle empty name', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
-        const updatedUser = { ...mockSession.user, name: '' };
+        mockAuth.mockResolvedValue(mockSession);
+        const updatedUser: Partial<User> = { ...mockSession.user, name: '' };
         (prisma.user.update as jest.Mock).mockResolvedValue(updatedUser);
 
         const result = await updateProfile({ field: 'name', value: '' });
@@ -99,9 +105,9 @@ describe('Profile Actions', () => {
 
     describe('Email Update', () => {
       it('should successfully update email with valid format', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
         (prisma.user.findFirst as jest.Mock).mockResolvedValue(null);
-        const updatedUser = { ...mockSession.user, email: 'newemail@example.com' };
+        const updatedUser: Partial<User> = { ...mockSession.user, email: 'newemail@example.com' };
         (prisma.user.update as jest.Mock).mockResolvedValue(updatedUser);
 
         const result = await updateProfile({ field: 'email', value: 'newemail@example.com' });
@@ -123,7 +129,7 @@ describe('Profile Actions', () => {
       });
 
       it('should reject invalid email format', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
 
         const invalidEmails = [
           'invalidemail',
@@ -146,11 +152,12 @@ describe('Profile Actions', () => {
       });
 
       it('should reject email if already taken', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
-        (prisma.user.findFirst as jest.Mock).mockResolvedValue({
+        mockAuth.mockResolvedValue(mockSession);
+        const existingUser: Partial<User> = {
           id: 'other-user',
           email: 'taken@example.com',
-        });
+        };
+        (prisma.user.findFirst as jest.Mock).mockResolvedValue(existingUser);
 
         const result = await updateProfile({ field: 'email', value: 'taken@example.com' });
 
@@ -164,12 +171,12 @@ describe('Profile Actions', () => {
 
     describe('Password Update', () => {
       it('should successfully update password with valid format', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
         mockHashPassword.mockResolvedValue({
           hash: 'hashed-password',
           salt: 'salt-value',
         });
-        const updatedUser = { ...mockSession.user, password: 'hashed-password' };
+        const updatedUser: Partial<User> = { ...mockSession.user, password: 'hashed-password' };
         (prisma.user.update as jest.Mock).mockResolvedValue(updatedUser);
 
         const result = await updateProfile({ field: 'password', value: 'ValidPassword123' });
@@ -189,7 +196,7 @@ describe('Profile Actions', () => {
       });
 
       it('should reject password shorter than 12 characters', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
 
         const result = await updateProfile({ field: 'password', value: 'Short1' });
 
@@ -201,7 +208,7 @@ describe('Profile Actions', () => {
       });
 
       it('should reject password without lowercase letter', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
 
         const result = await updateProfile({ field: 'password', value: 'UPPERCASEONLY123' });
 
@@ -212,7 +219,7 @@ describe('Profile Actions', () => {
       });
 
       it('should reject password without uppercase letter', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
 
         const result = await updateProfile({ field: 'password', value: 'lowercaseonly123' });
 
@@ -223,12 +230,13 @@ describe('Profile Actions', () => {
       });
 
       it('should accept valid passwords', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
         mockHashPassword.mockResolvedValue({
           hash: 'hashed',
           salt: 'salt',
         });
-        (prisma.user.update as jest.Mock).mockResolvedValue({});
+        const mockUser: Partial<User> = {};
+        (prisma.user.update as jest.Mock).mockResolvedValue(mockUser);
 
         const validPasswords = [
           'ValidPassword123',
@@ -246,7 +254,7 @@ describe('Profile Actions', () => {
 
     describe('Error Handling', () => {
       it('should handle database errors gracefully', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
         (prisma.user.update as jest.Mock).mockRejectedValue(new Error('Database error'));
 
         const result = await updateProfile({ field: 'name', value: 'New Name' });
@@ -258,7 +266,7 @@ describe('Profile Actions', () => {
       });
 
       it('should handle non-Error exceptions', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
         (prisma.user.update as jest.Mock).mockRejectedValue('String error');
 
         const result = await updateProfile({ field: 'name', value: 'New Name' });
@@ -270,7 +278,7 @@ describe('Profile Actions', () => {
       });
 
       it('should handle hash password errors', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
         mockHashPassword.mockRejectedValue(new Error('Hashing failed'));
 
         const result = await updateProfile({ field: 'password', value: 'ValidPassword123' });
@@ -284,8 +292,9 @@ describe('Profile Actions', () => {
 
     describe('Revalidation', () => {
       it('should revalidate path on successful update', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
-        (prisma.user.update as jest.Mock).mockResolvedValue({});
+        mockAuth.mockResolvedValue(mockSession);
+        const mockUser: Partial<User> = {};
+        (prisma.user.update as jest.Mock).mockResolvedValue(mockUser);
 
         await updateProfile({ field: 'name', value: 'New Name' });
 
@@ -294,7 +303,7 @@ describe('Profile Actions', () => {
       });
 
       it('should not revalidate path on failed update', async () => {
-        mockAuth.mockResolvedValue(mockSession as any);
+        mockAuth.mockResolvedValue(mockSession);
         (prisma.user.update as jest.Mock).mockRejectedValue(new Error('Update failed'));
 
         await updateProfile({ field: 'name', value: 'New Name' });

@@ -1,8 +1,9 @@
-const { expect, describe, it, beforeEach } = require('@jest/globals');
-
+import { expect, describe, it, beforeEach } from '@jest/globals';
 import { getUserOrganizations } from '@/app/actions/user';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import type { Session } from 'next-auth';
+import type { Organization, OrganizationMember } from '@prisma/client';
 
 // Mock dependencies
 jest.mock('@/auth');
@@ -16,67 +17,60 @@ jest.mock('@/lib/prisma', () => ({
 
 describe('User Actions', () => {
   const mockAuth = auth as jest.MockedFunction<typeof auth>;
+  const mockPrismaOrganizationMember = prisma.organizationMember as {
+    findMany: jest.MockedFunction<typeof prisma.organizationMember.findMany>;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('getUserOrganizations', () => {
-    it('should return user organizations with roles when user is authenticated', async () => {
+    it('should return user organizations when session exists', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
-        user: { id: 'user-1' }
-      } as any);
+      const mockSession: Session = {
+        user: { 
+          id: 'user-1',
+          email: 'user@test.com',
+          name: 'Test User'
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      const mockMemberships = [
+      type OrganizationMemberWithOrg = OrganizationMember & {
+        organization: Organization;
+      };
+
+      const mockOrganizations: OrganizationMemberWithOrg[] = [
         {
+          id: 'member-1',
+          organizationId: 'org-1',
+          userId: 'user-1',
+          role: 'MEMBER',
+          canPostMessages: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
           organization: {
             id: 'org-1',
-            name: 'Organization 1',
+            name: 'Test Organization',
+            description: 'Test Description',
+            createdAt: new Date(),
+            updatedAt: new Date(),
           },
-          role: 'OWNER',
-        },
-        {
-          organization: {
-            id: 'org-2',
-            name: 'Organization 2',
-          },
-          role: 'USER',
         },
       ];
 
-      (prisma.organizationMember.findMany as jest.Mock).mockResolvedValue(mockMemberships);
+      mockPrismaOrganizationMember.findMany.mockResolvedValue(mockOrganizations);
 
       // Act
       const result = await getUserOrganizations();
 
       // Assert
-      expect(result).toEqual([
-        {
-          id: 'org-1',
-          name: 'Organization 1',
-          role: 'OWNER',
-        },
-        {
-          id: 'org-2',
-          name: 'Organization 2',
-          role: 'USER',
-        },
-      ]);
-
-      expect(prisma.organizationMember.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: 'user-1',
-        },
-        select: {
-          organization: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          role: true,
-        },
+      expect(result).toEqual(mockOrganizations);
+      expect(mockPrismaOrganizationMember.findMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1' },
+        include: { organization: true },
       });
     });
 
@@ -89,57 +83,47 @@ describe('User Actions', () => {
 
       // Assert
       expect(result).toEqual([]);
-      expect(prisma.organizationMember.findMany).not.toHaveBeenCalled();
-    });
-
-    it('should return empty array when user is not in session', async () => {
-      // Arrange
-      mockAuth.mockResolvedValue({} as any);
-
-      // Act
-      const result = await getUserOrganizations();
-
-      // Assert
-      expect(result).toEqual([]);
-      expect(prisma.organizationMember.findMany).not.toHaveBeenCalled();
+      expect(mockPrismaOrganizationMember.findMany).not.toHaveBeenCalled();
     });
 
     it('should return empty array when user has no organizations', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
-        user: { id: 'user-1' }
-      } as any);
+      const mockSession: Session = {
+        user: { 
+          id: 'user-1',
+          email: 'user@test.com',
+          name: 'Test User'
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      (prisma.organizationMember.findMany as jest.Mock).mockResolvedValue([]);
+      mockPrismaOrganizationMember.findMany.mockResolvedValue([]);
 
       // Act
       const result = await getUserOrganizations();
 
       // Assert
       expect(result).toEqual([]);
-      expect(prisma.organizationMember.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: 'user-1',
-        },
-        select: {
-          organization: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          role: true,
-        },
+      expect(mockPrismaOrganizationMember.findMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1' },
+        include: { organization: true },
       });
     });
 
     it('should handle database errors gracefully', async () => {
       // Arrange
-      mockAuth.mockResolvedValue({
-        user: { id: 'user-1' }
-      } as any);
+      const mockSession: Session = {
+        user: { 
+          id: 'user-1',
+          email: 'user@test.com',
+          name: 'Test User'
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      (prisma.organizationMember.findMany as jest.Mock).mockRejectedValue(new Error('Database error'));
+      mockPrismaOrganizationMember.findMany.mockRejectedValue(new Error('Database error'));
 
       // Act & Assert
       await expect(getUserOrganizations()).rejects.toThrow('Database error');

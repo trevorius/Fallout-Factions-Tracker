@@ -30,7 +30,7 @@ interface MockNextAuth {
 
 // Mock NextAuth
 jest.mock('next-auth', () => {
-  return jest.fn((config: AuthConfig) => ({
+  return jest.fn(() => ({
     handlers: {
       GET: jest.fn(),
       POST: jest.fn(),

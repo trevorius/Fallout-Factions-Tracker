@@ -1,4 +1,4 @@
-const { expect, describe, it } = require('@jest/globals');
+import { expect, describe, it } from '@jest/globals';
 
 import { Theme, isValidTheme, getValidTheme } from '@/lib/types/theme';
 
@@ -39,12 +39,12 @@ describe('Theme utilities', () => {
     });
 
     it('should return false for non-string values', () => {
-      expect(isValidTheme(null as any)).toBe(false);
-      expect(isValidTheme(undefined as any)).toBe(false);
-      expect(isValidTheme(123 as any)).toBe(false);
-      expect(isValidTheme({} as any)).toBe(false);
-      expect(isValidTheme([] as any)).toBe(false);
-      expect(isValidTheme(true as any)).toBe(false);
+      expect(isValidTheme(null as unknown as string)).toBe(false);
+      expect(isValidTheme(undefined as unknown as string)).toBe(false);
+      expect(isValidTheme(123 as unknown as string)).toBe(false);
+      expect(isValidTheme({} as unknown as string)).toBe(false);
+      expect(isValidTheme([] as unknown as string)).toBe(false);
+      expect(isValidTheme(true as unknown as string)).toBe(false);
     });
 
     it('should work as type guard', () => {
@@ -82,34 +82,34 @@ describe('Theme utilities', () => {
     });
 
     it('should handle type coercion gracefully', () => {
-      expect(getValidTheme(123 as any)).toBe('light');
-      expect(getValidTheme({} as any)).toBe('light');
-      expect(getValidTheme([] as any)).toBe('light');
-      expect(getValidTheme(true as any)).toBe('light');
-      expect(getValidTheme(false as any)).toBe('light');
+      expect(getValidTheme(123 as unknown as string)).toBe('light');
+      expect(getValidTheme({} as unknown as string)).toBe('light');
+      expect(getValidTheme([] as unknown as string)).toBe('light');
+      expect(getValidTheme(true as unknown as string)).toBe('light');
+      expect(getValidTheme(false as unknown as string)).toBe('light');
     });
 
     it('should always return a valid theme', () => {
-      const testCases = [
+      const testCases: unknown[] = [
         'light', 'dark', 'blue', 'invalid', null, undefined,
         '', 'random', 123, {}, [], true, false
       ];
 
       testCases.forEach(testCase => {
-        const result = getValidTheme(testCase as any);
+        const result = getValidTheme(testCase as string);
         expect(isValidTheme(result)).toBe(true);
       });
     });
 
     it('should return light as the default fallback', () => {
       // Test multiple invalid cases to ensure consistent fallback
-      const invalidCases = [
+      const invalidCases: unknown[] = [
         null, undefined, '', 'invalid', 'unknown',
         123, {}, [], true, false, NaN, Infinity
       ];
 
       invalidCases.forEach(testCase => {
-        expect(getValidTheme(testCase as any)).toBe(Theme.LIGHT);
+        expect(getValidTheme(testCase as string)).toBe(Theme.LIGHT);
       });
     });
 
