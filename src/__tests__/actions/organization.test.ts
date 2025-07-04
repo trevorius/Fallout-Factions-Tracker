@@ -30,7 +30,7 @@ jest.mock('@/lib/prisma', () => ({
 }));
 
 // Type the mocked functions
-const mockAuth = auth as jest.MockedFunction<typeof auth>;
+const mockAuth = auth as jest.MockedFunction<() => Promise<Session | null>>;
 const mockCreateOrFindAccount = createOrFindAccount as jest.MockedFunction<typeof createOrFindAccount>;
 
 // Create typed mock helpers
