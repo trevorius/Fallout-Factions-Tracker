@@ -52,7 +52,7 @@ graph TD
 
 ### How It Works
 
-1.  When an admin navigates to the template management page, the `page.tsx` file fetches all base templates and the organization's current template selections from the database.
+1.  When an admin navigates to the template management page, the [`page.tsx`](../src/app/organizations/[organizationId]/admin/templates/page.tsx) file fetches all base templates and the organization's current template selections from the database.
 2.  This data is passed to the `TemplateAccessForm` client component, which manages the state of the user's selections.
 3.  The form uses the `TemplateSection` component to display each category of templates in its own card with selection controls.
 4.  When the admin saves their changes, the form calls the `updateTemplateAccess` server action.

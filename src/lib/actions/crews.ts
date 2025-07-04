@@ -335,9 +335,88 @@ export async function deleteUnitFromCrew(
     revalidatePath(
       `/organizations/${organizationId}/crews/${unitToDelete.crewId}/edit`
     );
-    return { success: true, message: "Unit deleted." };
+    return { success: true, message: "Unit deleted successfully." };
   } catch (error) {
     console.error("Failed to delete unit:", error);
     return { success: false, message: "Failed to delete unit." };
   }
+}
+
+export async function getCrewForRoster(crewId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    // Handle unauthorized access; you might throw an error or return null
+    // depending on how you want to handle this at the page level.
+    console.error("Unauthorized access attempt to getCrewForRoster");
+    return null;
+  }
+
+  const crew = await prisma.crew.findUnique({
+    where: {
+      id: crewId,
+      // To ensure a user can only view their own crew's roster,
+      // you could uncomment the following line:
+      // userId: session.user.id,
+    },
+    include: {
+      faction: { select: { name: true } },
+      user: { select: { name: true } },
+      units: {
+        // We no longer sort here, as we'll do a custom sort below
+        // orderBy: { name: "asc" },
+        include: {
+          unitClass: { select: { name: true } },
+          injuries: {
+            include: { injury: { select: { name: true, description: true } } },
+          },
+          perks: {
+            include: { perk: { select: { name: true, description: true } } },
+          },
+          weapons: {
+            orderBy: { name: "asc" }, // Sort weapons alphabetically
+            include: {
+              standardWeapon: {
+                include: {
+                  traits: { include: { trait: { select: { name: true } } } },
+                  criticalEffects: {
+                    include: {
+                      criticalEffect: { select: { name: true } },
+                    },
+                  },
+                },
+              },
+              appliedUpgrades: {
+                include: {
+                  weaponUpgrade: {
+                    select: { name: true, description: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (crew?.units) {
+    const classOrder = ["LEADER", "CHAMPION", "GRUNT"];
+
+    crew.units.sort((a, b) => {
+      const aIndex = classOrder.indexOf(a.unitClass.name.toUpperCase());
+      const bIndex = classOrder.indexOf(b.unitClass.name.toUpperCase());
+
+      const aScore = aIndex === -1 ? classOrder.length : aIndex;
+      const bScore = bIndex === -1 ? classOrder.length : bIndex;
+
+      if (aScore !== bScore) {
+        return aScore - bScore;
+      }
+
+      // If classes are the same, sort by name
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  return crew;
 }

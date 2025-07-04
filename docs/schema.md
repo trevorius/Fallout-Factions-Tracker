@@ -1,6 +1,6 @@
 # Fallout Factions Tracker - Database Schema
 
-This document provides a visual representation of the database schema for the Fallout Factions Tracker application. The diagram below is generated from the `prisma/schema.prisma` file and illustrates the relationships between all data models.
+This document provides a visual representation of the database schema for the Fallout Factions Tracker application. The diagram below is generated from the [`prisma/schema.prisma`](../prisma/schema.prisma) file and illustrates the relationships between all data models.
 
 ## Schema Diagram
 
