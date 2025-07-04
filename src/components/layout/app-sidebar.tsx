@@ -44,7 +44,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { ThemeToggle } from "../ui/theme-toggle";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -335,46 +334,40 @@ export function AppSidebar() {
       <SidebarSeparator />
       {session?.user && (
         <SidebarFooter
-          className="border-t p-4 group-data-[collapsible=icon]:p-2"
+          className="px-6 flex flex-col gap-4 group-data-[collapsible=icon]:px-2"
           data-testid="sidebar-footer"
         >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-3 px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center hover:cursor-pointer">
-                <Avatar>
-                  <AvatarFallback>
-                    {session?.user?.name
-                      ? getInitials(session.user.name)
-                      : "??"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm font-medium">
-                    {session?.user?.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-                    {session?.user?.email}
-                  </span>
+              <SidebarMenuButton className="w-full justify-start">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                      {getInitials(session?.user?.name ?? "Unknown User")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-medium">
+                      {session?.user?.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {session?.user?.email}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </SidebarMenuButton>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
               <DropdownMenuItem asChild>
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
+                <Link href="/profile">
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive cursor-pointer"
-                onClick={() => signOut({ callbackUrl: "/login" })}
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                <span>Logout</span>
+              <DropdownMenuItem onClick={() => signOut()}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

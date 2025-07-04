@@ -1,20 +1,22 @@
-'use server';
+"use server";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { CrewRosterPDF } from "@/components/crews/crew-roster-pdf";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
-import { ThemeName, getValidTheme } from "@/lib/types/theme";
+import { getValidTheme } from "@/lib/types/theme";
 
-type PDFGenerationResult = {
-  success: true;
-  buffer: Buffer;
-  filename: string;
-} | {
-  success: false;
-  error: string;
-};
+type PDFGenerationResult =
+  | {
+      success: true;
+      buffer: Buffer;
+      filename: string;
+    }
+  | {
+      success: false;
+      error: string;
+    };
 
 /**
  * Generate PDF for crew roster
@@ -32,7 +34,7 @@ export async function generateCrewRosterPDF(
     if (!session?.user?.id) {
       return {
         success: false,
-        error: "Authentication required"
+        error: "Authentication required",
       };
     }
 
@@ -49,7 +51,9 @@ export async function generateCrewRosterPDF(
           include: {
             unitClass: { select: { name: true } },
             injuries: {
-              include: { injury: { select: { name: true, description: true } } },
+              include: {
+                injury: { select: { name: true, description: true } },
+              },
             },
             perks: {
               include: { perk: { select: { name: true, description: true } } },
@@ -83,7 +87,7 @@ export async function generateCrewRosterPDF(
     if (!crewData) {
       return {
         success: false,
-        error: "Crew not found or access denied"
+        error: "Crew not found or access denied",
       };
     }
 
@@ -100,20 +104,21 @@ export async function generateCrewRosterPDF(
     const buffer = await renderToBuffer(pdfDocument as any);
 
     // Generate safe filename
-    const filename = `${crewData.name.replace(/[^a-zA-Z0-9]/g, "_")}_roster.pdf`;
+    const filename = `${crewData.name.replace(
+      /[^a-zA-Z0-9]/g,
+      "_"
+    )}_roster.pdf`;
 
     return {
       success: true,
       buffer: Buffer.from(buffer),
-      filename
+      filename,
     };
-
   } catch (error) {
     console.error("Error generating PDF:", error);
     return {
       success: false,
-      error: "Failed to generate PDF"
+      error: "Failed to generate PDF",
     };
   }
 }
-

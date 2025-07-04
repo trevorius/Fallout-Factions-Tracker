@@ -1,5 +1,7 @@
 "use client";
 
+import { Moon, Sun } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,8 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/providers/theme-provider";
-import { Moon, Sun, Gamepad2 } from "lucide-react";
-import { Theme, THEME_OPTIONS } from "@/lib/types/theme";
+import { Gamepad2 } from "lucide-react";
+import { THEME_OPTIONS } from "@/lib/types/theme";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -17,15 +19,20 @@ export function ThemeToggle() {
   // Helper to get icon component by name
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
-      case 'Sun': return Sun;
-      case 'Moon': return Moon;
-      case 'Gamepad2': return Gamepad2;
-      default: return Sun;
+      case "Sun":
+        return Sun;
+      case "Moon":
+        return Moon;
+      case "Gamepad2":
+        return Gamepad2;
+      default:
+        return Sun;
     }
   };
 
   // Find current theme option
-  const currentThemeOption = THEME_OPTIONS.find(option => option.value === theme) || THEME_OPTIONS[0];
+  const currentThemeOption =
+    THEME_OPTIONS.find((option) => option.value === theme) || THEME_OPTIONS[0];
   const CurrentIcon = getIconComponent(currentThemeOption.icon);
 
   return (
@@ -40,7 +47,10 @@ export function ThemeToggle() {
         {THEME_OPTIONS.map((option) => {
           const IconComponent = getIconComponent(option.icon);
           return (
-            <DropdownMenuItem key={option.value} onClick={() => setTheme(option.value)}>
+            <DropdownMenuItem
+              key={option.value}
+              onClick={() => setTheme(option.value)}
+            >
               <IconComponent className="mr-2 h-4 w-4" />
               {option.label}
             </DropdownMenuItem>

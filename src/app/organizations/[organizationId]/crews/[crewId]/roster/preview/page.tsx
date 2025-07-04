@@ -1,24 +1,24 @@
 import { CrewRosterViewer } from "@/components/crews/crew-roster-viewer";
-import { ThemeName, getValidTheme } from "@/lib/types/theme";
+import { getValidTheme, ThemeName } from "@/lib/types/theme";
 
 interface CrewRosterPreviewPageProps {
-  params: {
+  params: Promise<{
     crewId: string;
-    organizationId: string; // Added to match the new route
-  };
-  searchParams: {
+    organizationId: string;
+  }>;
+  searchParams: Promise<{
     theme?: string;
-  };
+  }>;
 }
 
-export default function CrewRosterPreviewPage({
+export default async function CrewRosterPreviewPage({
   params,
   searchParams,
 }: CrewRosterPreviewPageProps) {
-  const { crewId } = params;
-
+  const { crewId } = await params;
+  const { theme: themeParam } = await searchParams;
   // Validate theme from search params, default to a sensible value
-  const theme: ThemeName = getValidTheme(searchParams.theme);
+  const theme: ThemeName = getValidTheme(themeParam);
 
   return <CrewRosterViewer crewId={crewId} theme={theme} />;
 }

@@ -32,7 +32,7 @@ import {
 } from "../ui/table";
 import { Wrench, Trash2, UserCog, FileDown } from "lucide-react";
 import { Separator } from "../ui/separator";
-import { Theme, detectThemeFromDOM } from "@/lib/types/theme";
+import { detectThemeFromDOM } from "@/lib/types/theme";
 
 type CrewForEdit = Prisma.CrewGetPayload<{
   include: {
@@ -473,11 +473,11 @@ export function EditCrewForm({
     try {
       // Detect current theme using enum
       const theme = detectThemeFromDOM();
-      
+
       const response = await fetch(
         `/api/crews/${crew.id}/pdf?organizationId=${organizationId}&theme=${theme}`
       );
-      
+
       if (!response.ok) {
         throw new Error("Failed to generate PDF");
       }
@@ -510,9 +510,9 @@ export function EditCrewForm({
     <div className="relative">
       {/* PDF Button - Positioned at top right */}
       <div className="absolute top-0 right-0 z-10">
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={handleGeneratePDF}
           className="flex items-center gap-2 bg-background border shadow-md hover:shadow-lg"
         >
