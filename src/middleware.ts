@@ -9,9 +9,7 @@ const intlMiddleware = createMiddleware({
   defaultLocale,
   localePrefix: 'always',
   // Don't generate alternate links to prevent domain issues
-  alternateLinks: false,
-  // Force proper domain handling in all environments
-  domains: undefined
+  alternateLinks: false
 });
 
 export default auth(async (req) => {
@@ -22,7 +20,7 @@ export default auth(async (req) => {
   const isVercelEnvironment = process.env.VERCEL || process.env.VERCEL_ENV;
   const currentHost = req.headers.get('host');
   
-  // First apply the i18n middleware to handle locale routing
+  // Let next-intl handle the locale routing first
   const intlResponse = intlMiddleware(req);
   
   // If intl middleware returns a redirect, ensure it NEVER uses localhost
@@ -32,21 +30,20 @@ export default auth(async (req) => {
     if (location) {
       // If it's trying to redirect to localhost, fix it immediately
       if (location.includes('localhost:3000')) {
-        const fixedLocation = location.replace('http://localhost:3000', `https://${currentHost}`);
+        const protocol = isVercelEnvironment ? 'https' : 'http';
+        const fixedLocation = location.replace('http://localhost:3000', `${protocol}://${currentHost}`);
         return NextResponse.redirect(fixedLocation);
-      }
-      
-      // If it's a relative redirect, preserve the current domain
-      if (location.startsWith('/')) {
-        const protocol = isVercelEnvironment ? 'https' : (req.headers.get('x-forwarded-proto') || 'http');
-        const newUrl = new URL(location, `${protocol}://${currentHost}`);
-        return NextResponse.redirect(newUrl);
       }
     }
     return intlResponse;
   }
+  
+  // If intl middleware handled the request successfully, return it
+  if (intlResponse) {
+    return intlResponse;
+  }
 
-  // Extract locale from pathname
+  // Extract locale from pathname for auth checks
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
@@ -63,7 +60,8 @@ export default auth(async (req) => {
   ) {
     if (!req.auth?.user?.isSuperAdmin) {
       const locale = pathnameHasLocale ? pathname.split('/')[1] : defaultLocale;
-      return Response.redirect(new URL(`/${locale}/unauthorized`, nextUrl));
+      const protocol = isVercelEnvironment ? 'https' : (req.headers.get('x-forwarded-proto') || 'http');
+      return NextResponse.redirect(new URL(`/${locale}/unauthorized`, `${protocol}://${currentHost}`));
     }
   }
 
@@ -75,12 +73,10 @@ export default auth(async (req) => {
     // Check if user is authenticated
     if (!req.auth?.user) {
       const locale = pathnameHasLocale ? pathname.split('/')[1] : defaultLocale;
-      return Response.redirect(new URL(`/${locale}/auth/login`, nextUrl));
+      const protocol = isVercelEnvironment ? 'https' : (req.headers.get('x-forwarded-proto') || 'http');
+      return NextResponse.redirect(new URL(`/${locale}/auth/login`, `${protocol}://${currentHost}`));
     }
 
-    // Instead of checking the database directly in middleware,
-    // we'll verify membership in the route handlers
-    // This avoids Edge Runtime database limitations
     return NextResponse.next();
   }
 
@@ -88,7 +84,8 @@ export default auth(async (req) => {
   if (pathnameWithoutLocale.startsWith('/profile')) {
     if (!req.auth?.user) {
       const locale = pathnameHasLocale ? pathname.split('/')[1] : defaultLocale;
-      return Response.redirect(new URL(`/${locale}/auth/login`, nextUrl));
+      const protocol = isVercelEnvironment ? 'https' : (req.headers.get('x-forwarded-proto') || 'http');
+      return NextResponse.redirect(new URL(`/${locale}/auth/login`, `${protocol}://${currentHost}`));
     }
   }
 
