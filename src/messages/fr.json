@@ -1,0 +1,100 @@
+{
+  "common": {
+    "dashboard": "Tableau de bord",
+    "users": "Utilisateurs",
+    "profile": "Profil",
+    "signOut": "Se déconnecter",
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "back": "Retour",
+    "close": "Fermer",
+    "submit": "Soumettre",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "noResults": "Aucun résultat trouvé"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "loginTitle": "Connectez-vous à votre compte",
+    "email": "Courriel",
+    "password": "Mot de passe",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter"
+  },
+  "organization": {
+    "organizations": "Organisations",
+    "noOrganizations": "Aucune organisation disponible",
+    "noOrganizationsDesc": "Vous n'êtes membre d'aucune organisation.",
+    "selectOrganization": "Sélectionnez votre organisation",
+    "selectOrganizationDesc": "Choisissez une organisation pour continuer",
+    "switchOrganization": "Changer d'organisation",
+    "organizationSettings": "Paramètres de l'organisation"
+  },
+  "superAdmin": {
+    "title": "Super Administrateur",
+    "dashboard": "Tableau de bord",
+    "organizations": "Organisations",
+    "factions": "Factions",
+    "unitClasses": "Classes d'unités",
+    "weapons": "Armes",
+    "traitsAndPerks": "Traits et avantages",
+    "weaponTraits": "Traits d'armes",
+    "criticalEffects": "Effets critiques",
+    "perks": "Avantages",
+    "weaponTypes": "Types d'armes"
+  },
+  "admin": {
+    "title": "Administrateur",
+    "templateManagement": "Gestion des modèles"
+  },
+  "crew": {
+    "crews": "Équipages",
+    "createCrew": "Créer un équipage",
+    "editCrew": "Modifier l'équipage",
+    "deleteCrew": "Supprimer l'équipage",
+    "crewName": "Nom de l'équipage",
+    "caps": "Capsules",
+    "parts": "Pièces",
+    "scout": "Éclaireur",
+    "reach": "Portée",
+    "xp": "XP",
+    "tier": "Niveau",
+    "reputation": "Réputation",
+    "faction": "Faction"
+  },
+  "unit": {
+    "units": "Unités",
+    "createUnit": "Créer une unité",
+    "editUnit": "Modifier l'unité",
+    "deleteUnit": "Supprimer l'unité",
+    "unitName": "Nom de l'unité",
+    "unitClass": "Classe d'unité",
+    "status": {
+      "active": "Actif",
+      "absent": "Absent",
+      "dead": "Mort",
+      "legendary": "Légendaire"
+    }
+  },
+  "errors": {
+    "notFound": "Page non trouvée",
+    "notFoundDesc": "La page que vous recherchez n'existe pas.",
+    "unauthorized": "Non autorisé",
+    "unauthorizedDesc": "Vous n'avez pas la permission d'accéder à cette ressource.",
+    "somethingWrong": "Quelque chose s'est mal passé!",
+    "errorOccurred": "Une erreur s'est produite",
+    "tryAgain": "Réessayer"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "users": "Utilisateurs",
+    "crews": "Équipages",
+    "admin": "Administrateur",
+    "organization": "Organisation"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "profile": "Profile",
+    "signOut": "Sign out",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "back": "Back",
+    "close": "Close",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "noResults": "No results found"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "loginTitle": "Sign in to your account",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
+  },
+  "organization": {
+    "organizations": "Organizations",
+    "noOrganizations": "No Organizations Available",
+    "noOrganizationsDesc": "You are not a member of any organizations.",
+    "selectOrganization": "Select Your Organization",
+    "selectOrganizationDesc": "Choose an organization to continue",
+    "switchOrganization": "Switch organization",
+    "organizationSettings": "Organization Settings"
+  },
+  "superAdmin": {
+    "title": "Super Admin",
+    "dashboard": "Dashboard",
+    "organizations": "Organizations",
+    "factions": "Factions",
+    "unitClasses": "Unit Classes",
+    "weapons": "Weapons",
+    "traitsAndPerks": "Traits & Perks",
+    "weaponTraits": "Weapon Traits",
+    "criticalEffects": "Critical Effects",
+    "perks": "Perks",
+    "weaponTypes": "Weapon Types"
+  },
+  "admin": {
+    "title": "Admin",
+    "templateManagement": "Template Management"
+  },
+  "crew": {
+    "crews": "Crews",
+    "createCrew": "Create Crew",
+    "editCrew": "Edit Crew",
+    "deleteCrew": "Delete Crew",
+    "crewName": "Crew Name",
+    "caps": "Caps",
+    "parts": "Parts",
+    "scout": "Scout",
+    "reach": "Reach",
+    "xp": "XP",
+    "tier": "Tier",
+    "reputation": "Reputation",
+    "faction": "Faction"
+  },
+  "unit": {
+    "units": "Units",
+    "createUnit": "Create Unit",
+    "editUnit": "Edit Unit",
+    "deleteUnit": "Delete Unit",
+    "unitName": "Unit Name",
+    "unitClass": "Unit Class",
+    "status": {
+      "active": "Active",
+      "absent": "Absent",
+      "dead": "Dead",
+      "legendary": "Legendary"
+    }
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "notFoundDesc": "The page you're looking for doesn't exist.",
+    "unauthorized": "Unauthorized",
+    "unauthorizedDesc": "You don't have permission to access this resource.",
+    "somethingWrong": "Something went wrong!",
+    "errorOccurred": "An error occurred",
+    "tryAgain": "Try again"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "crews": "Crews",
+    "admin": "Admin",
+    "organization": "Organization"
+  }
+}

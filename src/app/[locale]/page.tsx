@@ -1,13 +1,21 @@
 import { getUserOrganizations } from '@/app/actions/user';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 
-export default async function HomePage() {
+export default async function HomePage({
+  params
+}: {
+  params: { locale: string }
+}) {
+  const { locale } = await params;
   const session = await auth();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect(`/${locale}/login`);
   }
+  
+  const t = await getTranslations('organization');
 
   const organizations = await getUserOrganizations();
 
@@ -16,9 +24,9 @@ export default async function HomePage() {
     return (
       <div className='flex h-full items-center justify-center'>
         <div className='text-center'>
-          <h1 className='text-2xl font-bold'>No Organizations Available</h1>
+          <h1 className='text-2xl font-bold'>{t('noOrganizations')}</h1>
           <p className='mt-2 text-muted-foreground'>
-            You are not a member of any organizations.
+            {t('noOrganizationsDesc')}
           </p>
         </div>
       </div>
@@ -27,16 +35,16 @@ export default async function HomePage() {
 
   // If user has exactly one organization, redirect to it
   if (organizations.length === 1) {
-    redirect(`/organizations/${organizations[0].id}`);
+    redirect(`/${locale}/organizations/${organizations[0].id}`);
   }
 
   // If user has multiple organizations, show selector
   return (
     <div className='flex h-full items-center justify-center'>
       <div className='text-center'>
-        <h1 className='text-2xl font-bold'>Select Your Organization</h1>
+        <h1 className='text-2xl font-bold'>{t('selectOrganization')}</h1>
         <p className='mt-2 mb-4 text-muted-foreground'>
-          Choose an organization to continue
+          {t('selectOrganizationDesc')}
         </p>
       </div>
     </div>

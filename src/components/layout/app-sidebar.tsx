@@ -17,6 +17,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from 'next-intl';
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import {
   DropdownMenu,
@@ -52,6 +53,13 @@ export function AppSidebar() {
   const { organizationState, organizationRoleState } = useOrganization();
   const [organizationRole] = organizationRoleState;
   const [organization] = organizationState;
+  
+  const t = useTranslations();
+  const tNav = useTranslations('navigation');
+  const tSuper = useTranslations('superAdmin');
+  const tAdmin = useTranslations('admin');
+  const tCrew = useTranslations('crew');
+  const tCommon = useTranslations('common');
 
   const ownerShow = organizationRole?.toString() === OrganizationRole.OWNER;
   const adminShow =
@@ -69,19 +77,19 @@ export function AppSidebar() {
 
   const OrganizationNavigation = [
     {
-      name: "Dashboard",
+      name: tNav('dashboard'),
       href: `/organizations/${organization?.id}`,
       icon: LayoutDashboard,
       show: session?.user,
     },
     {
-      name: "Users",
+      name: tNav('users'),
       href: `/organizations/${organization?.id}/users`,
       icon: Users,
       show: userShow,
     },
     {
-      name: "Crews",
+      name: tCrew('crews'),
       href: `/organizations/${organization?.id}/crews`,
       icon: Shield,
       show: userShow,
@@ -89,12 +97,12 @@ export function AppSidebar() {
   ];
 
   const adminNavigation = {
-    name: "Admin",
+    name: tAdmin('title'),
     icon: Settings,
     show: adminShow,
     subItems: [
       {
-        name: "Template Management",
+        name: tAdmin('templateManagement'),
         href: `/organizations/${organization?.id}/admin/templates`,
         show: adminShow,
       },
@@ -103,31 +111,31 @@ export function AppSidebar() {
 
   const SuperAdminNavigation = [
     {
-      name: "Dashboard",
+      name: tSuper('dashboard'),
       href: "/superadmin",
       icon: LayoutDashboard,
       show: session?.user,
     },
     {
-      name: "Organizations",
+      name: tSuper('organizations'),
       href: "/superadmin/organization",
       icon: Building2,
       show: session?.user?.isSuperAdmin,
     },
     {
-      name: "Factions",
+      name: tSuper('factions'),
       href: "/superadmin/factions",
       icon: Swords,
       show: session?.user?.isSuperAdmin,
     },
     {
-      name: "Unit Classes",
+      name: tSuper('unitClasses'),
       href: "/superadmin/unit-classes",
       icon: Users,
       show: session?.user?.isSuperAdmin,
     },
     {
-      name: "Weapons",
+      name: tSuper('weapons'),
       href: "/superadmin/standard-weapons",
       icon: Swords,
       show: session?.user?.isSuperAdmin,
@@ -135,28 +143,28 @@ export function AppSidebar() {
   ];
 
   const traitsAndPerks = {
-    name: "Traits & Perks",
+    name: tSuper('traitsAndPerks'),
     icon: Tags,
     show: session?.user?.isSuperAdmin,
     subItems: [
       {
-        name: "Weapon Traits",
+        name: tSuper('weaponTraits'),
         href: "/superadmin/traits",
         show: session?.user?.isSuperAdmin,
       },
       {
-        name: "Critical Effects",
+        name: tSuper('criticalEffects'),
         href: "/superadmin/critical-effects",
         show: session?.user?.isSuperAdmin,
       },
       {
-        name: "Perks",
+        name: tSuper('perks'),
         href: "/superadmin/perks",
         show: session?.user?.isSuperAdmin,
       },
 
       {
-        name: "Weapon Types",
+        name: tSuper('weaponTypes'),
         href: "/superadmin/weapon-types",
         show: session?.user?.isSuperAdmin,
       },
@@ -183,7 +191,7 @@ export function AppSidebar() {
         {isSuperAdmin && (
           <>
             <SidebarGroup>
-              <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
+              <SidebarGroupLabel>{tSuper('title')}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {SuperAdminNavigation.filter((item) => item.show).map(
@@ -259,7 +267,7 @@ export function AppSidebar() {
         )}
         {organization && (
           <SidebarGroup>
-            <SidebarGroupLabel>Organization</SidebarGroupLabel>
+            <SidebarGroupLabel>{tNav('organization')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {OrganizationNavigation.filter((item) => item.show).map(
@@ -361,13 +369,13 @@ export function AppSidebar() {
               <DropdownMenuItem asChild>
                 <Link href="/profile">
                   <User className="w-4 h-4 mr-2" />
-                  Profile
+                  {tCommon('profile')}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => signOut()}>
                 <LogOut className="w-4 h-4 mr-2" />
-                Sign out
+                {tCommon('signOut')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
