@@ -16,8 +16,17 @@ I've successfully implemented comprehensive GitHub Actions workflows for automat
 - 🏗️ Verifies build process
 - 🧪 Executes Jest tests with coverage
 - 📊 Uploads coverage to Codecov
-- 📈 Comments coverage on PRs
+- 📈 Comments coverage on PRs (requires permissions)
 - 🛡️ Continues on test failures to ensure coverage is still generated
+
+### 1a. `.github/workflows/test-simple.yml` - Simplified Test Workflow (Fallback)
+**Purpose**: Alternative workflow without PR commenting to avoid permission issues
+
+**Key Features**:
+- ✅ Same functionality as main workflow
+- 📁 Archives coverage reports as artifacts
+- 🛡️ No permission requirements
+- 🔧 Recommended for forks and restricted repositories
 
 ### 2. `.github/workflows/test-matrix.yml` - Cross-Platform Tests
 **Purpose**: Comprehensive testing across different operating systems and Node.js versions
@@ -155,13 +164,30 @@ Add new steps to the workflows:
 5. **Consistent Environment**: Same test environment every time
 6. **Documentation**: Clear setup and usage instructions
 
+## 🔧 Permission Issue Resolution
+
+### Problem
+The original workflow encountered a "Resource not accessible by integration" error when trying to comment on pull requests. This is a common GitHub Actions permission issue.
+
+### Solution
+I've implemented a two-workflow approach:
+
+1. **Main Workflow (`test.yml`)**: Includes PR commenting with proper permissions
+2. **Fallback Workflow (`test-simple.yml`)**: Same functionality without PR comments
+
+### Recommendation
+- Use `test-simple.yml` for immediate, reliable testing
+- Use `test.yml` if you need PR comments and have proper repository permissions
+- The simple workflow archives coverage reports as artifacts for easy access
+
 ## 🎯 Next Steps
 
-1. **Fix Failing Tests**: Address the 8 failing tests for 100% pass rate
-2. **Improve Coverage**: Add more tests to increase coverage
-3. **Add E2E Tests**: Consider adding Cypress or Playwright
-4. **Performance Testing**: Add performance benchmarks
-5. **Security Scanning**: Add security vulnerability checks
+1. **Choose Workflow**: Select between `test.yml` or `test-simple.yml` based on your needs
+2. **Fix Failing Tests**: Address the 8 failing tests for 100% pass rate
+3. **Improve Coverage**: Add more tests to increase coverage
+4. **Add E2E Tests**: Consider adding Cypress or Playwright
+5. **Performance Testing**: Add performance benchmarks
+6. **Security Scanning**: Add security vulnerability checks
 
 ## 🔗 Integration
 

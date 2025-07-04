@@ -10,6 +10,10 @@ jobs:
   test:
     name: 🧪 Jest Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
 
     strategy:
       matrix:
@@ -44,7 +48,7 @@ jobs:
         continue-on-error: true
         id: jest-tests
 
-      - name: � Test Results Summary
+      - name: 📝 Test Results Summary
         if: always()
         run: |
           echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
@@ -53,7 +57,7 @@ jobs:
           echo "- Coverage Report: Generated" >> $GITHUB_STEP_SUMMARY
           echo "- Timestamp: $(date)" >> $GITHUB_STEP_SUMMARY
 
-      - name: �📊 Upload coverage reports to Codecov
+      - name: 📊 Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -62,9 +66,65 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
 
+      - name: 📊 Generate coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Percentage |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|------------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Statements | $(cat coverage/coverage-summary.json | jq -r '.total.statements.pct')% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Branches | $(cat coverage/coverage-summary.json | jq -r '.total.branches.pct')% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Functions | $(cat coverage/coverage-summary.json | jq -r '.total.functions.pct')% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Lines | $(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')% |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Node.js Version:** ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ⚠️ Coverage Summary" >> $GITHUB_STEP_SUMMARY
+            echo "Coverage summary not available - tests may have failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: � Create PR comment
+        if: github.event_name == 'pull_request' && always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            STATEMENTS=$(cat coverage/coverage-summary.json | jq -r '.total.statements.pct')
+            BRANCHES=$(cat coverage/coverage-summary.json | jq -r '.total.branches.pct')
+            FUNCTIONS=$(cat coverage/coverage-summary.json | jq -r '.total.functions.pct')
+            LINES=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')
+            
+            cat > pr-comment.md << EOF
+          ## 🧪 Test Results - Node.js ${{ matrix.node-version }}
+          
+          **Test Status:** ${{ steps.jest-tests.outcome }}
+          
+          ### 📊 Coverage Summary
+          | Metric | Percentage |
+          |--------|------------|
+          | Statements | ${STATEMENTS}% |
+          | Branches | ${BRANCHES}% |
+          | Functions | ${FUNCTIONS}% |
+          | Lines | ${LINES}% |
+          
+          *Updated: $(date)*
+          EOF
+          else
+            cat > pr-comment.md << EOF
+          ## 🧪 Test Results - Node.js ${{ matrix.node-version }}
+          
+          **Test Status:** ${{ steps.jest-tests.outcome }}
+          
+          ### ⚠️ Coverage Summary
+          Coverage data not available - tests may have failed
+          
+          *Updated: $(date)*
+          EOF
+          fi
+
       - name: 📈 Comment coverage on PR
-        if: github.event_name == 'pull_request'
-        uses: romeovs/lcov-reporter-action@v0.3.1
+        if: github.event_name == 'pull_request' && always()
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          lcov-file: ./coverage/lcov.info
+          recreate: true
+          path: pr-comment.md

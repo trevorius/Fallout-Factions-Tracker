@@ -13,7 +13,17 @@ This directory contains GitHub Actions workflows for automated testing and quali
 - 🏗️ Build verification
 - 🧪 Jest unit tests with coverage
 - 📊 Codecov integration for coverage reports
-- 📈 PR coverage comments
+- 📈 PR coverage comments (requires permissions)
+
+**Note:** This workflow includes PR commenting which requires proper repository permissions. If you encounter permission errors, use the `test-simple.yml` workflow instead.
+
+### 1a. `test-simple.yml` - Simplified Test Workflow (Fallback)
+**Triggers:** Push and Pull Requests to `main` and `develop` branches
+
+**Features:**
+- ✅ Same as main workflow but without PR comments
+- 📁 Archives coverage reports as artifacts
+- 🛡️ No permission issues
 
 **Steps:**
 1. Checkout code
@@ -94,3 +104,35 @@ Remove platforms from the `matrix.os` array if not needed.
 - **Parallel Execution**: Matrix jobs run in parallel
 - **Worker Limits**: `--maxWorkers=2` prevents resource exhaustion in CI
 - **Watch Mode Disabled**: `--watchAll=false` for CI environments
+
+## 🔧 Troubleshooting
+
+### Permission Errors (403 Forbidden)
+If you see errors like "Resource not accessible by integration" or "403 Forbidden":
+
+1. **Use the simplified workflow**: Switch to `test-simple.yml` which doesn't require PR comment permissions
+2. **Check repository settings**: Ensure "Actions" have proper permissions in repository settings
+3. **Fork restrictions**: Forked repositories may have limited permissions for security
+
+### Common Issues
+
+#### Coverage Reports Not Generated
+- Ensure tests are running successfully
+- Check that Jest is configured to generate coverage reports
+- Verify `coverage/` directory is created
+
+#### Tests Failing in CI but Passing Locally
+- Check environment variables are set correctly
+- Ensure all dependencies are installed with `npm ci`
+- Verify Node.js version compatibility
+
+#### Slow Test Execution
+- Use `--maxWorkers=2` for CI environments
+- Consider splitting large test suites
+- Optimize test setup and teardown
+
+### Workflow Selection Guide
+
+- **Use `test.yml`**: If you have full repository permissions and want PR comments
+- **Use `test-simple.yml`**: If you encounter permission issues or prefer simpler setup
+- **Use `test-matrix.yml`**: For comprehensive cross-platform testing
