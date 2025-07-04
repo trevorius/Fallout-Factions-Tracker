@@ -7,7 +7,9 @@ import { locales, defaultLocale } from '@/i18n';
 const intlMiddleware = createMiddleware({
   locales,
   defaultLocale,
-  localePrefix: 'always'
+  localePrefix: 'always',
+  // Don't generate alternate links to prevent domain issues
+  alternateLinks: false
 });
 
 export default auth(async (req) => {
@@ -17,8 +19,14 @@ export default auth(async (req) => {
   // First apply the i18n middleware to handle locale routing
   const intlResponse = intlMiddleware(req);
   
-  // If intl middleware returns a redirect, use it
+  // If intl middleware returns a redirect, ensure it preserves the domain
   if (intlResponse && intlResponse.status >= 300 && intlResponse.status < 400) {
+    const location = intlResponse.headers.get('location');
+    if (location && location.startsWith('/')) {
+      // If it's a relative redirect, preserve the current domain
+      const newUrl = new URL(location, req.url);
+      return NextResponse.redirect(newUrl);
+    }
     return intlResponse;
   }
 
