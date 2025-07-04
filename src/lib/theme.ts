@@ -86,43 +86,43 @@ export const themeConfig = {
     "chart-5": "340 75% 55%",
   },
   [Theme.BLUE]: {
-    // Game-like Blue & Gold Theme
-    background: "220 85% 12%", // Deep blue background
-    foreground: "45 100% 70%", // Gold text
-    card: "220 80% 15%", // Slightly lighter blue for cards
-    cardForeground: "45 100% 75%", // Bright gold for card text
-    popover: "220 80% 15%", // Same as card
-    popoverForeground: "45 100% 75%",
-    primary: "45 100% 60%", // Rich gold for primary elements
-    primaryForeground: "220 85% 12%", // Dark blue text on gold
-    secondary: "220 60% 20%", // Muted blue for secondary
-    secondaryForeground: "45 90% 80%", // Light gold
-    muted: "220 70% 18%", // Muted blue
-    mutedForeground: "45 60% 60%", // Muted gold
-    accent: "45 95% 65%", // Bright gold accent
-    accentForeground: "220 85% 12%", // Dark blue on accent
+    // Game-like Blue & Gold Theme - Updated Palette
+    background: "210 40% 53%", // Main background
+    foreground: "56 89% 72%", // Gold text
+    card: "213 43% 37%", // Cards
+    cardForeground: "56 89% 72%", // Gold text on cards
+    popover: "213 43% 37%", // Popover same as card
+    popoverForeground: "56 89% 72%",
+    primary: "56 89% 72%", // Gold for primary elements
+    primaryForeground: "213 43% 20%", // Darker blue text on gold
+    secondary: "213 43% 45%", // Muted blue for secondary
+    secondaryForeground: "56 89% 72%", // Gold
+    muted: "213 43% 42%", // Muted blue
+    mutedForeground: "56 89% 85%", // Lighter, muted gold
+    accent: "56 89% 72%", // Gold accent
+    accentForeground: "213 43% 20%", // Darker blue on accent
     destructive: "0 84.2% 60.2%", // Keep red for destructive
     destructiveForeground: "0 0% 98%",
-    border: "220 50% 25%", // Blue-gray borders
-    input: "220 60% 20%", // Dark blue inputs
-    ring: "45 100% 70%", // Gold focus ring
+    border: "213 43% 50%", // Softer blue borders
+    input: "213 43% 45%", // Dark blue inputs
+    ring: "56 89% 72%", // Gold focus ring
 
     // Sidebar colors - Blue & Gold theme
-    sidebarBackground: "220 75% 10%", // Dark blue sidebar
-    sidebarForeground: "45 100% 75%", // Gold sidebar text
-    sidebarPrimary: "45 100% 65%", // Gold primary
-    sidebarPrimaryForeground: "220 85% 12%", // Dark blue text on gold
-    sidebarAccent: "220 60% 18%", // Blue accent
-    sidebarAccentForeground: "45 100% 75%", // Gold accent text
-    sidebarBorder: "220 50% 20%", // Blue border
-    sidebarRing: "45 100% 70%", // Gold focus ring
+    sidebarBackground: "213 43% 32%", // Dark blue sidebar
+    sidebarForeground: "56 89% 72%", // Gold sidebar text
+    sidebarPrimary: "56 89% 72%", // Gold primary
+    sidebarPrimaryForeground: "213 43% 20%", // Dark blue text on gold
+    sidebarAccent: "213 43% 40%", // Blue accent
+    sidebarAccentForeground: "56 89% 72%", // Gold accent text
+    sidebarBorder: "213 43% 45%", // Blue border
+    sidebarRing: "56 89% 72%", // Gold focus ring
 
     // Charts - Blue & Gold variations
-    "chart-1": "45 100% 65%", // Gold
-    "chart-2": "200 80% 55%", // Light blue
-    "chart-3": "220 70% 40%", // Medium blue
-    "chart-4": "50 90% 60%", // Yellow-gold
-    "chart-5": "240 60% 50%", // Purple-blue
+    "chart-1": "56 89% 72%", // Gold
+    "chart-2": "210 40% 65%", // Lighter blue
+    "chart-3": "213 43% 45%", // Medium blue
+    "chart-4": "50 90% 80%", // Yellow-gold
+    "chart-5": "200 50% 60%", // Cyan-blue
   },
 
   // Typography
