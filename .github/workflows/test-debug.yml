@@ -1,0 +1,100 @@
+name: 🔍 Debug Failing Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_pattern:
+        description: 'Test pattern to run (optional)'
+        required: false
+        default: ''
+  push:
+    branches: [ cursor/add-unit-tests-for-actions-b2ae ]
+
+jobs:
+  debug-tests:
+    name: 🔍 Debug Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run ESLint
+        run: npm run lint
+
+      - name: 🏗️ Build project
+        run: npm run build
+        env:
+          DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
+
+      - name: 🧪 Run Jest tests with maximum verbosity
+        run: |
+          echo "Running tests with maximum detail..."
+          if [ -n "${{ github.event.inputs.test_pattern }}" ]; then
+            echo "Running specific test pattern: ${{ github.event.inputs.test_pattern }}"
+            npm test -- --verbose --no-coverage --testNamePattern="${{ github.event.inputs.test_pattern }}" --watchAll=false
+          else
+            echo "Running all tests with detailed output..."
+            npm test -- --verbose --no-coverage --watchAll=false --detectOpenHandles --forceExit
+          fi
+        env:
+          NODE_ENV: test
+          DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
+        continue-on-error: true
+        id: debug-tests
+
+      - name: 📊 List failing test files
+        if: always()
+        run: |
+          echo "## 🔍 Test Debug Information" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Status: ${{ steps.debug-tests.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Node.js Version: 20.x" >> $GITHUB_STEP_SUMMARY
+          echo "- Timestamp: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.debug-tests.outcome }}" = "failure" ]; then
+            echo "### ❌ Test Failures Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Common failing tests based on previous runs:**" >> $GITHUB_STEP_SUMMARY
+            echo "- \`src/__tests__/hooks/use-toast.test.ts\` - Toast hook functionality" >> $GITHUB_STEP_SUMMARY
+            echo "- \`src/__tests__/actions/user.test.ts\` - User action tests" >> $GITHUB_STEP_SUMMARY
+            echo "- \`src/__tests__/auth/auth.test.ts\` - Authentication tests" >> $GITHUB_STEP_SUMMARY
+            echo "- \`src/__tests__/lib/utils.test.ts\` - Utility function tests" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔧 Debugging Steps" >> $GITHUB_STEP_SUMMARY
+            echo "1. Check the detailed test output above" >> $GITHUB_STEP_SUMMARY
+            echo "2. Focus on the specific failing assertions" >> $GITHUB_STEP_SUMMARY
+            echo "3. Run tests locally: \`npm test -- --verbose --testNamePattern=\"failing-test-name\"\`" >> $GITHUB_STEP_SUMMARY
+            echo "4. Check mock implementations and test data" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ✅ All Tests Passed" >> $GITHUB_STEP_SUMMARY
+            echo "No debugging needed - all tests are working correctly!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 📁 Archive test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-debug-artifacts
+          path: |
+            coverage/
+            *.log
+          retention-days: 7
+
+      - name: 🔍 Show environment info
+        if: always()
+        run: |
+          echo "### 🔧 Environment Information" >> $GITHUB_STEP_SUMMARY
+          echo "- Node.js: $(node --version)" >> $GITHUB_STEP_SUMMARY
+          echo "- npm: $(npm --version)" >> $GITHUB_STEP_SUMMARY
+          echo "- Jest: $(npx jest --version)" >> $GITHUB_STEP_SUMMARY
+          echo "- TypeScript: $(npx tsc --version)" >> $GITHUB_STEP_SUMMARY

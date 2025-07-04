@@ -1,16 +1,19 @@
-const { expect, describe, it } = require('@jest/globals');
-
+import { expect, describe, it, beforeEach } from '@jest/globals';
 import {
   createOrganization,
   deleteOrganization,
   getOrganizations,
+  getUserOrganizationRole,
 } from '@/app/actions/organization';
 import { auth } from '@/auth';
 import { createOrFindAccount } from '@/lib/auth/createAccount';
 import { prisma } from '@/lib/prisma';
+import type { Session } from 'next-auth';
+import type { User, Organization, OrganizationMember } from '@prisma/client';
 
-// Mock auth and prisma
+// Mock dependencies
 jest.mock('@/auth');
+jest.mock('@/lib/auth/createAccount');
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     organization: {
@@ -18,158 +21,442 @@ jest.mock('@/lib/prisma', () => ({
       findMany: jest.fn(),
       delete: jest.fn(),
     },
-    user: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
-    },
     organizationMember: {
       create: jest.fn(),
       deleteMany: jest.fn(),
+      findFirst: jest.fn(),
     },
   },
 }));
 
-jest.mock('@/lib/auth/createAccount', () => ({
-  createOrFindAccount: jest.fn(),
-}));
+// Type the mocked functions
+const mockAuth = auth as unknown as jest.MockedFunction<() => Promise<Session | null>>;
+const mockCreateOrFindAccount = createOrFindAccount as jest.MockedFunction<typeof createOrFindAccount>;
 
-describe('Organization Server Actions', () => {
-  const mockSuperAdminSession = {
-    user: {
-      id: '1',
-      email: 'admin@example.com',
-      isSuperAdmin: true,
-    },
-  };
+// Create typed mock helpers
+const mockPrismaOrganization = {
+  create: prisma.organization.create as jest.MockedFunction<typeof prisma.organization.create>,
+  findMany: prisma.organization.findMany as jest.MockedFunction<typeof prisma.organization.findMany>,
+  delete: prisma.organization.delete as jest.MockedFunction<typeof prisma.organization.delete>,
+};
 
-  const mockNonSuperAdminSession = {
-    user: {
-      id: '2',
-      email: 'user@example.com',
-      isSuperAdmin: false,
-    },
-  };
+const mockPrismaOrganizationMember = {
+  create: prisma.organizationMember.create as jest.MockedFunction<typeof prisma.organizationMember.create>,
+  deleteMany: prisma.organizationMember.deleteMany as jest.MockedFunction<typeof prisma.organizationMember.deleteMany>,
+  findFirst: prisma.organizationMember.findFirst as unknown as jest.MockedFunction<() => Promise<{ role: string } | null>>,
+};
 
+describe('Organization Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('createOrganization', () => {
-    const mockOrganizationData = {
-      name: 'Test Organization',
-      ownerEmail: 'owner@example.com',
-      ownerName: 'Test Owner',
-    };
-    // createOrFindAccount mocks to return a user
-    (createOrFindAccount as jest.Mock).mockResolvedValue({
-      id: '1',
-      email: mockOrganizationData.ownerEmail,
-      name: mockOrganizationData.ownerName,
-      password: 'password',
-    });
+    it('should create organization successfully when user is super admin', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: '1', 
+          email: 'admin@test.com',
+          name: 'Admin',
+          isSuperAdmin: true 
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-    it('should throw error if user is not super admin', async () => {
-      (auth as jest.Mock).mockResolvedValue(mockNonSuperAdminSession);
-
-      await expect(createOrganization(mockOrganizationData)).rejects.toThrow(
-        'Unauthorized'
-      );
-    });
-
-    it('should create organization with owner account and return temporary password', async () => {
-      (auth as jest.Mock).mockResolvedValue(mockSuperAdminSession);
-
-      const mockOrganization = { id: '1', ...mockOrganizationData };
-      const mockUser = {
-        id: '2',
-        email: mockOrganizationData.ownerEmail,
-        name: mockOrganizationData.ownerName,
+      const mockOrganization: Organization = { 
+        id: 'org-1', 
+        name: 'Test Org',
+        description: 'Test Organization Description',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      const mockUser: User = { 
+        id: 'user-1', 
+        email: 'owner@test.com',
+        name: 'Test Owner',
+        password: 'temp-password',
+        salt: 'salt',
+        isSuperAdmin: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
-      (prisma.organization.create as jest.Mock).mockResolvedValue(
-        mockOrganization
-      );
-      (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.organizationMember.create as jest.Mock).mockResolvedValue({
-        id: '3',
-        organizationId: mockOrganization.id,
-        userId: mockUser.id,
+      const mockMember: OrganizationMember = {
+        id: 'member-1',
+        organizationId: 'org-1',
+        userId: 'user-1',
         role: 'OWNER',
+        canPostMessages: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      mockPrismaOrganization.create.mockResolvedValue(mockOrganization);
+      mockCreateOrFindAccount.mockResolvedValue(mockUser);
+      mockPrismaOrganizationMember.create.mockResolvedValue(mockMember);
+
+      const data = {
+        name: 'Test Org',
+        ownerEmail: 'owner@test.com',
+        ownerName: 'Test Owner',
+      };
+
+      // Act
+      const result = await createOrganization(data);
+
+      // Assert
+      expect(result).toEqual({
+        organization: mockOrganization,
+        ownerEmail: 'owner@test.com',
+        temporaryPassword: 'temp-password',
       });
 
-      const result = await createOrganization(mockOrganizationData);
+      expect(mockPrismaOrganization.create).toHaveBeenCalledWith({
+        data: { name: 'Test Org' },
+      });
 
-      // Verify organization creation
-      expect(result.organization).toEqual(mockOrganization);
-      expect(prisma.organization.create).toHaveBeenCalled();
-      expect(prisma.organizationMember.create).toHaveBeenCalled();
+      expect(mockCreateOrFindAccount).toHaveBeenCalledWith('owner@test.com', 'Test Owner');
+
+      expect(mockPrismaOrganizationMember.create).toHaveBeenCalledWith({
+        data: {
+          organizationId: 'org-1',
+          userId: 'user-1',
+          role: 'OWNER',
+        },
+      });
+    });
+
+    it('should throw error when user is not super admin', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: '1', 
+          email: 'user@test.com',
+          name: 'User',
+          isSuperAdmin: false 
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
+
+      const data = {
+        name: 'Test Org',
+        ownerEmail: 'owner@test.com',
+        ownerName: 'Test Owner',
+      };
+
+      // Act & Assert
+      await expect(createOrganization(data)).rejects.toThrow('Unauthorized');
+      expect(mockPrismaOrganization.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when no session exists', async () => {
+      // Arrange
+      mockAuth.mockResolvedValue(null);
+
+      const data = {
+        name: 'Test Org',
+        ownerEmail: 'owner@test.com',
+        ownerName: 'Test Owner',
+      };
+
+      // Act & Assert
+      await expect(createOrganization(data)).rejects.toThrow('Unauthorized');
+    });
+
+    it('should handle empty password from createOrFindAccount', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: '1', 
+          email: 'admin@test.com',
+          name: 'Admin',
+          isSuperAdmin: true 
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
+
+      const mockOrganization: Organization = { 
+        id: 'org-1', 
+        name: 'Test Org',
+        description: 'Test Organization Description',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      const mockUser: User = { 
+        id: 'user-1', 
+        email: 'owner@test.com',
+        name: 'Test Owner',
+        password: '',
+        salt: 'salt',
+        isSuperAdmin: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const mockMember: OrganizationMember = {
+        id: 'member-1',
+        organizationId: 'org-1',
+        userId: 'user-1',
+        role: 'OWNER',
+        canPostMessages: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      mockPrismaOrganization.create.mockResolvedValue(mockOrganization);
+      mockCreateOrFindAccount.mockResolvedValue(mockUser);
+      mockPrismaOrganizationMember.create.mockResolvedValue(mockMember);
+
+      const data = {
+        name: 'Test Org',
+        ownerEmail: 'owner@test.com',
+        ownerName: 'Test Owner',
+      };
+
+      // Act
+      const result = await createOrganization(data);
+
+      // Assert
+      expect(result.temporaryPassword).toBe('');
     });
   });
 
   describe('getOrganizations', () => {
-    it('should throw error if user is not super admin', async () => {
-      (auth as jest.Mock).mockResolvedValue(mockNonSuperAdminSession);
+    it('should return organizations when user is super admin', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: '1', 
+          email: 'admin@test.com',
+          name: 'Admin',
+          isSuperAdmin: true 
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      await expect(getOrganizations()).rejects.toThrow('Unauthorized');
-    });
+      type OrganizationWithMembers = Organization & {
+        members: (OrganizationMember & {
+          user: Pick<User, 'id' | 'name' | 'email'>;
+        })[];
+      };
 
-    it('should return list of organizations', async () => {
-      (auth as jest.Mock).mockResolvedValue(mockSuperAdminSession);
-
-      const mockOrganizations = [
-        { id: '1', name: 'Org 1' },
-        { id: '2', name: 'Org 2' },
+      const mockOrganizations: OrganizationWithMembers[] = [
+        {
+          id: 'org-1',
+          name: 'Org 1',
+          description: 'Organization 1 Description',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          members: [
+            {
+              id: 'member-1',
+              organizationId: 'org-1',
+              userId: 'user-1',
+              role: 'OWNER',
+              canPostMessages: true,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              user: { 
+                id: 'user-1', 
+                name: 'User 1', 
+                email: 'user1@test.com' 
+              },
+            },
+          ],
+        },
       ];
 
-      (prisma.organization.findMany as jest.Mock).mockResolvedValue(
-        mockOrganizations
-      );
+      mockPrismaOrganization.findMany.mockResolvedValue(mockOrganizations);
 
+      // Act
       const result = await getOrganizations();
 
+      // Assert
       expect(result).toEqual(mockOrganizations);
-      expect(prisma.organization.findMany).toHaveBeenCalled();
+      expect(mockPrismaOrganization.findMany).toHaveBeenCalledWith({
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    it('should throw error when user is not super admin', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: '1', 
+          email: 'user@test.com',
+          name: 'User',
+          isSuperAdmin: false 
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
+
+      // Act & Assert
+      await expect(getOrganizations()).rejects.toThrow('Unauthorized');
+      expect(mockPrismaOrganization.findMany).not.toHaveBeenCalled();
     });
   });
 
   describe('deleteOrganization', () => {
-    it('should throw error if user is not super admin', async () => {
-      (auth as jest.Mock).mockResolvedValue(mockNonSuperAdminSession);
+    it('should delete organization successfully when user is super admin', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: '1', 
+          email: 'admin@test.com',
+          name: 'Admin',
+          isSuperAdmin: true 
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      await expect(deleteOrganization('1')).rejects.toThrow('Unauthorized');
+      const mockDeletedOrg: Organization = { 
+        id: 'org-1', 
+        name: 'Deleted Org',
+        description: 'Deleted Organization Description',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      mockPrismaOrganizationMember.deleteMany.mockResolvedValue({ count: 1 });
+      mockPrismaOrganization.delete.mockResolvedValue(mockDeletedOrg);
+
+      // Act
+      const result = await deleteOrganization('org-1');
+
+      // Assert
+      expect(result).toEqual(mockDeletedOrg);
+      expect(mockPrismaOrganizationMember.deleteMany).toHaveBeenCalledWith({
+        where: { organizationId: 'org-1' },
+      });
+      expect(mockPrismaOrganization.delete).toHaveBeenCalledWith({
+        where: { id: 'org-1' },
+      });
     });
 
-    it('should delete organization and its members', async () => {
-      (auth as jest.Mock).mockResolvedValue(mockSuperAdminSession);
+    it('should throw error when user is not super admin', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: '1', 
+          email: 'user@test.com',
+          name: 'User',
+          isSuperAdmin: false 
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      const organizationId = '1';
-      (prisma.organizationMember.deleteMany as jest.Mock).mockResolvedValue({
-        count: 2,
-      });
-      (prisma.organization.delete as jest.Mock).mockResolvedValue({
-        id: organizationId,
-      });
+      // Act & Assert
+      await expect(deleteOrganization('org-1')).rejects.toThrow('Unauthorized');
+      expect(mockPrismaOrganizationMember.deleteMany).not.toHaveBeenCalled();
+    });
 
-      await deleteOrganization(organizationId);
+    it('should throw error when organization not found', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: '1', 
+          email: 'admin@test.com',
+          name: 'Admin',
+          isSuperAdmin: true 
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
 
-      expect(prisma.organizationMember.deleteMany).toHaveBeenCalledWith({
-        where: { organizationId },
-      });
-      expect(prisma.organization.delete).toHaveBeenCalledWith({
-        where: { id: organizationId },
+      mockPrismaOrganizationMember.deleteMany.mockRejectedValue(new Error());
+
+      // Act & Assert
+      await expect(deleteOrganization('org-1')).rejects.toThrow('Organization not found');
+    });
+  });
+
+  describe('getUserOrganizationRole', () => {
+    it('should return user organization role when session exists', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: 'user-1',
+          email: 'user@test.com',
+          name: 'User',
+          isSuperAdmin: false
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
+
+      mockPrismaOrganizationMember.findFirst.mockResolvedValue({ role: 'OWNER' });
+
+      // Act
+      const result = await getUserOrganizationRole('org-1', 'user-1');
+
+      // Assert
+      expect(result).toEqual({ role: 'OWNER' });
+      expect(mockPrismaOrganizationMember.findFirst).toHaveBeenCalledWith({
+        where: {
+          organizationId: 'org-1',
+          userId: 'user-1',
+        },
+        select: {
+          role: true,
+        },
       });
     });
 
-    it('should throw error if organization does not exist', async () => {
-      (auth as jest.Mock).mockResolvedValue(mockSuperAdminSession);
+    it('should return null when no session exists', async () => {
+      // Arrange
+      mockAuth.mockResolvedValue(null);
 
-      (prisma.organization.delete as jest.Mock).mockRejectedValue(
-        new Error('Organization not found')
-      );
+      // Act
+      const result = await getUserOrganizationRole('org-1', 'user-1');
 
-      await expect(deleteOrganization('999')).rejects.toThrow(
-        'Organization not found'
-      );
+      // Assert
+      expect(result).toBeNull();
+      expect(mockPrismaOrganizationMember.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when database operation fails', async () => {
+      // Arrange
+      const mockSession: Session = {
+        user: { 
+          id: 'user-1',
+          email: 'user@test.com',
+          name: 'User',
+          isSuperAdmin: false
+        },
+        expires: new Date().toISOString()
+      };
+      mockAuth.mockResolvedValue(mockSession);
+
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      mockPrismaOrganizationMember.findFirst.mockRejectedValue(new Error('DB Error'));
+
+      // Act & Assert
+      await expect(getUserOrganizationRole('org-1', 'user-1')).rejects.toThrow('Failed to get user organisation role');
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
     });
   });
 });

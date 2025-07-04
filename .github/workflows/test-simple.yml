@@ -1,0 +1,89 @@
+name: 🧪 Simple Tests (No PR Comments)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: 🧪 Jest Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run ESLint
+        run: npm run lint
+
+      - name: 🏗️ Build project
+        run: npm run build
+        env:
+          DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
+
+      - name: 🧪 Run Jest tests
+        run: npm test -- --coverage --watchAll=false --passWithNoTests --verbose
+        env:
+          NODE_ENV: test
+          DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
+        id: jest-tests
+
+      - name: 📊 Generate coverage summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Node.js Version: ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Status: ${{ steps.jest-tests.outcome }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.jest-tests.outcome }}" = "failure" ]; then
+            echo "- ❌ **TESTS FAILED** - See logs for details" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔍 Check the Jest test step above for failing test details" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- Timestamp: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "### 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Percentage |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|------------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Statements | $(cat coverage/coverage-summary.json | jq -r '.total.statements.pct')% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Branches | $(cat coverage/coverage-summary.json | jq -r '.total.branches.pct')% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Functions | $(cat coverage/coverage-summary.json | jq -r '.total.functions.pct')% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Lines | $(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')% |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⚠️ Coverage Summary" >> $GITHUB_STEP_SUMMARY
+            echo "Coverage data not available - tests may have failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 📊 Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: 📁 Archive coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports-${{ matrix.node-version }}
+          path: coverage/
+          retention-days: 30
